@@ -1,0 +1,14 @@
+[profile.default]
+src = "src"
+out = "out"
+test = "test"
+script = "script"
+cache_path = "cache"
+broadcast = "broadcast"
+libs = ["lib"]
+
+remappings = [
+  "@interop-lib/=lib/interop-lib/src/"
+]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
