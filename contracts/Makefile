@@ -1,4 +1,4 @@
-.PHONY: smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature
+.PHONY: smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature
 
 smoke-production-mode:
 	@./script/ops/smoke-production-mode.sh
@@ -16,6 +16,9 @@ dispatch-production-lock-verify:
 
 dispatch-release-evidence-sequence:
 	@./script/ops/dispatch-release-evidence-sequence.sh
+
+bootstrap-release-secrets:
+	@./script/ops/bootstrap-release-secrets.sh
 
 rehearse-production-lock:
 	@./script/ops/rehearse-production-lock.sh

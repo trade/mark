@@ -137,6 +137,14 @@ Required repository secrets:
 - `MARK_STAGING_DEPLOYER_PRIVATE_KEY`
 - `MARK_DEPLOYER_PRIVATE_KEY`
 
+Optional bootstrap helper (from `contracts/`):
+```bash
+MARK_STAGING_DEPLOYER_PRIVATE_KEY=<0x_staging_pk> \
+MARK_DEPLOYER_PRIVATE_KEY=<0x_mainnet_pk> \
+DISPATCH_EXECUTE=true \
+make bootstrap-release-secrets
+```
+
 ### Evidence Manifest (Hash Integrity Baseline)
 
 Workflow:
