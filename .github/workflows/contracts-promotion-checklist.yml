@@ -1,0 +1,78 @@
+name: Contracts Promotion Checklist
+
+on:
+  workflow_dispatch:
+    inputs:
+      staging_run_id:
+        description: "Optional override for staging rehearsal run id"
+        required: false
+        default: ""
+        type: string
+      mainnet_run_id:
+        description: "Optional override for mainnet readiness run id"
+        required: false
+        default: ""
+        type: string
+      checklist_path:
+        description: "Checklist JSON path under contracts/"
+        required: false
+        default: "broadcast/mark-promotion-checklist.json"
+        type: string
+      checklist_markdown_path:
+        description: "Checklist markdown path under contracts/"
+        required: false
+        default: "broadcast/mark-promotion-checklist.md"
+        type: string
+      freshness_hours:
+        description: "Max allowed age (hours) for staging/mainnet evidence runs"
+        required: false
+        default: "72"
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  promotion-checklist:
+    name: Generate Promotion Checklist
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      STAGING_RUN_ID: ${{ inputs.staging_run_id }}
+      MAINNET_RUN_ID: ${{ inputs.mainnet_run_id }}
+      PROMOTION_CHECKLIST_PATH: ${{ inputs.checklist_path }}
+      PROMOTION_CHECKLIST_MARKDOWN_PATH: ${{ inputs.checklist_markdown_path }}
+      FRESHNESS_HOURS: ${{ inputs.freshness_hours }}
+      STRICT_PROMOTION_CHECKS: "true"
+      GENERATED_BY: "github-actions"
+
+    steps:
+      - name: Enforce main branch for promotion checklist
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Promotion checklist workflow must run from main branch. Current: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Generate checklist artifact
+        run: make generate-promotion-checklist
+
+      - name: Upload checklist artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mark-promotion-checklist
+          path: |
+            contracts/${{ inputs.checklist_path }}
+            contracts/${{ inputs.checklist_markdown_path }}
+          if-no-files-found: error

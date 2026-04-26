@@ -1,0 +1,105 @@
+name: Contracts Staging Rehearsal
+
+on:
+  workflow_dispatch:
+    inputs:
+      rpc_url:
+        description: "Staging RPC URL (e.g. OP Sepolia)"
+        required: true
+        type: string
+      owner_address:
+        description: "Owner/default admin address (defaults to deployer if blank)"
+        required: false
+        default: ""
+        type: string
+      settlement_operator:
+        description: "Settlement operator address"
+        required: true
+        type: string
+      bridge_operator:
+        description: "Bridge operator address (defaults to settlement operator if blank)"
+        required: false
+        default: ""
+        type: string
+      destination_chain_id:
+        description: "Bridge destination chain id"
+        required: false
+        default: "10"
+        type: string
+      attester_address:
+        description: "Optional attester address (0x0 to skip attester check)"
+        required: false
+        default: "0x0000000000000000000000000000000000000000"
+        type: string
+      release_artifact_path:
+        description: "Release artifact path under contracts/"
+        required: false
+        default: "broadcast/mark-staging-release.json"
+        type: string
+      rehearsal_artifact_path:
+        description: "Rehearsal artifact path under contracts/"
+        required: false
+        default: "broadcast/mark-staging-rehearsal.json"
+        type: string
+
+jobs:
+  staging-rehearsal:
+    name: Staging Rehearsal
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC_URL: ${{ inputs.rpc_url }}
+      PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
+      MARK_RYLA_OWNER: ${{ inputs.owner_address }}
+      MARK_SETTLEMENT_OPERATOR: ${{ inputs.settlement_operator }}
+      MARK_BRIDGE_OPERATOR: ${{ inputs.bridge_operator }}
+      MARK_BRIDGE_DESTINATION_CHAIN_ID: ${{ inputs.destination_chain_id }}
+      MARK_SETTLEMENT_ATTESTER: ${{ inputs.attester_address }}
+      MARK_RELEASE_ARTIFACT_PATH: ${{ inputs.release_artifact_path }}
+      MARK_REHEARSAL_ARTIFACT_PATH: ${{ inputs.rehearsal_artifact_path }}
+      MARK_GIT_COMMIT: ${{ github.sha }}
+
+    steps:
+      - name: Enforce dev or main branch for rehearsal
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Staging rehearsal must run from dev or main branch. Current: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Ensure required staging secret is present
+        run: |
+          test -n "${PRIVATE_KEY}" || {
+            echo "MARK_STAGING_DEPLOYER_PRIVATE_KEY secret is required";
+            exit 1;
+          }
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run staging rehearsal (release + production lock verify)
+        run: make rehearse-production-lock
+
+      - name: Upload release artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mark-staging-release
+          path: contracts/${{ inputs.release_artifact_path }}
+          if-no-files-found: ignore
+
+      - name: Upload rehearsal artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mark-staging-rehearsal
+          path: contracts/${{ inputs.rehearsal_artifact_path }}
+          if-no-files-found: ignore

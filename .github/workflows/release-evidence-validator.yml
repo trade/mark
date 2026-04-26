@@ -1,0 +1,127 @@
+name: Release Evidence Validator
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-release-evidence:
+    name: Validate Release Evidence
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate release PR fields and evidence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = (pr.body || "").replace(/\r/g, "");
+            const errors = [];
+
+            const requiredFields = [
+              "Release tag/version candidate",
+              "Commit range / PR range",
+              "Contracts affected",
+              "Mainnet readiness run URL",
+              "Readiness artifact SHA256",
+              "RPC target",
+              "Artifact path",
+              "`MARK_GIT_COMMIT` value",
+              "Environment used: `production`",
+            ];
+
+            const getFieldValue = (label) => {
+              const esc = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+              const re = new RegExp(`^-\\s*${esc}:\\s*(.*)$`, "m");
+              const m = body.match(re);
+              return m ? m[1].trim() : null;
+            };
+
+            const isPlaceholder = (v) => {
+              if (!v) return true;
+              const normalized = v.toLowerCase();
+              const bad = ["tbd", "todo", "n/a", "-", "<fill>", "<value>", "<to be filled>"];
+              return bad.includes(normalized);
+            };
+
+            for (const label of requiredFields) {
+              const value = getFieldValue(label);
+              if (value === null) {
+                errors.push(`Missing field line: "${label}:"`);
+                continue;
+              }
+              if (isPlaceholder(value)) {
+                errors.push(`Field is empty/placeholder: "${label}"`);
+              }
+            }
+
+            // Validate environment exactness
+            const envValue = getFieldValue("Environment used: `production`");
+            if (envValue !== "`production`" && envValue !== "production") {
+              errors.push('Environment must be "production"');
+            }
+
+            // Validate MARK_GIT_COMMIT format (short or full hex)
+            const commitValue = getFieldValue("`MARK_GIT_COMMIT` value");
+            if (commitValue && !/^[0-9a-f]{7,40}$/i.test(commitValue)) {
+              errors.push("`MARK_GIT_COMMIT` value must be a 7-40 char hex commit id");
+            }
+
+            // Validate readiness URL points to GitHub Actions
+            const runUrl = getFieldValue("Mainnet readiness run URL");
+            if (runUrl && !/^https:\/\/github\.com\/.+\/actions\/runs\/\d+/i.test(runUrl)) {
+              errors.push("Mainnet readiness run URL must be a GitHub Actions run URL");
+            }
+
+            // Validate SHA256 format
+            const sha256 = getFieldValue("Readiness artifact SHA256");
+            if (sha256 && !/^[a-f0-9]{64}$/i.test(sha256)) {
+              errors.push("Readiness artifact SHA256 must be 64 hex characters");
+            }
+
+            // If artifact path exists in PR head, validate core JSON fields.
+            const artifactPath = getFieldValue("Artifact path");
+            if (artifactPath && !isPlaceholder(artifactPath)) {
+              const repo = context.repo;
+              const ref = pr.head.sha;
+              const normalizedPath = artifactPath.replace(/^\/+/, "");
+              try {
+                const file = await github.rest.repos.getContent({
+                  owner: repo.owner,
+                  repo: repo.repo,
+                  path: normalizedPath,
+                  ref,
+                });
+                if (!Array.isArray(file.data) && file.data.type === "file" && file.data.content) {
+                  const raw = Buffer.from(file.data.content, "base64").toString("utf8");
+                  try {
+                    const json = JSON.parse(raw);
+                    if (json.protocol !== "MARK") errors.push('Artifact JSON "protocol" must be "MARK"');
+                    if (json.tokenSymbol !== "RYLA") errors.push('Artifact JSON "tokenSymbol" must be "RYLA"');
+                    if (!json.chainId) errors.push('Artifact JSON must include non-zero "chainId"');
+                    if (!json.gitCommit) errors.push('Artifact JSON must include "gitCommit"');
+                  } catch (e) {
+                    errors.push(`Artifact path exists but is not valid JSON: ${normalizedPath}`);
+                  }
+                }
+              } catch (e) {
+                // Artifact file might not be committed in repo; this is acceptable if URL/hash are present.
+              }
+            }
+
+            if (errors.length > 0) {
+              core.setFailed("Release evidence validation failed:\n- " + errors.join("\n- "));
+            } else {
+              core.info("Release evidence validation passed.");
+            }
+

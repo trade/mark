@@ -1,0 +1,66 @@
+name: Release PR Checklist
+
+on:
+  pull_request_target:
+    branches:
+      - main
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
+
+jobs:
+  validate-release-pr:
+    name: Validate Release PR Checklist
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate required release checkboxes
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          body="${PR_BODY//$'\r'/}"
+          missing=()
+
+          require_checked() {
+            local label="$1"
+            if ! grep -Fq -- "- [x] ${label}" <<< "$body"; then
+              missing+=("${label}")
+            fi
+          }
+
+          # Required evidence
+          require_checked '`Contracts Unit + Invariant` CI passed'
+          require_checked '`Contracts Release Check (Dry-Run + Execute Smoke)` CI passed'
+          require_checked '`Slither Core Contracts` CI passed'
+          require_checked '`Contracts Mainnet Readiness` run from `main` branch'
+          require_checked 'Readiness artifact uploaded and reviewed'
+          require_checked 'Verify output reviewed (role/config expectations)'
+
+          # Required sign-off confirmations
+          require_checked 'Protocol owner/admin signer approval'
+          require_checked 'Security reviewer approval'
+          require_checked 'Deployment operator approval'
+
+          # Require explicit go/no-go decision
+          go_checked=0
+          nogo_checked=0
+          grep -Fq -- '- [x] Go' <<< "$body" && go_checked=1
+          grep -Fq -- '- [x] No-Go (reason)' <<< "$body" && nogo_checked=1
+          if [[ "$go_checked" -eq 0 && "$nogo_checked" -eq 0 ]]; then
+            missing+=('Go / No-Go decision')
+          fi
+
+          if [[ "${#missing[@]}" -gt 0 ]]; then
+            echo "Missing required checked items in release PR checklist:"
+            for item in "${missing[@]}"; do
+              echo " - ${item}"
+            done
+            exit 1
+          fi
+
+          echo "Release PR checklist validation passed."
+
