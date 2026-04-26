@@ -133,6 +133,10 @@ This will:
 3. Wait for both to succeed.
 4. Dispatch `contracts-promotion-checklist.yml` with explicit run IDs.
 
+Safety behavior:
+- run correlation uses dispatch timestamp + actor + branch filtering (reduces cross-run mismatch risk under concurrent operators)
+- production dispatch/verify env validation rejects known placeholder addresses
+
 Required repository secrets:
 - `MARK_STAGING_DEPLOYER_PRIVATE_KEY`
 - `MARK_DEPLOYER_PRIVATE_KEY`
