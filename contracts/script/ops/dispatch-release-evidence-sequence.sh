@@ -61,6 +61,28 @@ fetch_latest_run_id_for_ref() {
     --jq '.[0].databaseId // empty'
 }
 
+fetch_dispatched_run_id_for_ref() {
+  local repo="$1"
+  local workflow="$2"
+  local ref="$3"
+  local started_at_epoch="$4"
+  local actor="$5"
+  gh run list \
+    --repo "$repo" \
+    --workflow "$workflow" \
+    --branch "$ref" \
+    --limit 30 \
+    --json databaseId,createdAt,event,headBranch,actor \
+    --jq \
+      "map(select(.event == \"workflow_dispatch\"
+        and .headBranch == \"$ref\"
+        and (.actor.login // \"\") == \"$actor\"
+        and ((.createdAt | fromdateiso8601) >= $started_at_epoch)))
+       | sort_by(.createdAt)
+       | last
+       | .databaseId // empty"
+}
+
 fetch_run_conclusion() {
   local repo="$1"
   local run_id="$2"
@@ -83,6 +105,7 @@ GH_REPO="${GH_REPO:-$(infer_repo_from_remote)}"
 GH_REF="${GH_REF:-main}"
 DISPATCH_EXECUTE="${DISPATCH_EXECUTE:-false}"
 WAIT_FOR_COMPLETION="${WAIT_FOR_COMPLETION:-false}"
+DISPATCH_DETECT_TIMEOUT_SECONDS="${DISPATCH_DETECT_TIMEOUT_SECONDS:-180}"
 
 STAGING_WORKFLOW="${STAGING_WORKFLOW:-contracts-staging-rehearsal.yml}"
 MAINNET_WORKFLOW="${MAINNET_WORKFLOW:-contracts-mainnet-readiness.yml}"
@@ -105,9 +128,15 @@ PROMOTION_FRESHNESS_HOURS="${PROMOTION_FRESHNESS_HOURS:-72}"
 PROMOTION_CHECKLIST_PATH="${PROMOTION_CHECKLIST_PATH:-broadcast/mark-promotion-checklist.json}"
 PROMOTION_CHECKLIST_MARKDOWN_PATH="${PROMOTION_CHECKLIST_MARKDOWN_PATH:-broadcast/mark-promotion-checklist.md}"
 
+DISPATCH_START_EPOCH="$(date -u +%s)"
+CURRENT_ACTOR_LOGIN="$(gh api user --jq '.login')"
+require_nonempty "CURRENT_ACTOR_LOGIN" "$CURRENT_ACTOR_LOGIN"
+
 require_nonempty "STAGING_RPC_URL" "$STAGING_RPC_URL"
 require_nonempty "STAGING_SETTLEMENT_OPERATOR" "$STAGING_SETTLEMENT_OPERATOR"
 require_nonempty "MAINNET_RPC_URL" "$MAINNET_RPC_URL"
+
+export MARK_ENV_STRICT_PLACEHOLDERS=true
 
 STAGING_CMD=(
   gh workflow run "$STAGING_WORKFLOW"
@@ -171,8 +200,40 @@ fi
 # Allow GH API indexing time so latest run lookup is stable.
 sleep 5
 
-staging_run_id="$(fetch_latest_run_id_for_ref "$GH_REPO" "$STAGING_WORKFLOW" "$GH_REF")"
-mainnet_run_id="$(fetch_latest_run_id_for_ref "$GH_REPO" "$MAINNET_WORKFLOW" "$GH_REF")"
+staging_run_id=""
+mainnet_run_id=""
+deadline_epoch=$((DISPATCH_START_EPOCH + DISPATCH_DETECT_TIMEOUT_SECONDS))
+while [[ -z "$staging_run_id" || -z "$mainnet_run_id" ]]; do
+  now_epoch="$(date -u +%s)"
+  if (( now_epoch > deadline_epoch )); then
+    echo "Timed out resolving dispatched run IDs for actor=$CURRENT_ACTOR_LOGIN ref=$GH_REF" >&2
+    echo "Provide explicit run IDs manually for promotion checklist dispatch." >&2
+    exit 1
+  fi
+  if [[ -z "$staging_run_id" ]]; then
+    staging_run_id="$(
+      fetch_dispatched_run_id_for_ref \
+        "$GH_REPO" \
+        "$STAGING_WORKFLOW" \
+        "$GH_REF" \
+        "$DISPATCH_START_EPOCH" \
+        "$CURRENT_ACTOR_LOGIN"
+    )"
+  fi
+  if [[ -z "$mainnet_run_id" ]]; then
+    mainnet_run_id="$(
+      fetch_dispatched_run_id_for_ref \
+        "$GH_REPO" \
+        "$MAINNET_WORKFLOW" \
+        "$GH_REF" \
+        "$DISPATCH_START_EPOCH" \
+        "$CURRENT_ACTOR_LOGIN"
+    )"
+  fi
+  if [[ -z "$staging_run_id" || -z "$mainnet_run_id" ]]; then
+    sleep 5
+  fi
+done
 
 require_nonempty "staging_run_id" "$staging_run_id"
 require_nonempty "mainnet_run_id" "$mainnet_run_id"
