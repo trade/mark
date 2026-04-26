@@ -226,6 +226,21 @@ set -a && source .env && set +a
 DISPATCH_EXECUTE=true make dispatch-production-lock-verify
 ```
 
+Dispatch full evidence sequence (staging rehearsal -> mainnet readiness -> promotion checklist):
+
+```bash
+STAGING_RPC_URL=<staging_rpc> \
+STAGING_SETTLEMENT_OPERATOR=<0x_operator> \
+MAINNET_RPC_URL=<mainnet_rpc> \
+DISPATCH_EXECUTE=true \
+WAIT_FOR_COMPLETION=true \
+make dispatch-release-evidence-sequence
+```
+
+Required GitHub secrets for this sequence:
+- `MARK_STAGING_DEPLOYER_PRIVATE_KEY`
+- `MARK_DEPLOYER_PRIVATE_KEY`
+
 Staging rehearsal (release + production-lock verify):
 
 ```bash

@@ -114,6 +114,29 @@ Promotion policy (enforced):
 - lineage: mainnet run commit must be `identical` or `ahead` of staging run commit
 - strict checks: workflow exits non-zero when any policy check fails
 
+### Dispatch Full Evidence Sequence (CLI)
+
+From `contracts/`:
+
+```bash
+STAGING_RPC_URL=<staging_rpc> \
+STAGING_SETTLEMENT_OPERATOR=<0x_operator> \
+MAINNET_RPC_URL=<mainnet_rpc> \
+DISPATCH_EXECUTE=true \
+WAIT_FOR_COMPLETION=true \
+make dispatch-release-evidence-sequence
+```
+
+This will:
+1. Dispatch `contracts-staging-rehearsal.yml`.
+2. Dispatch `contracts-mainnet-readiness.yml`.
+3. Wait for both to succeed.
+4. Dispatch `contracts-promotion-checklist.yml` with explicit run IDs.
+
+Required repository secrets:
+- `MARK_STAGING_DEPLOYER_PRIVATE_KEY`
+- `MARK_DEPLOYER_PRIVATE_KEY`
+
 ### Evidence Manifest (Hash Integrity Baseline)
 
 Workflow:
