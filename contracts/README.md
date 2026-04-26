@@ -237,6 +237,10 @@ WAIT_FOR_COMPLETION=true \
 make dispatch-release-evidence-sequence
 ```
 
+Notes:
+- dispatcher resolves run IDs using `workflow_dispatch` + actor + branch + dispatch timestamp filters (safer under concurrent runs)
+- production dispatch/verify paths enforce `MARK_ENV_STRICT_PLACEHOLDERS=true` to block known placeholder addresses
+
 Required GitHub secrets for this sequence:
 - `MARK_STAGING_DEPLOYER_PRIVATE_KEY`
 - `MARK_DEPLOYER_PRIVATE_KEY`
