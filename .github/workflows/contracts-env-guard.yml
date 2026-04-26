@@ -1,0 +1,61 @@
+name: Contracts Env Guard
+
+on:
+  pull_request:
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts-env-guard.yml"
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts-env-guard.yml"
+  workflow_dispatch:
+
+jobs:
+  env-guard:
+    name: Contracts Env Guard
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Bash syntax checks for ops scripts
+        run: |
+          bash -n script/ops/validate-prod-env.sh
+          bash -n script/ops/rehearse-production-lock.sh
+          bash -n script/ops/dispatch-production-lock-verify.sh
+          bash -n script/ops/verify-production-lock.sh
+
+      - name: Validate rehearsal env profile
+        run: |
+          set -a
+          source config/profiles/staging.env
+          set +a
+          MARK_RELEASE_EXECUTE=true \
+          MARK_SETTLEMENT_PROOF_ENABLED=true \
+          MARK_SETTLEMENT_PRODUCTION_MODE=true \
+          MARK_DEPLOY_ATTESTED_VERIFIER=true \
+          VALIDATE_MODE=rehearsal ./script/ops/validate-prod-env.sh
+
+      - name: Validate dispatch env profile
+        run: |
+          set -a
+          source config/profiles/mainnet.env
+          set +a
+          VALIDATE_MODE=dispatch ./script/ops/validate-prod-env.sh
+
+      - name: Validate verify-lock env profile
+        run: |
+          set -a
+          source config/profiles/mainnet.env
+          set +a
+          VALIDATE_MODE=verify-lock ./script/ops/validate-prod-env.sh
