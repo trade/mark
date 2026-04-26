@@ -1,0 +1,112 @@
+name: Contracts Production Lock Verify
+
+on:
+  workflow_dispatch:
+    inputs:
+      rpc_url:
+        description: "Target RPC URL for read-only verification"
+        required: true
+        type: string
+      token_address:
+        description: "Deployed RYLA token address"
+        required: true
+        type: string
+      module_address:
+        description: "Deployed MARK settlement module address"
+        required: true
+        type: string
+      verifier_address:
+        description: "Deployed settlement verifier address"
+        required: true
+        type: string
+      owner_address:
+        description: "Expected default admin owner address"
+        required: true
+        type: string
+      settlement_operator:
+        description: "Expected settlement operator address"
+        required: true
+        type: string
+      attester_address:
+        description: "Optional expected attester address (0x0 to skip)"
+        required: false
+        default: "0x0000000000000000000000000000000000000000"
+        type: string
+
+jobs:
+  production-lock-verify:
+    name: Production Lock Verify
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC_URL: ${{ inputs.rpc_url }}
+      MARK_RYLA_TOKEN: ${{ inputs.token_address }}
+      MARK_SETTLEMENT_MODULE: ${{ inputs.module_address }}
+      MARK_SETTLEMENT_VERIFIER: ${{ inputs.verifier_address }}
+      MARK_RYLA_OWNER: ${{ inputs.owner_address }}
+      MARK_SETTLEMENT_OPERATOR: ${{ inputs.settlement_operator }}
+      MARK_SETTLEMENT_ATTESTER: ${{ inputs.attester_address }}
+
+    steps:
+      - name: Enforce main branch for production verification
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Production lock verification workflow must run from main branch. Current: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run production lock verification
+        run: make verify-production-lock
+
+      - name: Write verification summary
+        if: always()
+        run: |
+          mkdir -p broadcast
+          jq -n \
+            --arg status "${{ job.status }}" \
+            --arg rpcUrl "$RPC_URL" \
+            --arg token "$MARK_RYLA_TOKEN" \
+            --arg module "$MARK_SETTLEMENT_MODULE" \
+            --arg verifier "$MARK_SETTLEMENT_VERIFIER" \
+            --arg owner "$MARK_RYLA_OWNER" \
+            --arg operator "$MARK_SETTLEMENT_OPERATOR" \
+            --arg attester "$MARK_SETTLEMENT_ATTESTER" \
+            --arg commit "${{ github.sha }}" \
+            --arg runId "${{ github.run_id }}" \
+            --arg ref "${{ github.ref_name }}" \
+            --arg workflow "${{ github.workflow }}" \
+            --arg runNumber "${{ github.run_number }}" \
+            '{
+              workflow: $workflow,
+              status: $status,
+              runId: $runId,
+              runNumber: $runNumber,
+              ref: $ref,
+              commit: $commit,
+              rpcUrl: $rpcUrl,
+              token: $token,
+              module: $module,
+              verifier: $verifier,
+              owner: $owner,
+              settlementOperator: $operator,
+              attester: $attester
+            }' > broadcast/mark-production-lock-verify.json
+
+      - name: Upload verification artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mark-production-lock-verify
+          path: contracts/broadcast/mark-production-lock-verify.json
+          if-no-files-found: error

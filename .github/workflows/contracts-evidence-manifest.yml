@@ -1,0 +1,190 @@
+name: Contracts Evidence Manifest
+
+on:
+  pull_request:
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts-evidence-manifest.yml"
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts-evidence-manifest.yml"
+  workflow_dispatch:
+    inputs:
+      release_artifact_path:
+        description: "Path to release artifact under contracts/"
+        required: false
+        default: "broadcast/mark-release-prodmode-ci.json"
+        type: string
+      production_lock_artifact_path:
+        description: "Path to production-lock verify artifact under contracts/"
+        required: false
+        default: "broadcast/mark-production-lock-verify.json"
+        type: string
+      staging_rehearsal_artifact_path:
+        description: "Path to staging rehearsal artifact under contracts/"
+        required: false
+        default: "broadcast/mark-staging-rehearsal.json"
+        type: string
+      promotion_checklist_path:
+        description: "Path to promotion checklist artifact under contracts/"
+        required: false
+        default: "broadcast/mark-promotion-checklist.json"
+        type: string
+      manifest_path:
+        description: "Output manifest path under contracts/"
+        required: false
+        default: "broadcast/mark-evidence-manifest.json"
+        type: string
+      signature_path:
+        description: "Output detached signature path under contracts/"
+        required: false
+        default: "broadcast/mark-evidence-manifest.sig"
+        type: string
+      signature_meta_path:
+        description: "Output signature metadata path under contracts/"
+        required: false
+        default: "broadcast/mark-evidence-signature.json"
+        type: string
+
+jobs:
+  manifest-self-test:
+    name: Manifest Tooling Self-Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Bash syntax checks
+        run: |
+          bash -n script/ops/generate-evidence-manifest.sh
+          bash -n script/ops/verify-evidence-manifest.sh
+          bash -n script/ops/sign-evidence-manifest.sh
+          bash -n script/ops/verify-evidence-signature.sh
+
+      - name: Generate sample artifacts and verify manifest
+        run: |
+          mkdir -p broadcast/ci-manifest
+          jq -n '{protocol:"MARK", tokenSymbol:"RYLA", kind:"release"}' > broadcast/ci-manifest/release.json
+          jq -n '{kind:"production-lock", status:"passed"}' > broadcast/ci-manifest/lock.json
+          jq -n '{kind:"staging-rehearsal", status:"passed"}' > broadcast/ci-manifest/staging.json
+          jq -n '{kind:"promotion-checklist", goNoGo:{decision:"pending"}}' > broadcast/ci-manifest/checklist.json
+
+          RELEASE_ARTIFACT_PATH=broadcast/ci-manifest/release.json \
+          PRODUCTION_LOCK_ARTIFACT_PATH=broadcast/ci-manifest/lock.json \
+          STAGING_REHEARSAL_ARTIFACT_PATH=broadcast/ci-manifest/staging.json \
+          PROMOTION_CHECKLIST_PATH=broadcast/ci-manifest/checklist.json \
+          MANIFEST_PATH=broadcast/ci-manifest/manifest.json \
+          make generate-evidence-manifest
+
+          MANIFEST_PATH=broadcast/ci-manifest/manifest.json make verify-evidence-manifest
+
+      - name: Generate ephemeral signing keypair
+        run: |
+          openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out /tmp/manifest_ci_private.pem
+          openssl rsa -in /tmp/manifest_ci_private.pem -pubout -out /tmp/manifest_ci_public.pem
+
+      - name: Sign and verify manifest signature (self-test)
+        run: |
+          MANIFEST_PATH=broadcast/ci-manifest/manifest.json \
+          SIGNATURE_PATH=broadcast/ci-manifest/manifest.sig \
+          SIGNATURE_META_PATH=broadcast/ci-manifest/signature.json \
+          SIGNING_KEY_FILE=/tmp/manifest_ci_private.pem \
+          SIGNING_KEY_ID=ci-ephemeral \
+          make sign-evidence-manifest
+
+          MANIFEST_PATH=broadcast/ci-manifest/manifest.json \
+          SIGNATURE_PATH=broadcast/ci-manifest/manifest.sig \
+          SIGNATURE_META_PATH=broadcast/ci-manifest/signature.json \
+          VERIFY_PUBLIC_KEY_FILE=/tmp/manifest_ci_public.pem \
+          make verify-evidence-signature
+
+      - name: Upload self-test manifest artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mark-evidence-manifest-self-test
+          path: |
+            contracts/broadcast/ci-manifest/manifest.json
+            contracts/broadcast/ci-manifest/manifest.sig
+            contracts/broadcast/ci-manifest/signature.json
+          if-no-files-found: ignore
+
+  manifest-dispatch-verify:
+    name: Manifest Verify (Manual Inputs)
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RELEASE_ARTIFACT_PATH: ${{ inputs.release_artifact_path }}
+      PRODUCTION_LOCK_ARTIFACT_PATH: ${{ inputs.production_lock_artifact_path }}
+      STAGING_REHEARSAL_ARTIFACT_PATH: ${{ inputs.staging_rehearsal_artifact_path }}
+      PROMOTION_CHECKLIST_PATH: ${{ inputs.promotion_checklist_path }}
+      MANIFEST_PATH: ${{ inputs.manifest_path }}
+      SIGNATURE_PATH: ${{ inputs.signature_path }}
+      SIGNATURE_META_PATH: ${{ inputs.signature_meta_path }}
+      MANIFEST_GENERATED_BY: github-actions
+      MANIFEST_NOTE: workflow_dispatch
+      MARK_GIT_COMMIT: ${{ github.sha }}
+      SIGNING_KEY_PEM: ${{ secrets.MARK_EVIDENCE_SIGNING_PRIVATE_KEY_PEM }}
+      VERIFY_PUBLIC_KEY_PEM: ${{ secrets.MARK_EVIDENCE_VERIFY_PUBLIC_KEY_PEM }}
+
+    steps:
+      - name: Enforce main branch for production manifest run
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Manual production manifest verification must run from main branch. Current: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Generate manifest from provided artifact paths
+        run: make generate-evidence-manifest
+
+      - name: Verify generated manifest hashes
+        run: make verify-evidence-manifest
+
+      - name: Ensure signing secrets are present
+        run: |
+          test -n "${SIGNING_KEY_PEM}" || {
+            echo "MARK_EVIDENCE_SIGNING_PRIVATE_KEY_PEM secret is required";
+            exit 1;
+          }
+          test -n "${VERIFY_PUBLIC_KEY_PEM}" || {
+            echo "MARK_EVIDENCE_VERIFY_PUBLIC_KEY_PEM secret is required";
+            exit 1;
+          }
+
+      - name: Sign evidence manifest
+        run: |
+          SIGNING_KEY_ID=github-actions-production \
+          make sign-evidence-manifest
+
+      - name: Verify evidence signature
+        run: make verify-evidence-signature
+
+      - name: Upload manifest artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mark-evidence-manifest
+          path: |
+            contracts/${{ inputs.manifest_path }}
+            contracts/${{ inputs.signature_path }}
+            contracts/${{ inputs.signature_meta_path }}
+          if-no-files-found: error

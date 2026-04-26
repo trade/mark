@@ -1,0 +1,80 @@
+name: Contracts Mainnet Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Gate mode: predeploy | postdeploy | full"
+        required: false
+        default: "predeploy"
+        type: choice
+        options:
+          - predeploy
+          - postdeploy
+          - full
+      rpc_url:
+        description: "Target RPC URL for readiness checks"
+        required: true
+        type: string
+      artifact_path:
+        description: "Artifact output path (relative to contracts/)"
+        required: false
+        default: "broadcast/mark-mainnet-gate-ci.json"
+        type: string
+
+jobs:
+  mainnet-readiness:
+    name: Mainnet Readiness Gate
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      MARK_MAINNET_GATE_MODE: ${{ inputs.mode }}
+      RPC_URL: ${{ inputs.rpc_url }}
+      PRIVATE_KEY: ${{ secrets.MARK_DEPLOYER_PRIVATE_KEY }}
+      MARK_MAINNET_GATE_ARTIFACT_PATH: ${{ inputs.artifact_path }}
+      MARK_GIT_COMMIT: ${{ github.sha }}
+
+    steps:
+      - name: Enforce main branch for production readiness
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Production readiness workflow must run from main branch. Current: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Ensure required secret is present
+        run: |
+          test -n "${PRIVATE_KEY}" || {
+            echo "MARK_DEPLOYER_PRIVATE_KEY secret is required";
+            exit 1;
+          }
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Slither
+        run: pip install slither-analyzer
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run mainnet readiness gate
+        run: ./script/ops/mainnet-readiness.sh
+
+      - name: Upload readiness artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mark-mainnet-readiness-artifact
+          path: contracts/${{ inputs.artifact_path }}
+          if-no-files-found: ignore
