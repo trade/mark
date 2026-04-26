@@ -241,6 +241,15 @@ Required GitHub secrets for this sequence:
 - `MARK_STAGING_DEPLOYER_PRIVATE_KEY`
 - `MARK_DEPLOYER_PRIVATE_KEY`
 
+Bootstrap those secrets from local env values (dry-run by default):
+
+```bash
+MARK_STAGING_DEPLOYER_PRIVATE_KEY=<0x_staging_pk> \
+MARK_DEPLOYER_PRIVATE_KEY=<0x_mainnet_pk> \
+DISPATCH_EXECUTE=true \
+make bootstrap-release-secrets
+```
+
 Staging rehearsal (release + production-lock verify):
 
 ```bash
