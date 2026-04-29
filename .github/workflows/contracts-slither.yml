@@ -42,9 +42,9 @@ jobs:
         run: |
           slither \
             src/token/RYLA.sol \
-            src/protocol/MARKBridgeAdapter.sol \
-            src/protocol/MARKSettlementModule.sol \
-            src/verifier/AttestedSettlementVerifier.sol \
+            src/bridge/MARKBridgeAdapter.sol \
+            src/settlement/MARKSettlementModule.sol \
+            src/settlement/verifier/AttestedSettlementVerifier.sol \
             --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
             --exclude-dependencies \
             --filter-paths "lib|test|script|out|cache" \
