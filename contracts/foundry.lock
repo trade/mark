@@ -1,0 +1,11 @@
+{
+  "lib/createx": {
+    "rev": "de53df69f2e15373308ae573b01846158c240535"
+  },
+  "lib/forge-std": {
+    "rev": "6853b9ec7df5dc0c213b05ae67785ad4f4baa0ea"
+  },
+  "lib/interop-lib": {
+    "rev": "2a15e8f99c1f845eb5f89778d757f55351954586"
+  }
+}
