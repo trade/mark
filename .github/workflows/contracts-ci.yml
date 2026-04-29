@@ -37,6 +37,12 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@v1
 
+      - name: Enforce architecture boundaries
+        run: make architecture-guard
+
+      - name: Enforce test/script layering boundaries
+        run: make layering-guard
+
       - name: Run deterministic test suite
         run: forge test -vv
 
@@ -71,7 +77,7 @@ jobs:
         run: anvil --host 127.0.0.1 --port 8545 > /tmp/anvil.log 2>&1 &
 
       - name: Run release orchestrator dry-run
-        run: forge script script/ops/ReleaseMARK.s.sol --rpc-url $RPC_URL -vv
+        run: forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL -vv
 
       - name: Run release orchestrator execute smoke (local Anvil)
         env:
@@ -82,7 +88,7 @@ jobs:
           VERIFY_MARK_SETTLEMENT_PROOF_ENABLED: "false"
           VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE: "false"
           VERIFY_MARK_SETTLEMENT_VERIFIER: "0x0000000000000000000000000000000000000000"
-        run: forge script script/ops/ReleaseMARK.s.sol --rpc-url $RPC_URL --broadcast -vv
+        run: forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL --broadcast -vv
 
       - name: Assert release artifact schema
         run: |
@@ -170,7 +176,7 @@ jobs:
         working-directory: .
 
       - name: Run integration suite
-        run: FOUNDRY_PROFILE=integration forge test --match-path 'test/integration/*.t.sol' -vv
+        run: FOUNDRY_PROFILE=integration forge test --match-path 'test/integration/**/*.t.sol' -vv
 
       - name: Print supersim logs on failure
         if: failure()
