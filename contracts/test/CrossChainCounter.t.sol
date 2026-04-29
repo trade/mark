@@ -4,7 +4,7 @@ pragma solidity ^0.8.26;
 import {Test} from "forge-std/Test.sol";
 import {IL2ToL2CrossDomainMessenger} from "@interop-lib/interfaces/IL2ToL2CrossDomainMessenger.sol";
 import {PredeployAddresses} from "@interop-lib/libraries/PredeployAddresses.sol";
-import {CrossChainCounter} from "../src/CrossChainCounter.sol";
+import {CrossChainCounter} from "../src/examples/CrossChainCounter.sol";
 
 contract CrossChainCounterTest is Test {
     CrossChainCounter public counter;

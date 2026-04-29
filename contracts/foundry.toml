@@ -6,9 +6,22 @@ script = "script"
 cache_path = "cache"
 broadcast = "broadcast"
 libs = ["lib"]
+no_match_path = "test/integration/**"
+fs_permissions = [{ access = "read-write", path = "./broadcast" }]
 
 remappings = [
-  "@interop-lib/=lib/interop-lib/src/"
+  "@interop-lib/=lib/interop-lib/src/",
+  "@openzeppelin/=lib/createx/lib/openzeppelin-contracts/"
 ]
+
+[profile.integration]
+src = "src"
+out = "out"
+test = "test"
+script = "script"
+cache_path = "cache"
+broadcast = "broadcast"
+libs = ["lib"]
+no_match_path = "test/never/**"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

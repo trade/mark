@@ -196,12 +196,12 @@ RPC_URL=<target_rpc> PRIVATE_KEY=<deployer_pk> ./script/ops/mainnet-readiness.sh
 ```bash
 set -a && source .env && set +a
 MARK_RELEASE_EXECUTE=true MARK_RELEASE_WRITE_ARTIFACT=true \
-forge script script/ops/ReleaseMARK.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL --broadcast
 ```
 3. Run post-deploy verify:
 ```bash
 set -a && source .env && set +a
-forge script script/ops/VerifyMARKDeployment.s.sol --rpc-url $RPC_URL
+forge script script/ops/settlement/VerifyMARKDeployment.s.sol --rpc-url $RPC_URL
 ```
 4. Run production lock assurance:
 ```bash

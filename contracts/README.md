@@ -13,14 +13,14 @@ Operational procedures (deployment, incident, rollback) are documented in [RUNBO
 - `MINTER_ROLE` / `BURNER_ROLE` for protocol issuance modules
 - Uses `AccessControlDefaultAdminRules` for delayed default-admin transfer hardening
 
-### [MARKBridgeAdapter.sol](./src/protocol/MARKBridgeAdapter.sol)
+### [MARKBridgeAdapter.sol](./src/bridge/MARKBridgeAdapter.sol)
 
 - Operator-gated bridge-out adapter that routes through `SuperchainTokenBridge`
 - Destination allowlist and optional `maxPerTx` / `dailyCap` risk limits
 - Keeps token core bridge authority on the canonical predeploy
 - Uses `AccessControlDefaultAdminRules` (`OPERATOR_ROLE`)
 
-### [MARKSettlementModule.sol](./src/protocol/MARKSettlementModule.sol)
+### [MARKSettlementModule.sol](./src/settlement/MARKSettlementModule.sol)
 
 - Phase-2 integration boundary for UTXO / zk accounting
 - Operator-gated settlement with replay protection (`intentId`)
@@ -28,7 +28,7 @@ Operational procedures (deployment, incident, rollback) are documented in [RUNBO
 - Holds token minter/burner roles for controlled mint and burn settlement
 - Uses `AccessControlDefaultAdminRules` (`OPERATOR_ROLE`)
 
-### [AttestedSettlementVerifier.sol](./src/verifier/AttestedSettlementVerifier.sol)
+### [AttestedSettlementVerifier.sol](./src/settlement/verifier/AttestedSettlementVerifier.sol)
 
 - Signature-based settlement verifier (`ATTESTER_ROLE` allowlist)
 - Intended as a concrete verifier baseline before integrating zk circuits
@@ -69,12 +69,24 @@ forge build
 forge test
 ```
 
+Run the fast local CI checks (recommended during iteration):
+
+```bash
+make ci-fast
+```
+
+Run the full local CI checks (includes explicit production-lock checks):
+
+```bash
+make ci-full
+```
+
 Run integration (fork/RPC-dependent) tests only:
 
 ```bash
 CHAIN_A_RPC_URL=http://127.0.0.1:9545 \
 CHAIN_B_RPC_URL=http://127.0.0.1:9546 \
-FOUNDRY_PROFILE=integration forge test --match-path 'test/integration/*.t.sol'
+FOUNDRY_PROFILE=integration forge test --match-path 'test/integration/**/*.t.sol'
 ```
 
 ### Deploy
@@ -97,21 +109,21 @@ Deploy `RYLA` stack:
 
 ```bash
 set -a && source .env && set +a
-forge script script/deploy/DeployMARKStack.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/deploy/bridge/DeployMARKStack.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 Deploy settlement module:
 
 ```bash
 set -a && source .env && set +a
-forge script script/deploy/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/deploy/settlement/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 Deploy settlement module with in-script attested verifier:
 
 ```bash
 set -a && source .env && set +a
-forge script script/deploy/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/deploy/settlement/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 ### Post-Deploy Setup
@@ -120,7 +132,7 @@ Apply deterministic role/config setup on already deployed contracts:
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/PostDeployMARKSetup.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/ops/settlement/PostDeployMARKSetup.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 ### Preflight (Recommended Before Broadcast)
@@ -129,7 +141,7 @@ Run read-only checks to validate env wiring and admin permissions before deploym
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/PreflightMARKDeployment.s.sol --rpc-url $RPC_URL
+forge script script/ops/settlement/PreflightMARKDeployment.s.sol --rpc-url $RPC_URL
 ```
 
 `MARK_PREFLIGHT_MODE` values:
@@ -143,7 +155,7 @@ Run full release pipeline (preflight -> deploy -> optional setup -> verify -> ar
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/ReleaseMARK.s.sol --rpc-url $RPC_URL
+forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL
 ```
 
 Local production-mode smoke (starts Anvil, deploys verifier, runs strict release verify):
@@ -193,7 +205,7 @@ Run read-only checks against deployed contracts and role wiring:
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/VerifyMARKDeployment.s.sol --rpc-url $RPC_URL
+forge script script/ops/settlement/VerifyMARKDeployment.s.sol --rpc-url $RPC_URL
 ```
 
 Optional strict checks supported by verify script:
@@ -388,9 +400,9 @@ Run Slither locally on MARK core contracts:
 cd /Users/iap/mark/contracts
 slither \
   src/token/RYLA.sol \
-  src/protocol/MARKBridgeAdapter.sol \
-  src/protocol/MARKSettlementModule.sol \
-  src/verifier/AttestedSettlementVerifier.sol \
+  src/bridge/MARKBridgeAdapter.sol \
+  src/settlement/MARKSettlementModule.sol \
+  src/settlement/verifier/AttestedSettlementVerifier.sol \
   --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
   --exclude-dependencies \
   --filter-paths "lib|test|script|out|cache" \
