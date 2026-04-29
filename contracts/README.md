@@ -81,6 +81,18 @@ Run the full local CI checks (includes explicit production-lock checks):
 make ci-full
 ```
 
+Run canonical release gate checks and emit a timestamped evidence artifact:
+
+```bash
+make release-gate
+```
+
+For remote/mainnet-style verification (requires `RPC_URL`, `PRIVATE_KEY`, and strict `VERIFY_*` envs):
+
+```bash
+MARK_RELEASE_GATE_MODE=remote make release-gate
+```
+
 Run integration (fork/RPC-dependent) tests only:
 
 ```bash

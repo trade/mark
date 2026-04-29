@@ -1,4 +1,4 @@
-.PHONY: ci-local ci-fast ci-full architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature
+.PHONY: ci-local ci-fast ci-full release-gate architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature
 
 # Fast local loop: guards + default-profile tests (no integration profile tests).
 ci-fast: architecture-guard layering-guard
@@ -10,6 +10,9 @@ ci-full: ci-fast
 
 # Backward-compatible alias for local usage.
 ci-local: ci-fast
+
+release-gate:
+	@./script/ci/release-gate.sh
 
 architecture-guard:
 	@./script/ci/architecture-guard.sh
