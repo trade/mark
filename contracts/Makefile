@@ -1,11 +1,16 @@
-.PHONY: ci-local ci-fast ci-full release-gate architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature
+.PHONY: ci-local ci-fast ci-full test-core test-invariants release-gate architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature
 
-# Fast local loop: guards + default-profile tests (no integration profile tests).
-ci-fast: architecture-guard layering-guard
-	@forge test -q
+# Fast local loop: guards + unit/e2e tests (excludes invariants and integration profile tests).
+ci-fast: architecture-guard layering-guard test-core
 
-# Full local gate: fast checks + explicit production lock regression checks.
-ci-full: ci-fast
+test-core:
+	@FOUNDRY_OFFLINE=true forge test --no-match-path 'test/invariant/**' -q
+
+test-invariants:
+	@FOUNDRY_OFFLINE=true FOUNDRY_INVARIANT_RUNS=64 forge test --match-path 'test/invariant/**/*.t.sol' -q
+
+# Full local gate: fast checks + invariants + explicit production lock regression checks.
+ci-full: ci-fast test-invariants
 	@$(MAKE) test-production-lock
 
 # Backward-compatible alias for local usage.
