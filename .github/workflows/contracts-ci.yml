@@ -136,7 +136,7 @@ jobs:
     name: Contracts Integration (RPC)
     runs-on: ubuntu-latest
     needs: [contracts-unit-invariant, contracts-release-check, contracts-production-mode-smoke]
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_integration }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_integration == 'true' }}
     defaults:
       run:
         working-directory: contracts
