@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - canary
       - dev
     paths:
       - "contracts/src/**"

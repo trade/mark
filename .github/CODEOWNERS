@@ -1,0 +1,14 @@
+# Global default owner
+* @iap
+
+# Protocol-critical scope
+/contracts/src/** @iap
+/contracts/script/** @iap
+/contracts/test/** @iap
+/contracts/RUNBOOK.md @iap
+/contracts/README.md @iap
+
+# CI and governance
+/.github/workflows/** @iap
+/.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @iap
+/BRANCHING.md @iap

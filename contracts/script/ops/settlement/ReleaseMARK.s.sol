@@ -253,6 +253,16 @@ contract ReleaseMARK is Script {
         vm.serializeAddress(root, "adapter", result.adapter);
         vm.serializeAddress(root, "module", result.module);
         vm.serializeAddress(root, "verifier", result.verifier);
+        vm.serializeAddress(root, "expectedOwner", vm.envOr("VERIFY_MARK_RYLA_OWNER", vm.envOr("MARK_RYLA_OWNER", address(0))));
+        vm.serializeAddress(root, "expectedBridgeOperator", vm.envOr("VERIFY_MARK_BRIDGE_OPERATOR", address(0)));
+        vm.serializeUint(root, "expectedBridgeDestinationChain", vm.envOr("VERIFY_MARK_BRIDGE_DEST_CHAIN", uint256(0)));
+        vm.serializeUint(root, "expectedBridgeMaxPerTx", vm.envOr("VERIFY_MARK_BRIDGE_MAX_PER_TX", uint256(0)));
+        vm.serializeUint(root, "expectedBridgeDailyCap", vm.envOr("VERIFY_MARK_BRIDGE_DAILY_CAP", uint256(0)));
+        vm.serializeAddress(root, "expectedSettlementOperator", vm.envOr("VERIFY_MARK_SETTLEMENT_OPERATOR", address(0)));
+        vm.serializeBool(root, "expectedProofEnabled", vm.envOr("VERIFY_MARK_SETTLEMENT_PROOF_ENABLED", false));
+        vm.serializeBool(root, "expectedProductionMode", vm.envOr("VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE", false));
+        vm.serializeAddress(root, "expectedVerifier", vm.envOr("VERIFY_MARK_SETTLEMENT_VERIFIER", address(0)));
+        vm.serializeAddress(root, "expectedAttester", vm.envOr("VERIFY_MARK_SETTLEMENT_ATTESTER", address(0)));
         vm.serializeUint(root, "chainId", block.chainid);
         vm.serializeUint(root, "timestamp", block.timestamp);
         string memory json = vm.serializeString(root, "gitCommit", vm.envOr("MARK_GIT_COMMIT", string("unknown")));
