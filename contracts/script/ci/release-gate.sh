@@ -17,6 +17,7 @@ require_cmd git
 
 MODE="${MARK_RELEASE_GATE_MODE:-local}" # local | remote
 OUT_DIR="${MARK_RELEASE_GATE_OUT_DIR:-broadcast/release-gate}"
+VERIFY_REQUIRE_SIGNED_MANIFEST="${MARK_RELEASE_VERIFY_REQUIRE_SIGNED_MANIFEST:-true}"
 TIMESTAMP_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 STAMP="$(date -u +"%Y%m%dT%H%M%SZ")"
 GIT_COMMIT="$(git rev-parse --short HEAD)"
@@ -30,6 +31,7 @@ make ci-full
 
 READINESS_STATUS="skipped"
 VERIFY_STATUS="skipped"
+MANIFEST_VERIFY_STATUS="skipped"
 
 if [[ "$MODE" == "remote" ]]; then
   if [[ -z "${RPC_URL:-}" ]]; then
@@ -47,16 +49,43 @@ if [[ "$MODE" == "remote" ]]; then
   ./script/ops/mainnet-readiness.sh
   READINESS_STATUS="passed"
 
-  echo "[release-gate] step 3/3: strict deployment verification"
-  # Strict mode: require explicit VERIFY_* env instead of implicit defaults.
-  : "${VERIFY_MARK_RYLA_TOKEN:?VERIFY_MARK_RYLA_TOKEN is required in remote mode}"
-  : "${VERIFY_MARK_RYLA_OWNER:?VERIFY_MARK_RYLA_OWNER is required in remote mode}"
-  : "${VERIFY_MARK_SETTLEMENT_MODULE:?VERIFY_MARK_SETTLEMENT_MODULE is required in remote mode}"
-  : "${VERIFY_MARK_SETTLEMENT_OPERATOR:?VERIFY_MARK_SETTLEMENT_OPERATOR is required in remote mode}"
-  : "${VERIFY_MARK_SETTLEMENT_PROOF_ENABLED:?VERIFY_MARK_SETTLEMENT_PROOF_ENABLED is required in remote mode}"
-  : "${VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE:?VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE is required in remote mode}"
-  : "${VERIFY_MARK_SETTLEMENT_VERIFIER:?VERIFY_MARK_SETTLEMENT_VERIFIER is required in remote mode}"
-  forge script script/ops/settlement/VerifyMARKDeployment.s.sol --rpc-url "$RPC_URL" -q
+  RELEASE_VERIFY_ARTIFACT_PATH="${MARK_RELEASE_VERIFY_ARTIFACT_PATH:-${MARK_RELEASE_ARTIFACT_PATH:-}}"
+  if [[ -z "$RELEASE_VERIFY_ARTIFACT_PATH" ]]; then
+    echo "release-gate: MARK_RELEASE_VERIFY_ARTIFACT_PATH or MARK_RELEASE_ARTIFACT_PATH is required in remote mode" >&2
+    exit 1
+  fi
+
+  if [[ "$VERIFY_REQUIRE_SIGNED_MANIFEST" == "true" ]]; then
+    echo "[release-gate] step 3/4: verify signed evidence manifest"
+    VERIFY_MANIFEST_PATH="${MARK_RELEASE_VERIFY_MANIFEST_PATH:-broadcast/mark-evidence-manifest.json}"
+    VERIFY_SIGNATURE_PATH="${MARK_RELEASE_VERIFY_SIGNATURE_PATH:-broadcast/mark-evidence-manifest.sig}"
+    VERIFY_SIGNATURE_META_PATH="${MARK_RELEASE_VERIFY_SIGNATURE_META_PATH:-broadcast/mark-evidence-signature.json}"
+
+    if [[ -z "${VERIFY_PUBLIC_KEY_FILE:-}" && -z "${VERIFY_PUBLIC_KEY_PEM:-}" ]]; then
+      echo "release-gate: VERIFY_PUBLIC_KEY_FILE or VERIFY_PUBLIC_KEY_PEM is required when MARK_RELEASE_VERIFY_REQUIRE_SIGNED_MANIFEST=true" >&2
+      exit 1
+    fi
+
+    MANIFEST_PATH="$VERIFY_MANIFEST_PATH" ./script/ops/verify-evidence-manifest.sh
+    MANIFEST_PATH="$VERIFY_MANIFEST_PATH" \
+    SIGNATURE_PATH="$VERIFY_SIGNATURE_PATH" \
+    SIGNATURE_META_PATH="$VERIFY_SIGNATURE_META_PATH" \
+    VERIFY_PUBLIC_KEY_FILE="${VERIFY_PUBLIC_KEY_FILE:-}" \
+    VERIFY_PUBLIC_KEY_PEM="${VERIFY_PUBLIC_KEY_PEM:-}" \
+    ./script/ops/verify-evidence-signature.sh
+
+    if ! jq -e --arg path "$RELEASE_VERIFY_ARTIFACT_PATH" '.artifacts[] | select(.id == "release" and .path == $path)' "$VERIFY_MANIFEST_PATH" >/dev/null; then
+      echo "release-gate: release artifact path is not anchored in manifest (id=release, path=$RELEASE_VERIFY_ARTIFACT_PATH)" >&2
+      exit 1
+    fi
+    MANIFEST_VERIFY_STATUS="passed"
+  else
+    echo "[release-gate] step 3/4: signed evidence manifest verification skipped (MARK_RELEASE_VERIFY_REQUIRE_SIGNED_MANIFEST=false)"
+  fi
+
+  echo "[release-gate] step 4/4: strict deployment verification"
+  MARK_RELEASE_VERIFY_ARTIFACT_PATH="$RELEASE_VERIFY_ARTIFACT_PATH" \
+  ./script/ci/verify-from-artifact.sh
   VERIFY_STATUS="passed"
 fi
 
@@ -67,6 +96,7 @@ jq -n \
   --arg commit "$GIT_COMMIT" \
   --arg ciFull "passed" \
   --arg readiness "$READINESS_STATUS" \
+  --arg manifestVerify "$MANIFEST_VERIFY_STATUS" \
   --arg verify "$VERIFY_STATUS" \
   '{
     gate: $gate,
@@ -76,6 +106,7 @@ jq -n \
     checks: {
       ciFull: $ciFull,
       mainnetReadiness: $readiness,
+      signedManifestVerify: $manifestVerify,
       strictDeploymentVerify: $verify
     }
   }' > "$ARTIFACT_PATH"
