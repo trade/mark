@@ -37,19 +37,9 @@ Operational procedures (deployment, incident, rollback) are documented in [RUNBO
 - Proof format:
   - `abi.encode(uint256 deadline, bytes32 contextHash, uint8 v, bytes32 r, bytes32 s)`
 
-### [CrossChainCounter.sol](./src/examples/CrossChainCounter.sol)
-
-- Counter that can only be incremented through cross-chain messages
-- Uses `L2ToL2CrossDomainMessenger` for message verification
-- Tracks last incrementer's chain ID and address
-- Events emitted for all increments with source chain details
-
-### [CrossChainCounterIncrementer.sol](./src/examples/CrossChainCounterIncrementer.sol)
-
-- Sends cross-chain increment messages to `CrossChainCounter` instances
-- Uses `L2ToL2CrossDomainMessenger` for message passing
-
 ## Development
+
+Note: legacy CrossChainCounter example contracts and tests were retired in favor of MARK protocol deployment/ops flows. Current CI and release gates focus on MARK stack contracts and governance evidence artifacts.
 
 ### Dependencies
 
@@ -87,7 +77,17 @@ Run canonical release gate checks and emit a timestamped evidence artifact:
 make release-gate
 ```
 
-For remote/mainnet-style verification (requires `RPC_URL`, `PRIVATE_KEY`, and strict `VERIFY_*` envs):
+For remote/mainnet-style verification, run with:
+- `RPC_URL` and `PRIVATE_KEY`
+- anchored release artifact via `MARK_RELEASE_VERIFY_ARTIFACT_PATH` or `MARK_RELEASE_ARTIFACT_PATH`
+- signed evidence verification inputs (default-on):
+  - `VERIFY_PUBLIC_KEY_FILE` or `VERIFY_PUBLIC_KEY_PEM`
+  - optional manifest path overrides:
+    - `MARK_RELEASE_VERIFY_MANIFEST_PATH`
+    - `MARK_RELEASE_VERIFY_SIGNATURE_PATH`
+    - `MARK_RELEASE_VERIFY_SIGNATURE_META_PATH`
+
+Set `MARK_RELEASE_VERIFY_REQUIRE_SIGNED_MANIFEST=false` only for controlled break-glass scenarios.
 
 ```bash
 MARK_RELEASE_GATE_MODE=remote make release-gate
@@ -111,10 +111,11 @@ Deploy to multiple chains using either:
 cd ../ && pnpm sup
 ```
 
-2. Direct Forge script:
+2. Direct Forge script (MARK stack):
 
 ```bash
-forge script script/examples/Deploy.s.sol --rpc-url $RPC_URL --broadcast
+set -a && source .env && set +a
+forge script script/deploy/bridge/DeployMARKStack.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 Deploy `RYLA` stack:
@@ -379,18 +380,12 @@ Optional: cancel pending transfer before acceptance
 
 ## Architecture
 
-### Cross-Chain Messaging Flow (1)
+### MARK Settlement Flow
 
-1. User calls `increment(chainId, counterAddress)` on `CrossChainCounterIncrementer`
-2. `CrossChainCounterIncrementer` sends message via `L2ToL2CrossDomainMessenger`
-3. Target chain's messenger delivers message to `CrossChainCounter`
-4. `CrossChainCounter` verifies messenger and executes increment
-
-### Cross-Chain Messaging Flow (2)
-
-1. User calls `increment(chainId, counterAddress)` on `CrossChainCounterIncrementer` by directly ending a message through `L2ToL2CrossDomainMessenger`
-2. Target chain's messenger delivers message to `CrossChainCounter`
-3. `CrossChainCounter` verifies messenger and executes increment
+1. Operators submit settlement intents through `MARKSettlementModule`.
+2. Optional verifier (`AttestedSettlementVerifier` or custom `IUTXOSettlementVerifier`) validates intent proof material.
+3. Settlement module mints/burns `RYLA` under role-constrained rules.
+4. Bridge adapter enforces destination/risk controls for cross-chain transfers.
 
 ## Testing
 
