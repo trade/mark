@@ -77,6 +77,18 @@ jobs:
       - name: Start anvil
         run: anvil --host 127.0.0.1 --port 8545 > /tmp/anvil.log 2>&1 &
 
+      - name: Wait for anvil readiness
+        run: |
+          for _ in $(seq 1 30); do
+            if nc -z 127.0.0.1 8545; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "anvil did not become ready on 127.0.0.1:8545" >&2
+          tail -n 200 /tmp/anvil.log || true
+          exit 1
+
       - name: Run release orchestrator dry-run
         run: forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL -vv
 
