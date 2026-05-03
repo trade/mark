@@ -94,8 +94,8 @@ importers:
         specifier: ^3.8.3
         version: 3.8.3
       supersim:
-        specifier: 0.1.0-alpha.45
-        version: 0.1.0-alpha.45
+        specifier: 0.1.0-alpha.59
+        version: 0.1.0-alpha.59
       typescript:
         specifier: ~5.7.2
         version: 5.7.3
@@ -1930,8 +1930,8 @@ packages:
   flatted@3.3.2:
     resolution: {integrity: sha512-AiwGJM8YcNOaobumgtng+6NHuOqC3A7MixFeDafM3X9cIUM+xUXoS5Vfgf+OihAYe20fxqNM9yPBXJzRtZ/4eA==}
 
-  follow-redirects@1.15.9:
-    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
+  follow-redirects@1.16.0:
+    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -2890,8 +2890,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  supersim@0.1.0-alpha.45:
-    resolution: {integrity: sha512-yFH2MAck2MgTRPe/2gdOnh71ODoO8bBpNM5Q/jW/QlJZUflMcGJi1wRdWWuo2eIApZzGeSUHzYTH2DOaDxea0Q==}
+  supersim@0.1.0-alpha.59:
+    resolution: {integrity: sha512-HbMTWn02kTP6+uFv8VZX3ALiPFHgG9/uukt34YRYy+h2kTyie5lZ5skbPPvf7NPRtHjsrlsv/NdZygnABImZ6Q==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -5547,7 +5547,7 @@ snapshots:
 
   flatted@3.3.2: {}
 
-  follow-redirects@1.15.9: {}
+  follow-redirects@1.16.0: {}
 
   for-each@0.3.4:
     dependencies:
@@ -6495,9 +6495,9 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  supersim@0.1.0-alpha.45:
+  supersim@0.1.0-alpha.59:
     dependencies:
-      follow-redirects: 1.15.9
+      follow-redirects: 1.16.0
     transitivePeerDependencies:
       - debug
 
