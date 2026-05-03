@@ -27,9 +27,6 @@ jobs:
     name: Mainnet Readiness Gate
     runs-on: ubuntu-latest
     environment: production
-    defaults:
-      run:
-        working-directory: contracts
     env:
       MARK_MAINNET_GATE_MODE: ${{ inputs.mode }}
       RPC_URL: ${{ inputs.rpc_url }}
@@ -69,6 +66,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@v1
 
       - name: Run mainnet readiness gate
+        working-directory: contracts
         run: ./script/ops/mainnet-readiness.sh
 
       - name: Upload readiness artifact
