@@ -405,15 +405,9 @@ Run Slither locally on MARK core contracts:
 
 ```bash
 cd /Users/iap/mark/contracts
-slither \
-  src/token/RYLA.sol \
-  src/bridge/MARKBridgeAdapter.sol \
-  src/settlement/MARKSettlementModule.sol \
-  src/settlement/verifier/AttestedSettlementVerifier.sol \
-  --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
-  --exclude-dependencies \
-  --filter-paths "lib|test|script|out|cache" \
-  --fail-medium
+make slither-install
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+make slither-core
 ```
 
 CI workflow:
