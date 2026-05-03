@@ -43,7 +43,7 @@
     "wagmi": "^2.14.11"
   },
   "devDependencies": {
-    "@eslint/js": "^9.19.0",
+    "@eslint/js": "^9.39.4",
     "@eth-optimism/super-cli": "^0.0.13",
     "@types/node": "^22.13.1",
     "@types/react": "^18.2.55",

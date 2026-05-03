@@ -58,8 +58,8 @@ importers:
         version: 2.14.11(@tanstack/query-core@5.100.8)(@tanstack/react-query@5.100.8(react@18.3.1))(@types/react@18.3.18)(bufferutil@4.0.9)(immer@10.1.1)(react@18.3.1)(typescript@5.7.3)(utf-8-validate@5.0.10)(viem@2.48.8(bufferutil@4.0.9)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@3.24.1))(zod@3.24.1)
     devDependencies:
       '@eslint/js':
-        specifier: ^9.19.0
-        version: 9.20.0
+        specifier: ^9.39.4
+        version: 9.39.4
       '@eth-optimism/super-cli':
         specifier: ^0.0.13
         version: 0.0.13(@tanstack/query-core@5.100.8)(@types/react@18.3.18)(bufferutil@4.0.9)(typescript@5.7.3)(use-sync-external-store@1.4.0(react@18.3.1))(utf-8-validate@5.0.10)(vite@6.1.0(@types/node@22.13.1)(jiti@2.6.1)(lightningcss@1.32.0))
@@ -405,6 +405,10 @@ packages:
 
   '@eslint/js@9.20.0':
     resolution: {integrity: sha512-iZA07H9io9Wn836aVTytRaNqh00Sad+EamwOVJT12GTLw1VGMFV/4JaME+JjLtr9fiGaoWgYnS54wrfWsSs4oQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/js@9.39.4':
+    resolution: {integrity: sha512-nE7DEIchvtiFTwBw4Lfbu59PG+kCofhjsKaCWzxTpt4lfRjRMqG6uMBzKXuEcyXhOHoUp9riAm7/aWYGhXZ9cw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/object-schema@2.1.6':
@@ -3632,6 +3636,8 @@ snapshots:
       - supports-color
 
   '@eslint/js@9.20.0': {}
+
+  '@eslint/js@9.39.4': {}
 
   '@eslint/object-schema@2.1.6': {}
 
