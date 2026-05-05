@@ -1,18 +1,10 @@
 name: CodeQL
 
+# CodeQL requires GitHub Advanced Security (org-level feature).
+# This workflow is disabled until the repo is transferred to an org with GHAS enabled.
+# Re-enable by restoring the `on:` triggers below.
 on:
-  push:
-    branches:
-      - dev
-      - canary
-      - main
-  pull_request:
-    branches:
-      - dev
-      - canary
-      - main
-  schedule:
-    - cron: '22 3 * * 1'
+  workflow_dispatch: # manual trigger only until GHAS is available
 
 permissions:
   actions: read
