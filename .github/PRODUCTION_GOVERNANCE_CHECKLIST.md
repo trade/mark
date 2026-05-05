@@ -16,6 +16,9 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Slither Core Contracts`
   - `Secrets Drift Guard`
+  - `Analyze (JavaScript/TypeScript)`
+  - `Gitleaks Scan`
+  - `Release Gate Container`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
 - Governance policy PR rule:
@@ -38,6 +41,9 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Slither Core Contracts`
   - `Secrets Drift Guard`
+  - `Analyze (JavaScript/TypeScript)`
+  - `Gitleaks Scan`
+  - `Release Gate Container`
 - Governance policy PR rule:
   - If PR changes `scripts/github/apply-governance.sh`, `BRANCHING.md`, or this checklist, ensure `Validate Governance Policy Consistency` passes before merge.
 - Enable `Require branches to be up to date before merging`
@@ -54,6 +60,9 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Slither Core Contracts`
   - `Secrets Drift Guard`
+  - `Analyze (JavaScript/TypeScript)`
+  - `Gitleaks Scan`
+  - `Release Gate Container`
 - Governance policy PR rule:
   - If PR changes `scripts/github/apply-governance.sh`, `BRANCHING.md`, or this checklist, ensure `Validate Governance Policy Consistency` passes before merge.
 - Choose one model:
@@ -129,3 +138,17 @@ What this script applies:
 - `production` environment creation
 - optional production required reviewers by user ID
 - optional direct-push restrictions via `*_PUSH_ALLOW_*` allowlists
+
+
+## 9) Verify active protections after transfer
+
+Run the verification script with a repo-admin token:
+
+```bash
+cd /path/to/mark
+export GH_PAT=<github_token_with_repo_admin_scope>
+# optional: export GH_REPO=your-org/mark
+./scripts/github/verify-governance.sh
+```
+
+Expected output: all three branches (`dev`, `canary`, `main`) report `PASS` and required checks include CodeQL (`Analyze (JavaScript/TypeScript)`).

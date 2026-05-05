@@ -1,4 +1,4 @@
-.PHONY: ci-local ci-fast ci-full test-core test-invariants release-gate architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature slither-install slither-core
+.PHONY: ci-local ci-fast ci-full test-core test-invariants release-gate release-gate-container architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature slither-install slither-core
 
 # Fast local loop: guards + unit/e2e tests (excludes invariants and integration profile tests).
 ci-fast: architecture-guard layering-guard test-core
@@ -18,6 +18,9 @@ ci-local: ci-fast
 
 release-gate:
 	@./script/ci/release-gate.sh
+
+release-gate-container:
+	@./script/ci/run-release-gate-container.sh
 
 architecture-guard:
 	@./script/ci/architecture-guard.sh
