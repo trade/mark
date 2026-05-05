@@ -1,14 +1,87 @@
-# Global default owner
+# ============================================================================
+# CODEOWNERS - MARK Protocol Code Ownership & Review Requirements
+# ============================================================================
+# Format: <path> @owner [additional-reviewers]
+# Paths are matched top-to-bottom; first match wins
+# ============================================================================
+
+# Global default owner (catches everything not explicitly listed)
 * @iap
 
-# Protocol-critical scope
-/contracts/src/** @iap
-/contracts/script/** @iap
-/contracts/test/** @iap
+# ============================================================================
+# PROTOCOL-CRITICAL: Smart Contracts
+# ============================================================================
+# All contract changes require owner review
+# Consider requiring 2 approvals for main/canary deployments
+
+/contracts/src/token/** @iap
+/contracts/src/bridge/** @iap
+/contracts/src/settlement/** @iap
+/contracts/src/errors/** @iap
+/contracts/src/interfaces/** @iap
+
+# ============================================================================
+# TESTING: Contract Tests
+# ============================================================================
+
+/contracts/test/unit/** @iap
+/contracts/test/e2e/** @iap
+/contracts/test/invariant/** @iap
+
+# ============================================================================
+# DEPLOYMENT & OPERATIONS: Scripts & Automation
+# ============================================================================
+# Deployment scripts are critical - require careful review
+
+/contracts/script/deploy/** @iap
+/contracts/script/ops/** @iap
+/contracts/script/ci/** @iap
 /contracts/RUNBOOK.md @iap
 /contracts/README.md @iap
+/contracts/Makefile @iap
 
-# CI and governance
+# ============================================================================
+# CI/CD & GOVERNANCE: Workflows & Branch Protection
+# ============================================================================
+# Workflow changes affect all deployments - require review
+# Governance changes must be kept in sync with policy
+
 /.github/workflows/** @iap
 /.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @iap
+/.github/CODEOWNERS @iap
+
 /BRANCHING.md @iap
+/CONTRIBUTING.md @iap
+/DEPLOYMENT.md @iap
+/TROUBLESHOOTING.md @iap
+/AGENTS.md @iap
+
+# ============================================================================
+# FRONTEND APPLICATION
+# ============================================================================
+
+/src/** @iap
+/index.html @iap
+
+# ============================================================================
+# CONFIGURATION & BUILD
+# ============================================================================
+
+/package.json @iap
+/pnpm-lock.yaml @iap
+/tsconfig*.json @iap
+/vite.config.ts @iap
+/eslint.config.js @iap
+/.prettierrc.json @iap
+/mprocs.yaml @iap
+/remappings.txt @iap
+
+/contracts/foundry.toml @iap
+/contracts/Makefile @iap
+
+# ============================================================================
+# DOCUMENTATION
+# ============================================================================
+
+/README.md @iap
+/LICENSE @iap
