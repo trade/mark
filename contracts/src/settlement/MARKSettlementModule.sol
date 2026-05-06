@@ -4,7 +4,6 @@ pragma solidity ^0.8.25;
 import {
     AccessControlDefaultAdminRules
 } from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IRYLA} from "../interfaces/IRYLA.sol";
@@ -16,7 +15,7 @@ import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 /// @notice Boundary module for integrating external UTXO/zk accounting with RYLA mint/burn.
 /// @dev Holds RYLA minter and burner roles. Replay protection is enforced via `intentId`.
 contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules, SettlementErrors {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IRYLA;
     event OperatorUpdated(address indexed operator, bool enabled);
     event VerifierUpdated(address indexed verifier, bool validationEnabled);
     event ProductionModeActivated(address indexed admin);
@@ -97,7 +96,7 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
         _consumeAndValidate(intentId, account, amount, false, proof);
 
         uint256 moduleBalanceBefore = TOKEN.balanceOf(address(this));
-        IERC20(address(TOKEN)).safeTransferFrom(account, address(this), amount);
+        TOKEN.safeTransferFrom(account, address(this), amount);
         uint256 moduleBalanceAfterTransfer = TOKEN.balanceOf(address(this));
         if (moduleBalanceAfterTransfer != moduleBalanceBefore + amount) revert BurnEscrowInvariantFailed();
 
