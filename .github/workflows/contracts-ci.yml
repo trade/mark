@@ -90,7 +90,7 @@ jobs:
 
       - name: Export anvil deployer private key
         run: |
-          key="$(awk '/Private Keys/{getline; sub(/^[[:space:]]*\\(0\\)[[:space:]]*/, "", $0); print $0; exit}' /tmp/anvil.log)"
+          key="$(grep -Eo '\(0\)[[:space:]]*0x[0-9a-fA-F]+' /tmp/anvil.log | head -n 1 | sed -E 's/^\(0\)[[:space:]]*//')"
           if [ -z "$key" ]; then
             echo "failed to extract anvil deployer key" >&2
             tail -n 120 /tmp/anvil.log || true
