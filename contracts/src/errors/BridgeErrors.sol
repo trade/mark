@@ -8,4 +8,5 @@ abstract contract BridgeErrors {
     error DestinationDisabled();
     error MaxPerTxExceeded();
     error DailyCapExceeded();
+    error BridgeFailed();
 }
