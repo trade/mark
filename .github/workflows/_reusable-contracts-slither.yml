@@ -2,6 +2,12 @@ name: Reusable Contracts Slither
 
 on:
   workflow_call:
+    inputs:
+      foundry_version:
+        description: Foundry version used for Slither compile path
+        required: false
+        default: "1.5.0"
+        type: string
 
 jobs:
   slither-core:
@@ -20,10 +26,12 @@ jobs:
           python-version: "3.11"
 
       - name: Install Slither
-        run: pip install slither-analyzer
+        run: pip install slither-analyzer==0.11.5
 
       - name: Setup Foundry
         uses: ./.github/actions/setup-foundry
+        with:
+          foundry-version: ${{ inputs.foundry_version }}
 
       - name: Run Slither on MARK core contracts
         working-directory: contracts
