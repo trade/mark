@@ -129,9 +129,6 @@ Apply these repository settings:
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
   - `Release Gate Container`
-- `Release Gate Container`
-- `Gitleaks Scan`
-- `Release Gate Container`
 - Require at least 1 approval.
 - Dismiss stale approvals on new commits.
 
@@ -145,9 +142,6 @@ Apply these repository settings:
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
   - `Release Gate Container`
-- `Release Gate Container`
-- `Gitleaks Scan`
-- `Release Gate Container`
 
 Notes:
 - Do not add `Validate Governance Policy Consistency` as a global required branch-protection check because it is intentionally path-filtered; require it only on governance-touching PRs.
