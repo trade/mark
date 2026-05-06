@@ -2,6 +2,9 @@
 
 This runbook is the operational source of truth for MARK (`RYLA`) deployments.
 
+For operator sign-off before production promotion, use:
+- [`STAGING_GO_NO_GO_CHECKLIST.md`](./STAGING_GO_NO_GO_CHECKLIST.md)
+
 ## 0) Branch Policy
 
 - Production deployment and mainnet readiness checks are executed from `main` branch only.
