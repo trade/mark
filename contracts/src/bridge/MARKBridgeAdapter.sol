@@ -92,7 +92,14 @@ contract MARKBridgeAdapter is ReentrancyGuard, AccessControlDefaultAdminRules, B
         TOKEN.safeTransferFrom(msg.sender, address(this), amount);
         TOKEN.forceApprove(address(SUPERCHAIN_TOKEN_BRIDGE), amount);
 
-        messageHash = SUPERCHAIN_TOKEN_BRIDGE.sendERC20(address(TOKEN), recipient, amount, destinationChainId);
+        try SUPERCHAIN_TOKEN_BRIDGE.sendERC20(address(TOKEN), recipient, amount, destinationChainId) returns (
+            bytes32 hash
+        ) {
+            messageHash = hash;
+        } catch {
+            TOKEN.forceApprove(address(SUPERCHAIN_TOKEN_BRIDGE), 0);
+            revert BridgeFailed();
+        }
         emit BridgedOut(msg.sender, recipient, destinationChainId, amount, messageHash);
     }
 

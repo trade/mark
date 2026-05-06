@@ -110,6 +110,21 @@ contract MARKBridgeAdapterTest is Test {
         assertEq(adapter.bridgedInDailyCapEpoch(), 60 ether);
     }
 
+    function testBridgeToRevertsWithBridgeFailedAndClearsApprovalOnSendERC20Revert() public {
+        uint256 amount = 25 ether;
+
+        bytes memory callData = abi.encodeWithSelector(
+            ISuperchainTokenBridge.sendERC20.selector, address(token), recipient, amount, DST_CHAIN_ID
+        );
+        vm.mockCallRevert(SUPERCHAIN_BRIDGE, callData, "bridge down");
+
+        vm.prank(operator);
+        vm.expectRevert(BridgeErrors.BridgeFailed.selector);
+        adapter.bridgeTo(recipient, amount, DST_CHAIN_ID);
+
+        assertEq(token.allowance(address(adapter), SUPERCHAIN_BRIDGE), 0);
+    }
+
     function testFuzz_BridgeLimitsRespectCapsAndDayReset(
         uint96 firstRaw,
         uint96 secondRaw,

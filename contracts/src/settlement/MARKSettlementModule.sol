@@ -4,10 +4,9 @@ pragma solidity ^0.8.25;
 import {
     AccessControlDefaultAdminRules
 } from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {RYLA} from "../token/RYLA.sol";
+import {IRYLA} from "../interfaces/IRYLA.sol";
 import {IUTXOSettlementVerifier} from "./interfaces/IUTXOSettlementVerifier.sol";
 import {SettlementErrors} from "../errors/SettlementErrors.sol";
 import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
@@ -16,7 +15,7 @@ import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 /// @notice Boundary module for integrating external UTXO/zk accounting with RYLA mint/burn.
 /// @dev Holds RYLA minter and burner roles. Replay protection is enforced via `intentId`.
 contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules, SettlementErrors {
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IRYLA;
     event OperatorUpdated(address indexed operator, bool enabled);
     event VerifierUpdated(address indexed verifier, bool validationEnabled);
     event ProductionModeActivated(address indexed admin);
@@ -26,7 +25,7 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
     uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
-    RYLA public immutable TOKEN;
+    IRYLA public immutable TOKEN;
 
     mapping(bytes32 => bool) public consumedIntents;
     uint256 public totalSettledMint;
@@ -41,7 +40,7 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
     {
         if (initialAdmin == address(0)) revert ZeroAddress();
         if (tokenAddress == address(0)) revert ZeroAddress();
-        TOKEN = RYLA(tokenAddress);
+        TOKEN = IRYLA(tokenAddress);
     }
 
     function setOperator(address operator, bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -97,7 +96,7 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
         _consumeAndValidate(intentId, account, amount, false, proof);
 
         uint256 moduleBalanceBefore = TOKEN.balanceOf(address(this));
-        IERC20(address(TOKEN)).safeTransferFrom(account, address(this), amount);
+        TOKEN.safeTransferFrom(account, address(this), amount);
         uint256 moduleBalanceAfterTransfer = TOKEN.balanceOf(address(this));
         if (moduleBalanceAfterTransfer != moduleBalanceBefore + amount) revert BurnEscrowInvariantFailed();
 
