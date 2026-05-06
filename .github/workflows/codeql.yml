@@ -1,10 +1,25 @@
 name: CodeQL
 
-# CodeQL requires GitHub Advanced Security (org-level feature).
-# This workflow is disabled until the repo is transferred to an org with GHAS enabled.
-# Re-enable by restoring the `on:` triggers below.
 on:
-  workflow_dispatch: # manual trigger only until GHAS is available
+  pull_request:
+    branches: [main, canary, dev]
+    paths:
+      - "src/**"
+      - "contracts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/codeql.yml"
+  push:
+    branches: [main, canary, dev]
+    paths:
+      - "src/**"
+      - "contracts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/codeql.yml"
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
 
 permissions:
   actions: read
@@ -25,6 +40,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm (corepack)
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.0.2 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4

@@ -36,7 +36,10 @@ This repository uses a three-track branch model:
 - `contracts-slither` runs on pushes to `dev`, `canary`, and `main`, and on PRs touching core contracts.
 - `contracts-env-guard` runs on pushes to `dev`, `canary`, and `main`, and on PRs touching contracts.
 - `secrets-drift-guard` runs on all PRs into `dev`, `canary`, and `main`.
+- `secrets-scan` (gitleaks) runs on PRs/pushes to detect accidental secret commits early.
+- `scripts-ci` runs shellcheck on repository automation scripts to reduce operational breakage risk.
 - `contracts-staging-rehearsal` is automatically triggered on push to `canary`.
+- `contracts-release-gate-container` runs release gate in a pinned container on pushes to `dev`/`canary`/`main` and manual dispatch.
 - `contracts-mainnet-readiness` is production-gated:
   - manual only (`workflow_dispatch`)
   - enforced to run from `main` branch
@@ -62,6 +65,9 @@ Use this matrix as the merge baseline.
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Slither Core Contracts`
 - `Secrets Drift Guard`
+- `Analyze (JavaScript/TypeScript)`
+- `Gitleaks Scan`
+- `Release Gate Container`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `canary`
@@ -70,6 +76,9 @@ Use this matrix as the merge baseline.
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Slither Core Contracts`
 - `Secrets Drift Guard`
+- `Analyze (JavaScript/TypeScript)`
+- `Gitleaks Scan`
+- `Release Gate Container`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `main` (release candidate)
@@ -78,6 +87,9 @@ Use this matrix as the merge baseline.
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Slither Core Contracts`
 - `Secrets Drift Guard`
+- `Analyze (JavaScript/TypeScript)`
+- `Gitleaks Scan`
+- `Release Gate Container`
 - `Validate Release PR Checklist`
 - `Validate Release Evidence`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
@@ -98,6 +110,9 @@ Apply these repository settings:
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Slither Core Contracts`
   - `Secrets Drift Guard`
+  - `Analyze (JavaScript/TypeScript)`
+  - `Gitleaks Scan`
+  - `Release Gate Container`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
 - Require at least 1-2 approvals.
@@ -111,6 +126,9 @@ Apply these repository settings:
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Slither Core Contracts`
   - `Secrets Drift Guard`
+  - `Analyze (JavaScript/TypeScript)`
+  - `Gitleaks Scan`
+  - `Release Gate Container`
 - Require at least 1 approval.
 - Dismiss stale approvals on new commits.
 
@@ -121,6 +139,9 @@ Apply these repository settings:
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Slither Core Contracts`
   - `Secrets Drift Guard`
+  - `Analyze (JavaScript/TypeScript)`
+  - `Gitleaks Scan`
+  - `Release Gate Container`
 
 Notes:
 - Do not add `Validate Governance Policy Consistency` as a global required branch-protection check because it is intentionally path-filtered; require it only on governance-touching PRs.
