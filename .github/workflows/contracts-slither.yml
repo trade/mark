@@ -2,19 +2,11 @@ name: Contracts Slither
 
 on:
   pull_request:
-    paths:
-      - "contracts/src/**"
-      - "contracts/foundry.toml"
-      - ".github/workflows/contracts-slither.yml"
   push:
     branches:
       - main
       - canary
       - dev
-    paths:
-      - "contracts/src/**"
-      - "contracts/foundry.toml"
-      - ".github/workflows/contracts-slither.yml"
 
 jobs:
   slither-core:
