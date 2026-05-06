@@ -12,8 +12,10 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Dismiss stale pull request approvals when new commits are pushed`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Analyze (javascript-typescript)`
+  - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
+  - `Secrets Drift Guard`
+  - `Release Gate Container`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
@@ -44,8 +46,10 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Dismiss stale pull request approvals when new commits are pushed`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Analyze (javascript-typescript)`
+  - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
+  - `Secrets Drift Guard`
+  - `Release Gate Container`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
@@ -69,8 +73,10 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Require a pull request before merging`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Analyze (javascript-typescript)`
+  - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
+  - `Secrets Drift Guard`
+  - `Release Gate Container`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
@@ -170,4 +176,4 @@ export GH_PAT=<github_token_with_repo_admin_scope>
 ./scripts/github/verify-governance.sh
 ```
 
-Expected output: all three branches (`dev`, `canary`, `main`) report `PASS` and required checks include CodeQL (`Analyze (javascript-typescript)`), `Gitleaks Scan`, and `Dependency Review`.
+Expected output: all three branches (`dev`, `canary`, `main`) report `PASS` and required checks include CodeQL (`Analyze (JavaScript/TypeScript)`), `Gitleaks Scan`, and `Dependency Review`.

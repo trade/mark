@@ -62,8 +62,10 @@ Use this matrix as the merge baseline.
 
 ### PRs into `dev`
 
-- `Analyze (javascript-typescript)`
+- `Analyze (JavaScript/TypeScript)`
 - `Gitleaks Scan`
+- `Secrets Drift Guard`
+- `Release Gate Container`
 - `Dependency Review`
 - `Contracts Unit + Invariant`
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
@@ -75,8 +77,10 @@ Use this matrix as the merge baseline.
 
 ### PRs into `canary`
 
-- `Analyze (javascript-typescript)`
+- `Analyze (JavaScript/TypeScript)`
 - `Gitleaks Scan`
+- `Secrets Drift Guard`
+- `Release Gate Container`
 - `Dependency Review`
 - `Contracts Unit + Invariant`
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
@@ -88,8 +92,10 @@ Use this matrix as the merge baseline.
 
 ### PRs into `main` (release candidate)
 
-- `Analyze (javascript-typescript)`
+- `Analyze (JavaScript/TypeScript)`
 - `Gitleaks Scan`
+- `Secrets Drift Guard`
+- `Release Gate Container`
 - `Dependency Review`
 - `Contracts Unit + Invariant`
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
@@ -113,7 +119,7 @@ Apply these repository settings:
 1. Protect `main`
 - Require pull request before merge.
 - Require status checks:
-  - `Analyze (javascript-typescript)`
+  - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
@@ -131,7 +137,7 @@ Apply these repository settings:
 2. Protect `canary`
 - Require pull request before merge.
 - Require status checks:
-  - `Analyze (javascript-typescript)`
+  - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
@@ -146,7 +152,7 @@ Apply these repository settings:
 3. Protect `dev`
 - Require pull request before merge (or allow maintainers direct push if desired).
 - Require status checks:
-  - `Analyze (javascript-typescript)`
+  - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
