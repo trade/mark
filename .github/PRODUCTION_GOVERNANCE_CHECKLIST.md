@@ -12,15 +12,24 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Dismiss stale pull request approvals when new commits are pushed`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Slither Core Contracts`
-  - `Secrets Drift Guard`
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
+  - `Secrets Drift Guard`
   - `Release Gate Container`
+  - `Dependency Review`
+  - `Contracts Unit + Invariant`
+  - `Contracts Release Check (Dry-Run + Execute Smoke)`
+  - `Contracts Production Mode Smoke`
+  - `Slither Core Contracts`
+  - `Frontend Checks (Node 20)`
+  - `Frontend Checks (Node 22)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
+- Optional additional checks (recommended but not globally required):
+  - `Contracts Unit + Invariant`
+  - `Contracts Env Guard`
+  - `Contracts Evidence Manifest`
+  - `Governance Policy Guard`
 - Governance policy PR rule:
   - If PR changes `scripts/github/apply-governance.sh`, `BRANCHING.md`, or this checklist, ensure `Validate Governance Policy Consistency` passes before merge.
 - Enable `Require branches to be up to date before merging`
@@ -37,13 +46,21 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Dismiss stale pull request approvals when new commits are pushed`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Slither Core Contracts`
-  - `Secrets Drift Guard`
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
+  - `Secrets Drift Guard`
   - `Release Gate Container`
+  - `Dependency Review`
+  - `Contracts Unit + Invariant`
+  - `Contracts Release Check (Dry-Run + Execute Smoke)`
+  - `Contracts Production Mode Smoke`
+  - `Slither Core Contracts`
+  - `Frontend Checks (Node 20)`
+  - `Frontend Checks (Node 22)`
+- Optional additional checks (recommended but not globally required):
+  - `Contracts Unit + Invariant`
+  - `Contracts Env Guard`
+  - `Governance Policy Guard`
 - Governance policy PR rule:
   - If PR changes `scripts/github/apply-governance.sh`, `BRANCHING.md`, or this checklist, ensure `Validate Governance Policy Consistency` passes before merge.
 - Enable `Require branches to be up to date before merging`
@@ -56,13 +73,21 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Require a pull request before merging`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Slither Core Contracts`
-  - `Secrets Drift Guard`
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
+  - `Secrets Drift Guard`
   - `Release Gate Container`
+  - `Dependency Review`
+  - `Contracts Unit + Invariant`
+  - `Contracts Release Check (Dry-Run + Execute Smoke)`
+  - `Contracts Production Mode Smoke`
+  - `Slither Core Contracts`
+  - `Frontend Checks (Node 20)`
+  - `Frontend Checks (Node 22)`
+- Optional additional checks (recommended but not globally required):
+  - `Contracts Unit + Invariant`
+  - `Contracts Env Guard`
+  - `Governance Policy Guard`
 - Governance policy PR rule:
   - If PR changes `scripts/github/apply-governance.sh`, `BRANCHING.md`, or this checklist, ensure `Validate Governance Policy Consistency` passes before merge.
 - Choose one model:
@@ -120,7 +145,7 @@ You can apply most settings via script:
 cd /path/to/mark
 export GH_PAT=<github_token_with_repo_admin_scope>
 # optional:
-# export GH_REPO=iap/mark
+# export GH_REPO=trade/mark
 # export MAIN_REVIEW_COUNT=2
 # export DEV_REVIEW_COUNT=1
 # export MAIN_PUSH_ALLOW_USERS=iap
@@ -151,4 +176,4 @@ export GH_PAT=<github_token_with_repo_admin_scope>
 ./scripts/github/verify-governance.sh
 ```
 
-Expected output: all three branches (`dev`, `canary`, `main`) report `PASS` and required checks include CodeQL (`Analyze (JavaScript/TypeScript)`).
+Expected output: all three branches (`dev`, `canary`, `main`) report `PASS` and required checks include CodeQL (`Analyze (JavaScript/TypeScript)`), `Gitleaks Scan`, and `Dependency Review`.
