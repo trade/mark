@@ -7,7 +7,7 @@ import {
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {RYLA} from "../token/RYLA.sol";
+import {IRYLA} from "../interfaces/IRYLA.sol";
 import {IUTXOSettlementVerifier} from "./interfaces/IUTXOSettlementVerifier.sol";
 import {SettlementErrors} from "../errors/SettlementErrors.sol";
 import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
@@ -26,7 +26,7 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
     uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
-    RYLA public immutable TOKEN;
+    IRYLA public immutable TOKEN;
 
     mapping(bytes32 => bool) public consumedIntents;
     uint256 public totalSettledMint;
@@ -41,7 +41,7 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
     {
         if (initialAdmin == address(0)) revert ZeroAddress();
         if (tokenAddress == address(0)) revert ZeroAddress();
-        TOKEN = RYLA(tokenAddress);
+        TOKEN = IRYLA(tokenAddress);
     }
 
     function setOperator(address operator, bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE) {
