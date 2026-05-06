@@ -1,0 +1,9 @@
+name: Setup Foundry
+
+description: Install pinned Foundry toolchain used by repository workflows.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Foundry
+      uses: foundry-rs/foundry-toolchain@v1
