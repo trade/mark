@@ -1,0 +1,16 @@
+name: Setup Foundry
+
+description: Install pinned Foundry toolchain used by repository workflows.
+
+inputs:
+  foundry-version:
+    description: Foundry version (for example 1.5.0 or nightly-<commit>)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Foundry
+      uses: foundry-rs/foundry-toolchain@v1
+      with:
+        version: ${{ inputs.foundry-version }}

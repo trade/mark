@@ -1,0 +1,48 @@
+name: Reusable Frontend Checks
+
+on:
+  workflow_call:
+    inputs:
+      node_versions:
+        description: JSON array of Node versions
+        required: false
+        default: '["20","22"]'
+        type: string
+      pnpm_version:
+        description: pnpm version used by corepack
+        required: false
+        default: "9.0.2"
+        type: string
+
+jobs:
+  frontend-checks:
+    name: Frontend Checks (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ${{ fromJSON(inputs.node_versions) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup Node + pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpm_version }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm -s typecheck
+
+      - name: Lint
+        run: pnpm -s lint
+
+      - name: Build frontend
+        run: pnpm -s build:frontend
