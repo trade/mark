@@ -2,17 +2,11 @@ name: Contracts CI
 
 on:
   pull_request:
-    paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-ci.yml"
   push:
     branches:
       - main
       - canary
       - dev
-    paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-ci.yml"
   workflow_dispatch:
     inputs:
       run_integration:
