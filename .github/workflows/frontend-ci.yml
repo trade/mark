@@ -2,29 +2,11 @@ name: Frontend CI
 
 on:
   pull_request:
-    paths:
-      - "src/**"
-      - "public/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "tsconfig*.json"
-      - "vite.config.*"
-      - "eslint.config.*"
-      - ".github/workflows/frontend-ci.yml"
   push:
     branches:
       - main
       - canary
       - dev
-    paths:
-      - "src/**"
-      - "public/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "tsconfig*.json"
-      - "vite.config.*"
-      - "eslint.config.*"
-      - ".github/workflows/frontend-ci.yml"
   workflow_dispatch:
 
 jobs:
