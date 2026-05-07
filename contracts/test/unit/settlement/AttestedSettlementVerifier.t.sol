@@ -61,6 +61,37 @@ contract AttestedSettlementVerifierTest is Test {
         assertFalse(ok);
     }
 
+    function testVerifySettlementReturnsFalseForZeroIntentId() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(bytes32(0), settlementModule, user, 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(bytes32(0), settlementModule, user, 1 ether, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForZeroSettlementModule() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(INTENT, address(0), user, 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, address(0), user, 1 ether, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForZeroAccount() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(INTENT, settlementModule, address(0), 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, settlementModule, address(0), 1 ether, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForZeroAmount() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(INTENT, settlementModule, user, 0, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, settlementModule, user, 0, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForWrongIsMintFlag() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        // proof signed for isMint=true, but called with isMint=false
+        bytes memory proof = _buildProof(INTENT, settlementModule, user, 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, settlementModule, user, 1 ether, false, proof));
+    }
+
     function _buildProof(
         bytes32 intentId,
         address moduleAddress,

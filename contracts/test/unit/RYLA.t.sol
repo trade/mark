@@ -76,4 +76,35 @@ contract RYLATest is Test {
         token.crosschainBurn(user, 2 ether);
         assertEq(token.balanceOf(user), 3 ether);
     }
+
+    function testSupportsInterface() public view {
+        // ERC165
+        assertTrue(token.supportsInterface(0x01ffc9a7));
+        // IAccessControl
+        assertTrue(token.supportsInterface(0x7965db0b));
+        // random — should return false
+        assertFalse(token.supportsInterface(0xdeadbeef));
+    }
+
+    function testSetMinterRevertsForZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert();
+        token.setMinter(address(0), true);
+    }
+
+    function testSetBurnerRevertsForZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert();
+        token.setBurner(address(0), true);
+    }
+
+    function testBurnRevertsForZeroAmount() public {
+        vm.startPrank(owner);
+        token.setBurner(burner, true);
+        vm.stopPrank();
+
+        vm.prank(burner);
+        vm.expectRevert();
+        token.burn(0);
+    }
 }

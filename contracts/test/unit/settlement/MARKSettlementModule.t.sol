@@ -150,6 +150,31 @@ contract MARKSettlementModuleTest is Test {
         module.setVerifier(address(verifier), false);
     }
 
+    function testTotalSettledAccumulatesAcrossMultipleIntents() public {
+        vm.startPrank(operator);
+        module.settleMint(user, 3 ether, keccak256("acc-m1"), bytes(""));
+        module.settleMint(user, 7 ether, keccak256("acc-m2"), bytes(""));
+        vm.stopPrank();
+        assertEq(module.totalSettledMint(), 10 ether);
+
+        vm.prank(user);
+        token.approve(address(module), 10 ether);
+
+        vm.startPrank(operator);
+        module.settleBurn(user, 4 ether, keccak256("acc-b1"), bytes(""));
+        module.settleBurn(user, 2 ether, keccak256("acc-b2"), bytes(""));
+        vm.stopPrank();
+        assertEq(module.totalSettledBurn(), 6 ether);
+        assertEq(token.balanceOf(user), 4 ether);
+    }
+
+    function testSetVerifierRejectsEOAAddress() public {
+        address eoa = makeAddr("eoa");
+        vm.prank(owner);
+        vm.expectRevert(SettlementErrors.VerifierRequired.selector);
+        module.setVerifier(eoa, true);
+    }
+
     function testProductionModeStillEnforcesBurnProofValidation() public {
         vm.startPrank(owner);
         module.setVerifier(address(verifier), true);
