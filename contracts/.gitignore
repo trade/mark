@@ -5,6 +5,9 @@ out/
 # Ignores all broadcast logs
 /broadcast/
 
+# Coverage output
+coverage/
+
 # Docs
 docs/
 
