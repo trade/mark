@@ -6,6 +6,8 @@ import {Test} from "forge-std/Test.sol";
 import {RYLA} from "../../src/token/RYLA.sol";
 import {PredeployAddresses} from "@interop-lib/libraries/PredeployAddresses.sol";
 import {Unauthorized} from "@interop-lib/libraries/errors/CommonErrors.sol";
+import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
+import {TokenErrors} from "../../src/errors/TokenErrors.sol";
 
 contract RYLATest is Test {
     RYLA internal token;
@@ -88,13 +90,13 @@ contract RYLATest is Test {
 
     function testSetMinterRevertsForZeroAddress() public {
         vm.prank(owner);
-        vm.expectRevert();
+        vm.expectRevert(ZeroAddress.selector);
         token.setMinter(address(0), true);
     }
 
     function testSetBurnerRevertsForZeroAddress() public {
         vm.prank(owner);
-        vm.expectRevert();
+        vm.expectRevert(ZeroAddress.selector);
         token.setBurner(address(0), true);
     }
 
@@ -104,7 +106,7 @@ contract RYLATest is Test {
         vm.stopPrank();
 
         vm.prank(burner);
-        vm.expectRevert();
+        vm.expectRevert(TokenErrors.InvalidAmount.selector);
         token.burn(0);
     }
 }
