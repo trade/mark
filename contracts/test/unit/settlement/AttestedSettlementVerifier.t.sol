@@ -102,34 +102,8 @@ contract AttestedSettlementVerifierTest is Test {
         uint256 deadline,
         uint256 signerPk
     ) internal view returns (bytes memory proof) {
-        bytes32 digest = _settlementDigest(intentId, moduleAddress, account, amount, isMint, contextHash, deadline);
+        bytes32 digest = verifier.settlementDigest(intentId, moduleAddress, account, amount, isMint, contextHash, deadline);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
         proof = abi.encode(deadline, contextHash, v, r, s);
-    }
-
-    function _settlementDigest(
-        bytes32 intentId,
-        address moduleAddress,
-        address account,
-        uint256 amount,
-        bool isMint,
-        bytes32 contextHash,
-        uint256 deadline
-    ) internal view returns (bytes32) {
-        bytes32 settlementHash = keccak256(
-            abi.encode(
-                verifier.SETTLEMENT_ATTESTATION_DOMAIN(),
-                address(verifier),
-                block.chainid,
-                intentId,
-                moduleAddress,
-                account,
-                amount,
-                isMint,
-                contextHash,
-                deadline
-            )
-        );
-        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", settlementHash));
     }
 }
