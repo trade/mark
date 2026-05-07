@@ -6,6 +6,8 @@ import {Test} from "forge-std/Test.sol";
 import {RYLA} from "../../src/token/RYLA.sol";
 import {PredeployAddresses} from "@interop-lib/libraries/PredeployAddresses.sol";
 import {Unauthorized} from "@interop-lib/libraries/errors/CommonErrors.sol";
+import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
+import {TokenErrors} from "../../src/errors/TokenErrors.sol";
 
 contract RYLATest is Test {
     RYLA internal token;
@@ -75,5 +77,36 @@ contract RYLATest is Test {
         vm.prank(PredeployAddresses.SUPERCHAIN_TOKEN_BRIDGE);
         token.crosschainBurn(user, 2 ether);
         assertEq(token.balanceOf(user), 3 ether);
+    }
+
+    function testSupportsInterface() public view {
+        // ERC165
+        assertTrue(token.supportsInterface(0x01ffc9a7));
+        // IAccessControl
+        assertTrue(token.supportsInterface(0x7965db0b));
+        // random — should return false
+        assertFalse(token.supportsInterface(0xdeadbeef));
+    }
+
+    function testSetMinterRevertsForZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert(ZeroAddress.selector);
+        token.setMinter(address(0), true);
+    }
+
+    function testSetBurnerRevertsForZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert(ZeroAddress.selector);
+        token.setBurner(address(0), true);
+    }
+
+    function testBurnRevertsForZeroAmount() public {
+        vm.startPrank(owner);
+        token.setBurner(burner, true);
+        vm.stopPrank();
+
+        vm.prank(burner);
+        vm.expectRevert(TokenErrors.InvalidAmount.selector);
+        token.burn(0);
     }
 }
