@@ -1,71 +1,32 @@
-# ============================================================================
-# CODEOWNERS - MARK Protocol Code Ownership & Review Requirements
-# ============================================================================
-# Format: <path> @owner [additional-reviewers]
-# Paths are matched top-to-bottom; first match wins
-# ============================================================================
+# Format: <path> @owner
+# Paths are matched top-to-bottom; first match wins.
 
-# Global default owner (catches everything not explicitly listed)
 * @trade/maintainers
 
-# ============================================================================
-# PROTOCOL-CRITICAL: Smart Contracts
-# ============================================================================
-# All contract changes require owner review
-# Consider requiring 2 approvals for main/canary deployments
+# Contracts
 
-/contracts/src/token/** @trade/maintainers
-/contracts/src/bridge/** @trade/maintainers
-/contracts/src/settlement/** @trade/maintainers
-/contracts/src/errors/** @trade/maintainers
-/contracts/src/interfaces/** @trade/maintainers
-
-# ============================================================================
-# TESTING: Contract Tests
-# ============================================================================
-
-/contracts/test/unit/** @trade/maintainers
-/contracts/test/e2e/** @trade/maintainers
-/contracts/test/invariant/** @trade/maintainers
-
-# ============================================================================
-# DEPLOYMENT & OPERATIONS: Scripts & Automation
-# ============================================================================
-# Deployment scripts are critical - require careful review
-
-/contracts/script/deploy/** @trade/maintainers
-/contracts/script/ops/** @trade/maintainers
-/contracts/script/ci/** @trade/maintainers
+/contracts/src/** @trade/maintainers
+/contracts/test/** @trade/maintainers
+/contracts/script/** @trade/maintainers
+/contracts/foundry.toml @trade/maintainers
+/contracts/Makefile @trade/maintainers
 /contracts/RUNBOOK.md @trade/maintainers
 /contracts/README.md @trade/maintainers
-/contracts/Makefile @trade/maintainers
 
-# ============================================================================
-# CI/CD & GOVERNANCE: Workflows & Branch Protection
-# ============================================================================
-# Workflow changes affect all deployments - require review
-# Governance changes must be kept in sync with policy
+# CI and governance
 
 /.github/workflows/** @trade/maintainers
 /.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @trade/maintainers
 /.github/CODEOWNERS @trade/maintainers
-
 /BRANCHING.md @trade/maintainers
 /CONTRIBUTING.md @trade/maintainers
-/DEPLOYMENT.md @trade/maintainers
-/TROUBLESHOOTING.md @trade/maintainers
-/AGENTS.md @trade/maintainers
 
-# ============================================================================
-# FRONTEND APPLICATION
-# ============================================================================
+# Frontend
 
 /src/** @trade/maintainers
 /index.html @trade/maintainers
 
-# ============================================================================
-# CONFIGURATION & BUILD
-# ============================================================================
+# Configuration and build
 
 /package.json @trade/maintainers
 /pnpm-lock.yaml @trade/maintainers
@@ -76,12 +37,9 @@
 /mprocs.yaml @trade/maintainers
 /remappings.txt @trade/maintainers
 
-/contracts/foundry.toml @trade/maintainers
-/contracts/Makefile @trade/maintainers
-
-# ============================================================================
-# DOCUMENTATION
-# ============================================================================
+# Documentation
 
 /README.md @trade/maintainers
+/DEPLOYMENT.md @trade/maintainers
+/TROUBLESHOOTING.md @trade/maintainers
 /LICENSE @trade/maintainers
