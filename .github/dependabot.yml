@@ -38,3 +38,10 @@ updates:
           - "patch"
     commit-message:
       prefix: "chore(deps)"
+    ignore:
+      # Transitive deps from @eth-optimism/super-cli (dev/deploy tool, not runtime).
+      # No upstream fix available as of 2026-05-08. Re-evaluate when super-cli
+      # releases a version that bumps these packages.
+      - dependency-name: "@hono/node-server"
+      - dependency-name: "drizzle-orm"
+      - dependency-name: "@stablelib/ed25519"
