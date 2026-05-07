@@ -63,7 +63,7 @@ SEND_JSON="$(cast send --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --creat
 VERIFIER_TX="$(echo "$SEND_JSON" | jq -r '.transactionHash' 2>/dev/null || true)"
 if [[ -z "$VERIFIER_TX" || "$VERIFIER_TX" == "null" ]]; then
   SEND_OUT="$(cast send --rpc-url "$RPC_URL" --private-key "$PRIVATE_KEY" --create "$DATA")"
-  VERIFIER_TX="$(echo "$SEND_OUT" | rg -o '0x[0-9a-fA-F]{64}' | head -n1 || true)"
+  VERIFIER_TX="$(echo "$SEND_OUT" | grep -Eo '0x[0-9a-fA-F]{64}' | head -n1 || true)"
 fi
 VERIFIER_ADDRESS="$(cast receipt "$VERIFIER_TX" --rpc-url "$RPC_URL" --json | jq -r '.contractAddress')"
 
