@@ -48,6 +48,7 @@ jobs:
     name: Contracts Release Check (Dry-Run + Execute Smoke)
     runs-on: ubuntu-latest
     needs: contracts-unit-invariant
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: contracts
@@ -127,6 +128,7 @@ jobs:
     name: Contracts Production Mode Smoke
     runs-on: ubuntu-latest
     needs: contracts-unit-invariant
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: contracts
