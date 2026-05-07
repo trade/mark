@@ -14,6 +14,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && corepack prepare pnpm@9.0.2 --activate
 
 # Slither analyzer is required by mainnet-readiness/release hardening checks.
-RUN python3 -m pip install --no-cache-dir slither-analyzer
+RUN python3 -m pip install --no-cache-dir slither-analyzer==0.11.5
 
 WORKDIR /repo/contracts

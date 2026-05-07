@@ -12,7 +12,12 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 echo "[release-gate-container] building image: ${IMAGE_TAG}"
-docker build -t "${IMAGE_TAG}" -f "${DOCKERFILE_PATH}" "${REPO_DIR}"
+docker build \
+  --cache-from "type=gha" \
+  --cache-to   "type=gha,mode=max" \
+  -t "${IMAGE_TAG}" \
+  -f "${DOCKERFILE_PATH}" \
+  "${REPO_DIR}"
 
 echo "[release-gate-container] running release gate inside container"
 # Pass through environment variables commonly used by release-gate and remote mode.
