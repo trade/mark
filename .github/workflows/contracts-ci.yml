@@ -189,7 +189,7 @@ jobs:
         working-directory: .
 
       - name: Wait for supersim readiness
-        run: pnpm wait-port http://127.0.0.1:8420/ready
+        run: pnpm wait-port 8420
         working-directory: .
 
       - name: Run integration suite

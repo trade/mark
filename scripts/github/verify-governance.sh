@@ -69,7 +69,8 @@ get_protection() {
 
 check_branch() {
   local branch="$1"
-  shift
+  local require_stale="$2"
+  shift 2
   local -a expected=("$@")
 
   echo "[verify] branch=${branch}"
@@ -83,11 +84,13 @@ check_branch() {
     return 1
   fi
 
-  local stale
-  stale="$(jq -r '.required_pull_request_reviews.dismiss_stale_reviews // false' <<<"$json")"
-  if [[ "$stale" != "true" ]]; then
-    echo "  FAIL: dismiss_stale_reviews is not enabled for ${branch}" >&2
-    return 1
+  if [[ "$require_stale" == "true" ]]; then
+    local stale
+    stale="$(jq -r '.required_pull_request_reviews.dismiss_stale_reviews // false' <<<"$json")"
+    if [[ "$stale" != "true" ]]; then
+      echo "  FAIL: dismiss_stale_reviews is not enabled for ${branch}" >&2
+      return 1
+    fi
   fi
 
   local missing=0
@@ -105,8 +108,9 @@ check_branch() {
   echo "  PASS"
 }
 
-check_branch dev "${require_checks_dev[@]}"
-check_branch canary "${require_checks_dev[@]}"
-check_branch main "${require_checks_main[@]}"
+# dev has 0 required approvals so dismiss_stale_reviews is not applicable.
+check_branch dev    false "${require_checks_dev[@]}"
+check_branch canary true  "${require_checks_dev[@]}"
+check_branch main   true  "${require_checks_main[@]}"
 
 echo "[verify] governance baseline active for ${GH_REPO}"
