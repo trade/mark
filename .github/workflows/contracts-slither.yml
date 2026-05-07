@@ -2,55 +2,12 @@ name: Contracts Slither
 
 on:
   pull_request:
-    paths:
-      - "contracts/src/**"
-      - "contracts/foundry.toml"
-      - ".github/workflows/contracts-slither.yml"
   push:
     branches:
       - main
       - canary
       - dev
-    paths:
-      - "contracts/src/**"
-      - "contracts/foundry.toml"
-      - ".github/workflows/contracts-slither.yml"
 
 jobs:
   slither-core:
-    name: Slither Core Contracts
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      - name: Install Slither
-        run: pip install slither-analyzer
-
-      - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Run Slither on MARK core contracts
-        working-directory: contracts
-        run: |
-          for target in \
-            src/token/RYLA.sol \
-            src/bridge/MARKBridgeAdapter.sol \
-            src/settlement/MARKSettlementModule.sol \
-            src/settlement/verifier/AttestedSettlementVerifier.sol
-          do
-            slither "$target" \
-              --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
-              --exclude-dependencies \
-              --exclude "naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign" \
-              --filter-paths "lib|test|script|out|cache" \
-              --fail-medium
-          done
+    uses: ./.github/workflows/_reusable-contracts-slither.yml

@@ -32,12 +32,13 @@ This repository uses a three-track branch model:
 
 ## CI and Deployment Policy
 
-- `contracts-ci` runs on pushes to `dev`, `canary`, and `main`, and on PRs touching contracts.
-- `contracts-slither` runs on pushes to `dev`, `canary`, and `main`, and on PRs touching core contracts.
+- `contracts-ci` runs on pushes to `dev`, `canary`, and `main`, and on all PRs into protected branches.
+- `contracts-slither` runs on pushes to `dev`, `canary`, and `main`, and on all PRs into protected branches.
 - `contracts-env-guard` runs on pushes to `dev`, `canary`, and `main`, and on PRs touching contracts.
 - `secrets-drift-guard` runs on all PRs into `dev`, `canary`, and `main`.
 - `secrets-scan` (gitleaks) runs on PRs/pushes to detect accidental secret commits early.
 - `scripts-ci` runs shellcheck on repository automation scripts to reduce operational breakage risk.
+- `frontend-ci` runs on pushes to `dev`, `canary`, and `main`, and on all PRs into protected branches.
 - `contracts-staging-rehearsal` is automatically triggered on push to `canary`.
 - `contracts-release-gate-container` runs release gate in a pinned container on pushes to `dev`/`canary`/`main` and manual dispatch.
 - `contracts-mainnet-readiness` is production-gated:
@@ -61,35 +62,47 @@ Use this matrix as the merge baseline.
 
 ### PRs into `dev`
 
-- `Contracts Unit + Invariant`
-- `Contracts Release Check (Dry-Run + Execute Smoke)`
-- `Slither Core Contracts`
-- `Secrets Drift Guard`
 - `Analyze (JavaScript/TypeScript)`
 - `Gitleaks Scan`
+- `Secrets Drift Guard`
 - `Release Gate Container`
+- `Dependency Review`
+- `Contracts Unit + Invariant`
+- `Contracts Release Check (Dry-Run + Execute Smoke)`
+- `Contracts Production Mode Smoke`
+- `Slither Core Contracts`
+- `Frontend Checks (Node 20)`
+- `Frontend Checks (Node 22)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `canary`
 
-- `Contracts Unit + Invariant`
-- `Contracts Release Check (Dry-Run + Execute Smoke)`
-- `Slither Core Contracts`
-- `Secrets Drift Guard`
 - `Analyze (JavaScript/TypeScript)`
 - `Gitleaks Scan`
+- `Secrets Drift Guard`
 - `Release Gate Container`
+- `Dependency Review`
+- `Contracts Unit + Invariant`
+- `Contracts Release Check (Dry-Run + Execute Smoke)`
+- `Contracts Production Mode Smoke`
+- `Slither Core Contracts`
+- `Frontend Checks (Node 20)`
+- `Frontend Checks (Node 22)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `main` (release candidate)
 
-- `Contracts Unit + Invariant`
-- `Contracts Release Check (Dry-Run + Execute Smoke)`
-- `Slither Core Contracts`
-- `Secrets Drift Guard`
 - `Analyze (JavaScript/TypeScript)`
 - `Gitleaks Scan`
+- `Secrets Drift Guard`
 - `Release Gate Container`
+- `Dependency Review`
+- `Contracts Unit + Invariant`
+- `Contracts Release Check (Dry-Run + Execute Smoke)`
+- `Contracts Production Mode Smoke`
+- `Slither Core Contracts`
+- `Frontend Checks (Node 20)`
+- `Frontend Checks (Node 22)`
 - `Validate Release PR Checklist`
 - `Validate Release Evidence`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
@@ -106,13 +119,15 @@ Apply these repository settings:
 1. Protect `main`
 - Require pull request before merge.
 - Require status checks:
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Slither Core Contracts`
-  - `Secrets Drift Guard`
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
-  - `Release Gate Container`
+  - `Dependency Review`
+  - `Contracts Unit + Invariant`
+  - `Contracts Release Check (Dry-Run + Execute Smoke)`
+  - `Contracts Production Mode Smoke`
+  - `Slither Core Contracts`
+  - `Frontend Checks (Node 20)`
+  - `Frontend Checks (Node 22)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
 - Require at least 1-2 approvals.
@@ -122,26 +137,30 @@ Apply these repository settings:
 2. Protect `canary`
 - Require pull request before merge.
 - Require status checks:
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Slither Core Contracts`
-  - `Secrets Drift Guard`
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
-  - `Release Gate Container`
+  - `Dependency Review`
+  - `Contracts Unit + Invariant`
+  - `Contracts Release Check (Dry-Run + Execute Smoke)`
+  - `Contracts Production Mode Smoke`
+  - `Slither Core Contracts`
+  - `Frontend Checks (Node 20)`
+  - `Frontend Checks (Node 22)`
 - Require at least 1 approval.
 - Dismiss stale approvals on new commits.
 
 3. Protect `dev`
 - Require pull request before merge (or allow maintainers direct push if desired).
 - Require status checks:
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Slither Core Contracts`
-  - `Secrets Drift Guard`
   - `Analyze (JavaScript/TypeScript)`
   - `Gitleaks Scan`
-  - `Release Gate Container`
+  - `Dependency Review`
+  - `Contracts Unit + Invariant`
+  - `Contracts Release Check (Dry-Run + Execute Smoke)`
+  - `Contracts Production Mode Smoke`
+  - `Slither Core Contracts`
+  - `Frontend Checks (Node 20)`
+  - `Frontend Checks (Node 22)`
 
 Notes:
 - Do not add `Validate Governance Policy Consistency` as a global required branch-protection check because it is intentionally path-filtered; require it only on governance-touching PRs.
