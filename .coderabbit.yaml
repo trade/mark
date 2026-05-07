@@ -3,8 +3,8 @@ language: "en-US"
 early_access: false
 
 reviews:
-  profile: "chill"
-  request_changes_workflow: false
+  profile: "assertive"
+  request_changes_workflow: true
   high_level_summary: true
   review_status: true
   collapse_walkthrough: false

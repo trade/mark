@@ -44,7 +44,7 @@ make slither-core
 - settlement mint (valid proof path)
 - settlement burn (escrow + burn invariants)
 - bridge flow with destination allowlist and limit checks
-- operator/attester rotation and re-verify (see `RUNBOOK.md` sections 5 and 6 for the exact rotation procedure and verification steps; example: execute the section 5 operator/attester rotation commands, then run the section 6 post-rotation verify commands and archive outputs as rehearsal evidence)
+- operator/attester rotation and re-verify (see RUNBOOK.md sections 5 and 6)
 
 6. Generate promotion checklist evidence:
 - GitHub Actions: `.github/workflows/contracts-promotion-checklist.yml`
