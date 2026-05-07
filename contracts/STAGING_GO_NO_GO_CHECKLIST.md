@@ -12,6 +12,7 @@ Use this checklist before any `canary -> main` promotion. Local Anvil checks are
 
 - `STAGING_RPC_URL`
 - `MARK_STAGING_DEPLOYER_PRIVATE_KEY` (GitHub secret)
+- `VALIDATE_MODE` (set to `rehearsal` for this staging checklist)
 - staging operator address (`STAGING_SETTLEMENT_OPERATOR`)
 - expected admin/owner/verifier/attester addresses
 
