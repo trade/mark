@@ -6,7 +6,7 @@
 # ============================================================================
 
 # Global default owner (catches everything not explicitly listed)
-* @iap
+* @trade/maintainers
 
 # ============================================================================
 # PROTOCOL-CRITICAL: Smart Contracts
@@ -14,31 +14,31 @@
 # All contract changes require owner review
 # Consider requiring 2 approvals for main/canary deployments
 
-/contracts/src/token/** @iap
-/contracts/src/bridge/** @iap
-/contracts/src/settlement/** @iap
-/contracts/src/errors/** @iap
-/contracts/src/interfaces/** @iap
+/contracts/src/token/** @trade/maintainers
+/contracts/src/bridge/** @trade/maintainers
+/contracts/src/settlement/** @trade/maintainers
+/contracts/src/errors/** @trade/maintainers
+/contracts/src/interfaces/** @trade/maintainers
 
 # ============================================================================
 # TESTING: Contract Tests
 # ============================================================================
 
-/contracts/test/unit/** @iap
-/contracts/test/e2e/** @iap
-/contracts/test/invariant/** @iap
+/contracts/test/unit/** @trade/maintainers
+/contracts/test/e2e/** @trade/maintainers
+/contracts/test/invariant/** @trade/maintainers
 
 # ============================================================================
 # DEPLOYMENT & OPERATIONS: Scripts & Automation
 # ============================================================================
 # Deployment scripts are critical - require careful review
 
-/contracts/script/deploy/** @iap
-/contracts/script/ops/** @iap
-/contracts/script/ci/** @iap
-/contracts/RUNBOOK.md @iap
-/contracts/README.md @iap
-/contracts/Makefile @iap
+/contracts/script/deploy/** @trade/maintainers
+/contracts/script/ops/** @trade/maintainers
+/contracts/script/ci/** @trade/maintainers
+/contracts/RUNBOOK.md @trade/maintainers
+/contracts/README.md @trade/maintainers
+/contracts/Makefile @trade/maintainers
 
 # ============================================================================
 # CI/CD & GOVERNANCE: Workflows & Branch Protection
@@ -46,42 +46,42 @@
 # Workflow changes affect all deployments - require review
 # Governance changes must be kept in sync with policy
 
-/.github/workflows/** @iap
-/.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @iap
-/.github/CODEOWNERS @iap
+/.github/workflows/** @trade/maintainers
+/.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @trade/maintainers
+/.github/CODEOWNERS @trade/maintainers
 
-/BRANCHING.md @iap
-/CONTRIBUTING.md @iap
-/DEPLOYMENT.md @iap
-/TROUBLESHOOTING.md @iap
-/AGENTS.md @iap
+/BRANCHING.md @trade/maintainers
+/CONTRIBUTING.md @trade/maintainers
+/DEPLOYMENT.md @trade/maintainers
+/TROUBLESHOOTING.md @trade/maintainers
+/AGENTS.md @trade/maintainers
 
 # ============================================================================
 # FRONTEND APPLICATION
 # ============================================================================
 
-/src/** @iap
-/index.html @iap
+/src/** @trade/maintainers
+/index.html @trade/maintainers
 
 # ============================================================================
 # CONFIGURATION & BUILD
 # ============================================================================
 
-/package.json @iap
-/pnpm-lock.yaml @iap
-/tsconfig*.json @iap
-/vite.config.ts @iap
-/eslint.config.js @iap
-/.prettierrc.json @iap
-/mprocs.yaml @iap
-/remappings.txt @iap
+/package.json @trade/maintainers
+/pnpm-lock.yaml @trade/maintainers
+/tsconfig*.json @trade/maintainers
+/vite.config.ts @trade/maintainers
+/eslint.config.js @trade/maintainers
+/.prettierrc.json @trade/maintainers
+/mprocs.yaml @trade/maintainers
+/remappings.txt @trade/maintainers
 
-/contracts/foundry.toml @iap
-/contracts/Makefile @iap
+/contracts/foundry.toml @trade/maintainers
+/contracts/Makefile @trade/maintainers
 
 # ============================================================================
 # DOCUMENTATION
 # ============================================================================
 
-/README.md @iap
-/LICENSE @iap
+/README.md @trade/maintainers
+/LICENSE @trade/maintainers
