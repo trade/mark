@@ -12,6 +12,7 @@ Use this checklist before any `canary -> main` promotion. Local Anvil checks are
 
 - `STAGING_RPC_URL`
 - `MARK_STAGING_DEPLOYER_PRIVATE_KEY` (GitHub secret)
+- `VALIDATE_MODE` (set to `rehearsal` for this staging checklist)
 - staging operator address (`STAGING_SETTLEMENT_OPERATOR`)
 - expected admin/owner/verifier/attester addresses
 
@@ -43,7 +44,7 @@ make slither-core
 - settlement mint (valid proof path)
 - settlement burn (escrow + burn invariants)
 - bridge flow with destination allowlist and limit checks
-- operator/attester rotation and re-verify
+- operator/attester rotation and re-verify (see RUNBOOK.md sections 5 and 6)
 
 6. Generate promotion checklist evidence:
 - GitHub Actions: `.github/workflows/contracts-promotion-checklist.yml`
