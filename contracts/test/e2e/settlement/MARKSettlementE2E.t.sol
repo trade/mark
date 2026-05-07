@@ -90,21 +90,7 @@ contract MARKSettlementE2ETest is Test {
 
     function testInvalidAttestationReverts() public {
         uint256 deadline = block.timestamp + 1 hours;
-        bytes32 settlementHash = keccak256(
-            abi.encode(
-                verifier.SETTLEMENT_ATTESTATION_DOMAIN(),
-                address(verifier),
-                block.chainid,
-                INTENT_MINT,
-                address(module),
-                user,
-                1 ether,
-                true,
-                CONTEXT_MINT,
-                deadline
-            )
-        );
-        bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", settlementHash));
+        bytes32 digest = verifier.settlementDigest(INTENT_MINT, address(module), user, 1 ether, true, CONTEXT_MINT, deadline);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(0xDEAD, digest);
         bytes memory wrongProof = abi.encode(deadline, CONTEXT_MINT, v, r, s);
 
@@ -133,21 +119,7 @@ contract MARKSettlementE2ETest is Test {
         bytes32 contextHash,
         uint256 deadline
     ) internal view returns (bytes memory) {
-        bytes32 settlementHash = keccak256(
-            abi.encode(
-                verifier.SETTLEMENT_ATTESTATION_DOMAIN(),
-                address(verifier),
-                block.chainid,
-                intentId,
-                moduleAddress,
-                account,
-                amount,
-                isMint,
-                contextHash,
-                deadline
-            )
-        );
-        bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", settlementHash));
+        bytes32 digest = verifier.settlementDigest(intentId, moduleAddress, account, amount, isMint, contextHash, deadline);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(attesterPk, digest);
         return abi.encode(deadline, contextHash, v, r, s);
     }
