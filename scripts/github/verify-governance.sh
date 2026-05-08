@@ -45,19 +45,31 @@ auth_headers=(
 )
 
 require_checks_dev=(
+  "Analyze (javascript-typescript)"
+  "Dependency Review"
   "Contracts Unit + Invariant"
   "Contracts Release Check (Dry-Run + Execute Smoke)"
+  "Contracts Production Mode Smoke"
+  "gitleaks / Gitleaks Scan"
   "slither-core / Slither Core Contracts"
+  "frontend-checks / Frontend Checks (Node 20)"
+  "frontend-checks / Frontend Checks (Node 22)"
   "Detect Secrets Drift"
-  "Analyze (javascript-typescript)"
+  "Release Gate Container"
 )
 
 require_checks_main=(
+  "Analyze (javascript-typescript)"
+  "Dependency Review"
   "Contracts Unit + Invariant"
   "Contracts Release Check (Dry-Run + Execute Smoke)"
+  "Contracts Production Mode Smoke"
+  "gitleaks / Gitleaks Scan"
   "slither-core / Slither Core Contracts"
+  "frontend-checks / Frontend Checks (Node 20)"
+  "frontend-checks / Frontend Checks (Node 22)"
   "Detect Secrets Drift"
-  "Analyze (javascript-typescript)"
+  "Release Gate Container"
   "Validate Release PR Checklist"
   "Validate Release Evidence"
 )
