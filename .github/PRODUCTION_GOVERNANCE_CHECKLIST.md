@@ -21,8 +21,8 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
-  - `Frontend Checks (Node 20)`
-  - `Frontend Checks (Node 22)`
+  - `frontend-checks / Frontend Checks (Node 20)`
+  - `frontend-checks / Frontend Checks (Node 22)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
 - Optional additional checks (recommended but not globally required):
@@ -55,8 +55,8 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
-  - `Frontend Checks (Node 20)`
-  - `Frontend Checks (Node 22)`
+  - `frontend-checks / Frontend Checks (Node 20)`
+  - `frontend-checks / Frontend Checks (Node 22)`
 - Optional additional checks (recommended but not globally required):
   - `Contracts Unit + Invariant`
   - `Contracts Env Guard`
@@ -82,8 +82,8 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
-  - `Frontend Checks (Node 20)`
-  - `Frontend Checks (Node 22)`
+  - `frontend-checks / Frontend Checks (Node 20)`
+  - `frontend-checks / Frontend Checks (Node 22)`
 - Optional additional checks (recommended but not globally required):
   - `Contracts Unit + Invariant`
   - `Contracts Env Guard`
