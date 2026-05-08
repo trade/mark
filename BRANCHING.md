@@ -62,45 +62,45 @@ Use this matrix as the merge baseline.
 
 ### PRs into `dev`
 
-- `Analyze (JavaScript/TypeScript)`
-- `Gitleaks Scan`
-- `Secrets Drift Guard`
+- `Analyze (javascript-typescript)`
+- `gitleaks / Gitleaks Scan`
+- `Detect Secrets Drift`
 - `Release Gate Container`
 - `Dependency Review`
 - `Contracts Unit + Invariant`
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Contracts Production Mode Smoke`
-- `Slither Core Contracts`
+- `slither-core / Slither Core Contracts`
 - `Frontend Checks (Node 20)`
 - `Frontend Checks (Node 22)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `canary`
 
-- `Analyze (JavaScript/TypeScript)`
-- `Gitleaks Scan`
-- `Secrets Drift Guard`
+- `Analyze (javascript-typescript)`
+- `gitleaks / Gitleaks Scan`
+- `Detect Secrets Drift`
 - `Release Gate Container`
 - `Dependency Review`
 - `Contracts Unit + Invariant`
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Contracts Production Mode Smoke`
-- `Slither Core Contracts`
+- `slither-core / Slither Core Contracts`
 - `Frontend Checks (Node 20)`
 - `Frontend Checks (Node 22)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `main` (release candidate)
 
-- `Analyze (JavaScript/TypeScript)`
-- `Gitleaks Scan`
-- `Secrets Drift Guard`
+- `Analyze (javascript-typescript)`
+- `gitleaks / Gitleaks Scan`
+- `Detect Secrets Drift`
 - `Release Gate Container`
 - `Dependency Review`
 - `Contracts Unit + Invariant`
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Contracts Production Mode Smoke`
-- `Slither Core Contracts`
+- `slither-core / Slither Core Contracts`
 - `Frontend Checks (Node 20)`
 - `Frontend Checks (Node 22)`
 - `Validate Release PR Checklist`
@@ -119,13 +119,13 @@ Apply these repository settings:
 1. Protect `main`
 - Require pull request before merge.
 - Require status checks:
-  - `Analyze (JavaScript/TypeScript)`
-  - `Gitleaks Scan`
+  - `Analyze (javascript-typescript)`
+  - `gitleaks / Gitleaks Scan`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
-  - `Slither Core Contracts`
+  - `slither-core / Slither Core Contracts`
   - `Frontend Checks (Node 20)`
   - `Frontend Checks (Node 22)`
   - `Validate Release PR Checklist`
@@ -137,13 +137,13 @@ Apply these repository settings:
 2. Protect `canary`
 - Require pull request before merge.
 - Require status checks:
-  - `Analyze (JavaScript/TypeScript)`
-  - `Gitleaks Scan`
+  - `Analyze (javascript-typescript)`
+  - `gitleaks / Gitleaks Scan`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
-  - `Slither Core Contracts`
+  - `slither-core / Slither Core Contracts`
   - `Frontend Checks (Node 20)`
   - `Frontend Checks (Node 22)`
 - Require at least 1 approval.
@@ -152,13 +152,13 @@ Apply these repository settings:
 3. Protect `dev`
 - Require pull request before merge (or allow maintainers direct push if desired).
 - Require status checks:
-  - `Analyze (JavaScript/TypeScript)`
-  - `Gitleaks Scan`
+  - `Analyze (javascript-typescript)`
+  - `gitleaks / Gitleaks Scan`
   - `Dependency Review`
   - `Contracts Unit + Invariant`
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
-  - `Slither Core Contracts`
+  - `slither-core / Slither Core Contracts`
   - `Frontend Checks (Node 20)`
   - `Frontend Checks (Node 22)`
 
