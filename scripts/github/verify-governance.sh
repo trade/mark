@@ -47,17 +47,17 @@ auth_headers=(
 require_checks_dev=(
   "Contracts Unit + Invariant"
   "Contracts Release Check (Dry-Run + Execute Smoke)"
-  "Slither Core Contracts"
-  "Secrets Drift Guard"
-  "Analyze (JavaScript/TypeScript)"
+  "slither-core / Slither Core Contracts"
+  "Detect Secrets Drift"
+  "Analyze (javascript-typescript)"
 )
 
 require_checks_main=(
   "Contracts Unit + Invariant"
   "Contracts Release Check (Dry-Run + Execute Smoke)"
-  "Slither Core Contracts"
-  "Secrets Drift Guard"
-  "Analyze (JavaScript/TypeScript)"
+  "slither-core / Slither Core Contracts"
+  "Detect Secrets Drift"
+  "Analyze (javascript-typescript)"
   "Validate Release PR Checklist"
   "Validate Release Evidence"
 )

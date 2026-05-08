@@ -27,7 +27,7 @@ Thank you for your interest in contributing to MARK Protocol! This guide will wa
 
 ```bash
 # Clone the repository
-git clone https://github.com/iap/mark.git
+git clone https://github.com/trade/mark.git
 cd mark
 
 # Install dependencies (pnpm is auto-managed via corepack)
