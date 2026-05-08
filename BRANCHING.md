@@ -166,7 +166,7 @@ Notes:
 - Do not add `Validate Governance Policy Consistency` as a global required branch-protection check because it is intentionally path-filtered; require it only on governance-touching PRs.
 
 4. Protect tags
-- Reserve release tags (for example `v*`) to maintainers only.
+- Release tags (`v*`) are protected by the `tag-protection` ruleset: creation is restricted to maintainers, deletion and force-update are blocked for all actors.
 
 ## Merge Flow
 
