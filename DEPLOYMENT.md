@@ -68,7 +68,7 @@ git status  # Should show "On branch canary"
 git log --oneline -1  # Verify latest commit
 
 # Wait for GitHub workflow to start
-# Monitor: https://github.com/iap/mark/actions
+# Monitor: https://github.com/trade/mark/actions
 ```
 
 **What this does**:
@@ -291,7 +291,7 @@ Contracts Mainnet Readiness Workflow
 **Check workflow output**:
 ```bash
 # View workflow details
-gh run view <RUN_ID> --repo iap/mark
+gh run view <RUN_ID> --repo trade/mark
 ```
 
 **If successful**:
@@ -390,7 +390,7 @@ Evidence: <commit-sha>"
 git push origin v0.1.0
 ```
 
-**GitHub auto-creates release**: Check https://github.com/iap/mark/releases
+**GitHub auto-creates release**: Check https://github.com/trade/mark/releases
 
 #### Step 17: Generate Mainnet Evidence
 
@@ -751,11 +751,11 @@ cast send $SETTLEMENT_ADDRESS "pause()" \
 ## Support & Escalation
 
 - **Questions**: Open GitHub issue or discussion
-- **Urgent issue**: Contact @iap (primary maintainer)
+- **Urgent issue**: Contact @trade/maintainers
 - **Security concern**: Email security@mark.protocol
 
 ---
 
 **Version**: 1.0  
 **Last Updated**: 2026-05-06  
-**Maintained By**: @iap & MARK Protocol Team
+**Maintained By**: @trade/maintainers

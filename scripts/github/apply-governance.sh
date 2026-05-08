@@ -211,28 +211,28 @@ ensure_environment() {
 DEV_CHECKS_JSON='[
   "Contracts Unit + Invariant",
   "Contracts Release Check (Dry-Run + Execute Smoke)",
-  "Slither Core Contracts",
-  "Secrets Drift Guard",
-  "Analyze (JavaScript/TypeScript)",
-  "Gitleaks Scan",
+  "slither-core / Slither Core Contracts",
+  "Detect Secrets Drift",
+  "Analyze (javascript-typescript)",
+  "gitleaks / Gitleaks Scan",
   "Release Gate Container"
 ]'
 CANARY_CHECKS_JSON='[
   "Contracts Unit + Invariant",
   "Contracts Release Check (Dry-Run + Execute Smoke)",
-  "Slither Core Contracts",
-  "Secrets Drift Guard",
-  "Analyze (JavaScript/TypeScript)",
-  "Gitleaks Scan",
+  "slither-core / Slither Core Contracts",
+  "Detect Secrets Drift",
+  "Analyze (javascript-typescript)",
+  "gitleaks / Gitleaks Scan",
   "Release Gate Container"
 ]'
 MAIN_CHECKS_JSON='[
   "Contracts Unit + Invariant",
   "Contracts Release Check (Dry-Run + Execute Smoke)",
-  "Slither Core Contracts",
-  "Secrets Drift Guard",
-  "Analyze (JavaScript/TypeScript)",
-  "Gitleaks Scan",
+  "slither-core / Slither Core Contracts",
+  "Detect Secrets Drift",
+  "Analyze (javascript-typescript)",
+  "gitleaks / Gitleaks Scan",
   "Release Gate Container",
   "Validate Release PR Checklist",
   "Validate Release Evidence"

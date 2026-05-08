@@ -24,7 +24,7 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
 
     /// @dev EIP-712 type hash for the SettlementAttestation struct.
     bytes32 public constant SETTLEMENT_ATTESTATION_TYPEHASH = keccak256(
-        "SettlementAttestation(bytes32 intentId,address verifier,address settlementModule,address account,uint256 amount,bool isMint,bytes32 contextHash,uint256 deadline,uint256 chainId)"
+        "SettlementAttestation(bytes32 intentId,address verifier,address settlementModule,address account,uint256 amount,bool isMint,bytes32 contextHash,uint256 deadline)"
     );
 
     uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
@@ -122,8 +122,7 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
                 amount,
                 isMint,
                 contextHash,
-                deadline,
-                block.chainid
+                deadline
             )
         );
         return _hashTypedDataV4(structHash);
