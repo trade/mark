@@ -23,7 +23,7 @@ contract RYLATest is Test {
     }
 
     function testMetadata() public view {
-        assertEq(token.name(), "RYLA");
+        assertEq(token.name(), "RYLA Credits");
         assertEq(token.symbol(), "RYLA");
         assertEq(token.decimals(), 18);
     }

@@ -42,7 +42,7 @@ contract VerifyMARKDeployment is Script {
     function _runWithConfig(ExpectedConfig memory cfg) internal view {
         RYLA token = RYLA(cfg.tokenAddress);
 
-        _assertEq(token.name(), "RYLA", "Token name mismatch");
+        _assertEq(token.name(), "RYLA Credits", "Token name mismatch");
         _assertEq(token.symbol(), "RYLA", "Token symbol mismatch");
         _assertEq(uint256(token.defaultAdminDelay()), uint256(EXPECTED_ADMIN_DELAY), "Token admin delay mismatch");
 
