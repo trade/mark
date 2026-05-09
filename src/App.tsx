@@ -1,91 +1,99 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { supersimL2A, supersimL2B } from '@eth-optimism/viem/chains';
-type ChainInfo = {
-  name: string;
-  id: number;
-  role: string;
-};
 
-const MARK_FLOW = [
-  'Preflight deployment checks',
-  'Release orchestration and artifact generation',
-  'Staging rehearsal on canary',
-  'Mainnet readiness gate on main',
-  'Evidence manifest and signature verification',
+const CONTRACTS = [
+  {
+    name: 'RYLA Credits',
+    symbol: 'RYLA',
+    description: 'Superchain-compatible credit token. Mintable and burnable only by the settlement module.',
+  },
+  {
+    name: 'MARKSettlementModule',
+    description:
+      'Operator-gated settlement boundary. Validates proofs and executes RYLA mint/burn with replay protection.',
+  },
+  {
+    name: 'MARKBridgeAdapter',
+    description:
+      'Operator-gated bridge adapter routing RYLA cross-chain via SuperchainTokenBridge with rate limits.',
+  },
+  {
+    name: 'AttestedSettlementVerifier',
+    description:
+      'EIP-712 signature-based verifier for settlement intents. Production bridge step before ZK verifier integration.',
+  },
 ];
 
-const CHAINS: ChainInfo[] = [
-  { name: supersimL2A.name, id: supersimL2A.id, role: 'source lane' },
-  { name: supersimL2B.name, id: supersimL2B.id, role: 'destination lane' },
+const LINKS = [
+  { label: 'GitHub', href: 'https://github.com/trade/mark' },
+  { label: 'Security Policy', href: 'https://github.com/trade/mark/security/policy' },
+  { label: 'Report a Vulnerability', href: 'https://github.com/trade/mark/security/advisories/new' },
 ];
-
-const QuickCommand = ({ label, cmd }: { label: string; cmd: string }) => (
-  <div className="rounded-md bg-muted p-3">
-    <div className="text-xs text-muted-foreground">{label}</div>
-    <div className="font-mono text-sm">{cmd}</div>
-  </div>
-);
 
 function App() {
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+      <div className="space-y-1">
+        <h1 className="text-2xl font-bold tracking-tight">MARK Protocol</h1>
+        <p className="text-sm text-muted-foreground">by Trade</p>
+      </div>
+
       <Card>
-        <CardHeader>
-          <CardTitle>MARK Protocol Workspace</CardTitle>
-          <CardDescription>
-            This app now tracks protocol operations and release flow.
-          </CardDescription>
-        </CardHeader>
+        <CardContent className="pt-4">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+              Pre-production
+            </span>
+            <span className="text-muted-foreground">
+              Staging on OP Sepolia. Not yet deployed to mainnet.
+            </span>
+          </div>
+        </CardContent>
       </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Superchain Lanes</CardTitle>
-            <CardDescription>Local development network topology.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {CHAINS.map(chain => (
-              <div key={chain.id} className="rounded-md border p-3">
-                <div className="font-semibold">
-                  {chain.name} ({chain.id})
-                </div>
-                <div className="text-sm text-muted-foreground">{chain.role}</div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+      <Separator />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Release Flow</CardTitle>
-            <CardDescription>Canonical MARK release checkpoints.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ol className="list-decimal space-y-2 pl-5 text-sm">
-              {MARK_FLOW.map(step => (
-                <li key={step}>{step}</li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Contracts</h2>
+        <div className="grid gap-3">
+          {CONTRACTS.map(contract => (
+            <Card key={contract.name}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">
+                  {contract.name}
+                  {contract.symbol && (
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">
+                      ({contract.symbol})
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{contract.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
 
       <Separator />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Commands</CardTitle>
-          <CardDescription>Use contract Make targets for protocol operations.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2">
-          <QuickCommand label="Fast checks" cmd="cd contracts && make ci-fast" />
-          <QuickCommand label="Release gate" cmd="cd contracts && make release-gate" />
-          <QuickCommand label="Staging rehearsal" cmd="cd contracts && make rehearse-production-lock" />
-          <QuickCommand label="Evidence manifest" cmd="cd contracts && make generate-evidence-manifest" />
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Resources</h2>
+        <div className="flex flex-wrap gap-3">
+          {LINKS.map(link => (
+            <a
+              key={link.label}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border px-3 py-2 text-sm transition-colors hover:bg-muted"
+            >
+              {link.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
