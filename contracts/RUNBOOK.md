@@ -2,6 +2,9 @@
 
 This runbook is the operational source of truth for MARK (`RYLA`) deployments.
 
+For operator sign-off before production promotion, use:
+- [`STAGING_GO_NO_GO_CHECKLIST.md`](./STAGING_GO_NO_GO_CHECKLIST.md)
+
 ## 0) Branch Policy
 
 - Production deployment and mainnet readiness checks are executed from `main` branch only.
@@ -280,3 +283,95 @@ When rollback is triggered:
 2. Revoke unsafe operators/attesters.
 3. Redeploy from clean, verified env snapshot.
 4. Re-run full readiness gate.
+
+## 8) Trust Model
+
+This section documents the trust assumptions, key custody model, and break-glass procedures for the MARK protocol. Auditors and operators should read this before reviewing or operating the contracts.
+
+### Key Roles and Trust Assumptions
+
+**Default Admin** (`DEFAULT_ADMIN_ROLE`)
+- Held by the protocol deployer address on all three contracts: `RYLA`, `MARKBridgeAdapter`, `MARKSettlementModule`.
+- Controls role grants/revokes, verifier configuration, bridge limits, and production mode activation.
+- Protected by a 1-day delay (`AccessControlDefaultAdminRules`): admin transfers cannot take effect for at least 24 hours after initiation.
+- Trust assumption: the admin key is held by the protocol owner in a hardware wallet or equivalent secure storage. Compromise of this key is the highest-severity incident.
+
+**Operator** (`OPERATOR_ROLE` on bridge and settlement)
+- Submits bridge transactions and settlement intents.
+- Can move tokens cross-chain (bridge) and trigger mint/burn (settlement).
+- Trust assumption: operator keys are hot keys used by the protocol's backend. They are scoped to operational actions only — they cannot change configuration, rotate roles, or disable proof validation.
+- Rotation: use section 5 (Operator Key Compromise Playbook) if compromised.
+
+**Attester** (`ATTESTER_ROLE` on `AttestedSettlementVerifier`)
+- Signs settlement attestations that authorize mint/burn operations when proof validation is enabled.
+- Trust assumption: the attester key is a hot signing key. Its compromise allows fraudulent settlement attestations until revoked.
+- Rotation policy: see Attester Key Rotation below.
+
+**Minter / Burner** (`MINTER_ROLE`, `BURNER_ROLE` on `RYLA`)
+- Held exclusively by `MARKSettlementModule`. Not held by any EOA in production.
+- Trust assumption: the settlement module is the only authorized issuer. Direct mint/burn by any EOA is not permitted.
+
+### Attester Key Rotation
+
+Rotate the attester key if:
+- Key material may have been exposed.
+- Signing infrastructure is being migrated.
+- Scheduled rotation policy requires it.
+
+Steps:
+1. Generate new attester key in secure environment.
+2. Grant new attester role before revoking old:
+```bash
+cast send <VERIFIER> "setAttester(address,bool)" <newAttester> true --private-key $ADMIN_PK
+```
+3. Verify new attester is active.
+4. Revoke old attester:
+```bash
+cast send <VERIFIER> "setAttester(address,bool)" <oldAttester> false --private-key $ADMIN_PK
+```
+5. Re-run verify script to confirm clean attester state.
+
+Note: there is a 1-day admin delay on the admin key itself, but `setAttester` is callable immediately by the current admin. Rotation is instant once the admin key is available.
+
+### Break-Glass Procedure
+
+Use this procedure when normal operational controls are insufficient — for example, if a critical vulnerability is discovered post-deployment.
+
+**Step 1: Contain**
+- Revoke all operator roles on bridge and settlement immediately (section 5).
+- Revoke all attester roles on the verifier.
+- This stops new settlements and bridge operations without requiring admin key rotation.
+
+**Step 2: Assess**
+- Determine whether the vulnerability is in contract logic or in key material.
+- If key material: proceed to admin rotation (section 6).
+- If contract logic: assess whether existing deployed state is safe to leave in place while a fix is prepared.
+
+**Step 3: Communicate**
+- Use GitHub private vulnerability reporting (see `SECURITY.md`) to coordinate disclosure.
+- Do not deploy fixes to production without re-running the full mainnet readiness gate.
+
+**Step 4: Recover**
+- If redeployment is required: follow section 7 (Rollback Decision Rule).
+- If configuration fix is sufficient: use `PostDeployMARKSetup.s.sol` and re-run verify.
+
+### Production Mode Implications
+
+Once `activateProductionMode()` is called on `MARKSettlementModule`:
+- Proof validation cannot be disabled.
+- The verifier address cannot be set to zero.
+- This is irreversible.
+
+Before activating production mode, confirm:
+- The attester key is in secure, long-term storage.
+- The verifier contract has been audited.
+- The admin key is in a hardware wallet or equivalent.
+
+### Key Storage Recommendations
+
+| Key | Recommended storage | Rotation frequency |
+|-----|--------------------|--------------------|
+| Default admin | Hardware wallet (Ledger/Trezor) | On compromise or scheduled annually |
+| Operator | HSM or secure server key | On compromise or quarterly |
+| Attester | HSM or secure server key | On compromise or quarterly |
+| Deployer (one-time) | Hardware wallet | N/A after deployment |

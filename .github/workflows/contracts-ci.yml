@@ -2,17 +2,11 @@ name: Contracts CI
 
 on:
   pull_request:
-    paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-ci.yml"
   push:
     branches:
       - main
       - canary
       - dev
-    paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-ci.yml"
   workflow_dispatch:
     inputs:
       run_integration:
@@ -54,11 +48,11 @@ jobs:
     name: Contracts Release Check (Dry-Run + Execute Smoke)
     runs-on: ubuntu-latest
     needs: contracts-unit-invariant
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: contracts
     env:
-      PRIVATE_KEY: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
       RPC_URL: http://127.0.0.1:8545
       MARK_RELEASE_EXECUTE: "false"
       MARK_RELEASE_RUN_POSTDEPLOY: "false"
@@ -88,6 +82,16 @@ jobs:
           echo "anvil did not become ready on 127.0.0.1:8545" >&2
           tail -n 200 /tmp/anvil.log || true
           exit 1
+
+      - name: Export anvil deployer private key
+        run: |
+          key="$(grep -Eo '\(0\)[[:space:]]*0x[0-9a-fA-F]{64}' /tmp/anvil.log | head -n 1 | sed -E 's/^\(0\)[[:space:]]*//')"
+          if [ -z "$key" ]; then
+            echo "failed to extract anvil deployer key" >&2
+            tail -n 120 /tmp/anvil.log || true
+            exit 1
+          fi
+          echo "PRIVATE_KEY=$key" >> "$GITHUB_ENV"
 
       - name: Run release orchestrator dry-run
         run: forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL -vv
@@ -124,6 +128,7 @@ jobs:
     name: Contracts Production Mode Smoke
     runs-on: ubuntu-latest
     needs: contracts-unit-invariant
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: contracts
@@ -186,7 +191,7 @@ jobs:
         working-directory: .
 
       - name: Wait for supersim readiness
-        run: pnpm wait-port http://127.0.0.1:8420/ready
+        run: pnpm wait-port 8420
         working-directory: .
 
       - name: Run integration suite

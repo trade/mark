@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+.env.*
+*.env
+
+# Local dev runtime output
+supersim-logs/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

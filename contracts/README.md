@@ -3,6 +3,7 @@
 Smart contracts for Superchain interoperability and `RYLA` standard credit primitives.
 
 Operational procedures (deployment, incident, rollback) are documented in [RUNBOOK.md](./RUNBOOK.md).
+Pre-mainnet promotion criteria are documented in [STAGING_GO_NO_GO_CHECKLIST.md](./STAGING_GO_NO_GO_CHECKLIST.md).
 
 ## Contracts
 
@@ -404,16 +405,10 @@ forge test
 Run Slither locally on MARK core contracts:
 
 ```bash
-cd /Users/iap/mark/contracts
-slither \
-  src/token/RYLA.sol \
-  src/bridge/MARKBridgeAdapter.sol \
-  src/settlement/MARKSettlementModule.sol \
-  src/settlement/verifier/AttestedSettlementVerifier.sol \
-  --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
-  --exclude-dependencies \
-  --filter-paths "lib|test|script|out|cache" \
-  --fail-medium
+cd contracts
+make slither-install
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+make slither-core
 ```
 
 CI workflow:

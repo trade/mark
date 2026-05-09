@@ -61,6 +61,37 @@ contract AttestedSettlementVerifierTest is Test {
         assertFalse(ok);
     }
 
+    function testVerifySettlementReturnsFalseForZeroIntentId() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(bytes32(0), settlementModule, user, 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(bytes32(0), settlementModule, user, 1 ether, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForZeroSettlementModule() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(INTENT, address(0), user, 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, address(0), user, 1 ether, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForZeroAccount() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(INTENT, settlementModule, address(0), 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, settlementModule, address(0), 1 ether, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForZeroAmount() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory proof = _buildProof(INTENT, settlementModule, user, 0, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, settlementModule, user, 0, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForWrongIsMintFlag() public view {
+        uint256 deadline = block.timestamp + 1 hours;
+        // proof signed for isMint=true, but called with isMint=false
+        bytes memory proof = _buildProof(INTENT, settlementModule, user, 1 ether, true, CONTEXT, deadline, attesterPk);
+        assertFalse(verifier.verifySettlement(INTENT, settlementModule, user, 1 ether, false, proof));
+    }
+
     function _buildProof(
         bytes32 intentId,
         address moduleAddress,
@@ -71,34 +102,8 @@ contract AttestedSettlementVerifierTest is Test {
         uint256 deadline,
         uint256 signerPk
     ) internal view returns (bytes memory proof) {
-        bytes32 digest = _settlementDigest(intentId, moduleAddress, account, amount, isMint, contextHash, deadline);
+        bytes32 digest = verifier.settlementDigest(intentId, moduleAddress, account, amount, isMint, contextHash, deadline);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
         proof = abi.encode(deadline, contextHash, v, r, s);
-    }
-
-    function _settlementDigest(
-        bytes32 intentId,
-        address moduleAddress,
-        address account,
-        uint256 amount,
-        bool isMint,
-        bytes32 contextHash,
-        uint256 deadline
-    ) internal view returns (bytes32) {
-        bytes32 settlementHash = keccak256(
-            abi.encode(
-                verifier.SETTLEMENT_ATTESTATION_DOMAIN(),
-                address(verifier),
-                block.chainid,
-                intentId,
-                moduleAddress,
-                account,
-                amount,
-                isMint,
-                contextHash,
-                deadline
-            )
-        );
-        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", settlementHash));
     }
 }

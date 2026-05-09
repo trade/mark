@@ -1,18 +1,25 @@
 name: CodeQL
 
 on:
-  push:
-    branches:
-      - dev
-      - canary
-      - main
   pull_request:
-    branches:
-      - dev
-      - canary
-      - main
+    branches: [main, canary, dev]
+    paths:
+      - "src/**"
+      - "contracts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/codeql.yml"
+  push:
+    branches: [main, canary, dev]
+    paths:
+      - "src/**"
+      - "contracts/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/codeql.yml"
   schedule:
-    - cron: '22 3 * * 1'
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
 
 permissions:
   actions: read
@@ -21,7 +28,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze (JavaScript/TypeScript)
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
 
     strategy:
@@ -34,14 +41,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm (corepack)
+        run: |
+          corepack enable
+          corepack prepare pnpm@9.0.2 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           queries: security-extended
 
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4

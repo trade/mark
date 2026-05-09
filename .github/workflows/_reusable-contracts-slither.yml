@@ -1,0 +1,51 @@
+name: Reusable Contracts Slither
+
+on:
+  workflow_call:
+    inputs:
+      foundry_version:
+        description: Foundry version used for Slither compile path
+        required: false
+        default: "1.5.0"
+        type: string
+
+jobs:
+  slither-core:
+    name: Slither Core Contracts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install Slither
+        run: pip install slither-analyzer==0.11.5
+
+      - name: Setup Foundry
+        uses: ./.github/actions/setup-foundry
+        with:
+          foundry-version: ${{ inputs.foundry_version }}
+
+      - name: Run Slither on MARK core contracts
+        working-directory: contracts
+        run: |
+          for target in \
+            src/token/RYLA.sol \
+            src/bridge/MARKBridgeAdapter.sol \
+            src/settlement/MARKSettlementModule.sol \
+            src/settlement/verifier/AttestedSettlementVerifier.sol
+          do
+            slither "$target" \
+              --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
+              --exclude-dependencies \
+              --exclude "naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign" \
+              --filter-paths "lib|test|script|out|cache" \
+              --fail-medium
+          done

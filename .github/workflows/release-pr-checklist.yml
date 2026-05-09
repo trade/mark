@@ -1,6 +1,8 @@
 name: Release PR Checklist
 
 on:
+  # pull_request_target runs with base-branch permissions so the GITHUB_TOKEN
+  # can read PR metadata from forks. No untrusted code is checked out here.
   pull_request_target:
     branches:
       - main

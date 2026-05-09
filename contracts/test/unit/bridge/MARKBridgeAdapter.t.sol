@@ -110,6 +110,49 @@ contract MARKBridgeAdapterTest is Test {
         assertEq(adapter.bridgedInDailyCapEpoch(), 60 ether);
     }
 
+    function testSetBridgeLimitsResetsEpochAccumulatorMidEpoch() public {
+        vm.prank(owner);
+        adapter.setBridgeLimits(0, 100 ether);
+
+        bytes memory callData = abi.encodeWithSelector(
+            ISuperchainTokenBridge.sendERC20.selector, address(token), recipient, 60 ether, DST_CHAIN_ID
+        );
+        vm.mockCall(SUPERCHAIN_BRIDGE, callData, abi.encode(keccak256("h1")));
+        vm.prank(operator);
+        adapter.bridgeTo(recipient, 60 ether, DST_CHAIN_ID);
+        assertEq(adapter.bridgedInDailyCapEpoch(), 60 ether);
+
+        // reset limits mid-epoch — accumulator and epoch should clear
+        vm.prank(owner);
+        adapter.setBridgeLimits(0, 200 ether);
+        assertEq(adapter.bridgedInDailyCapEpoch(), 0);
+        assertEq(adapter.dailyCapEpoch(), 0);
+
+        // should now allow bridging up to new cap from zero
+        bytes memory callData2 = abi.encodeWithSelector(
+            ISuperchainTokenBridge.sendERC20.selector, address(token), recipient, 150 ether, DST_CHAIN_ID
+        );
+        vm.mockCall(SUPERCHAIN_BRIDGE, callData2, abi.encode(keccak256("h2")));
+        vm.prank(operator);
+        adapter.bridgeTo(recipient, 150 ether, DST_CHAIN_ID);
+        assertEq(adapter.bridgedInDailyCapEpoch(), 150 ether);
+    }
+
+    function testBridgeToRevertsWithBridgeFailedAndClearsApprovalOnSendERC20Revert() public {
+        uint256 amount = 25 ether;
+
+        bytes memory callData = abi.encodeWithSelector(
+            ISuperchainTokenBridge.sendERC20.selector, address(token), recipient, amount, DST_CHAIN_ID
+        );
+        vm.mockCallRevert(SUPERCHAIN_BRIDGE, callData, "bridge down");
+
+        vm.prank(operator);
+        vm.expectRevert(BridgeErrors.BridgeFailed.selector);
+        adapter.bridgeTo(recipient, amount, DST_CHAIN_ID);
+
+        assertEq(token.allowance(address(adapter), SUPERCHAIN_BRIDGE), 0);
+    }
+
     function testFuzz_BridgeLimitsRespectCapsAndDayReset(
         uint96 firstRaw,
         uint96 secondRaw,
