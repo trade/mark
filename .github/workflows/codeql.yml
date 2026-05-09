@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   analyze:
-    name: Analyze (JavaScript/TypeScript)
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
 
     strategy:
