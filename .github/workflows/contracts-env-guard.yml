@@ -42,6 +42,7 @@ jobs:
           MARK_SETTLEMENT_PROOF_ENABLED=true \
           MARK_SETTLEMENT_PRODUCTION_MODE=true \
           MARK_DEPLOY_ATTESTED_VERIFIER=true \
+          PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000001 \
           VALIDATE_MODE=rehearsal ./script/ops/validate-prod-env.sh
 
       - name: Validate dispatch env profile
