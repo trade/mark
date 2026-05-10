@@ -143,6 +143,7 @@ jobs:
 
     steps:
       - name: Enforce main branch for production manifest run
+        working-directory: .
         run: |
           if [ "${GITHUB_REF_NAME}" != "main" ]; then
             echo "Manual production manifest verification must run from main branch. Current: ${GITHUB_REF_NAME}"

@@ -69,6 +69,7 @@ jobs:
 
     steps:
       - name: Enforce canary or dev or main branch for rehearsal
+        working-directory: .
         run: |
           if [ "${GITHUB_REF_NAME}" != "canary" ] && [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
             echo "Staging rehearsal must run from canary, dev, or main branch. Current: ${GITHUB_REF_NAME}"
