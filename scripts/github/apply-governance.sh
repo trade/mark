@@ -7,18 +7,13 @@ set -euo pipefail
 #
 # All branches use 0 required approvals. The sole maintainer cannot approve
 # their own PRs, so CI gates are the enforcement mechanism.
+# Direct pushes are restricted to the trade/maintainers team on all branches.
 #
 # Required env:
 #   GH_PAT=<github token with repo admin permissions>
 # Optional env:
 #   GH_REPO=owner/repo (default: inferred from git remote origin)
 #   PRODUCTION_REVIEWER_IDS=12345,67890   # GitHub user IDs
-#   MAIN_PUSH_ALLOW_USERS=user1,user2     # optional login allowlist for direct push
-#   MAIN_PUSH_ALLOW_TEAMS=team-slug       # optional team slug allowlist
-#   MAIN_PUSH_ALLOW_APPS=app-slug         # optional GitHub App allowlist
-#   DEV_PUSH_ALLOW_USERS=user1,user2      # optional login allowlist for direct push
-#   DEV_PUSH_ALLOW_TEAMS=team-slug        # optional team slug allowlist
-#   DEV_PUSH_ALLOW_APPS=app-slug          # optional GitHub App allowlist
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required" >&2
@@ -66,51 +61,6 @@ auth_headers=(
 )
 
 echo "Applying governance to ${GH_REPO}..."
-
-csv_to_json_array() {
-  local csv="${1:-}"
-  if [[ -z "$csv" ]]; then
-    echo "[]"
-    return
-  fi
-
-  awk -v csv="$csv" 'BEGIN {
-    n=split(csv, a, ",");
-    printf("[");
-    first=1;
-    for (i=1; i<=n; i++) {
-      gsub(/^[ \t]+|[ \t]+$/, "", a[i]);
-      if (a[i] == "") continue;
-      gsub(/\\/,"\\\\",a[i]);
-      gsub(/"/,"\\\"",a[i]);
-      if (!first) printf(",");
-      printf("\"%s\"", a[i]);
-      first=0;
-    }
-    printf("]");
-  }'
-}
-
-build_restrictions_json() {
-  local users_csv="${1:-}"
-  local teams_csv="${2:-}"
-  local apps_csv="${3:-}"
-  local users_json teams_json apps_json
-  users_json="$(csv_to_json_array "$users_csv")"
-  teams_json="$(csv_to_json_array "$teams_csv")"
-  apps_json="$(csv_to_json_array "$apps_csv")"
-
-  if [[ "$users_json" == "[]" && "$teams_json" == "[]" && "$apps_json" == "[]" ]]; then
-    echo "null"
-    return
-  fi
-
-  jq -n \
-    --argjson users "$users_json" \
-    --argjson teams "$teams_json" \
-    --argjson apps "$apps_json" \
-    '{users: $users, teams: $teams, apps: $apps}'
-}
 
 apply_branch_protection() {
   local branch="$1"
@@ -249,22 +199,20 @@ MAIN_CHECKS_JSON='[
   "Validate Release Evidence"
 ]'
 
-MAIN_RESTRICTIONS_JSON="$(build_restrictions_json "${MAIN_PUSH_ALLOW_USERS:-}" "${MAIN_PUSH_ALLOW_TEAMS:-}" "${MAIN_PUSH_ALLOW_APPS:-}")"
-CANARY_RESTRICTIONS_JSON="$(build_restrictions_json "${CANARY_PUSH_ALLOW_USERS:-}" "${CANARY_PUSH_ALLOW_TEAMS:-}" "${CANARY_PUSH_ALLOW_APPS:-}")"
-DEV_RESTRICTIONS_JSON="$(build_restrictions_json "${DEV_PUSH_ALLOW_USERS:-}" "${DEV_PUSH_ALLOW_TEAMS:-}" "${DEV_PUSH_ALLOW_APPS:-}")"
+MAINTAINERS_RESTRICTIONS_JSON='{"users":[],"teams":["maintainers"],"apps":[]}'
 
-if [[ "$MAIN_RESTRICTIONS_JSON" == "null" ]]; then
-  echo "  - note: MAIN push restrictions not set (provide MAIN_PUSH_ALLOW_* to restrict direct push safely)"
+if [[ "$MAINTAINERS_RESTRICTIONS_JSON" == "null" ]]; then
+  echo "  - note: push restrictions not set"
 fi
 
-# main: strict, no direct pushes
-apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAIN_RESTRICTIONS_JSON"
+# main: strict, restricted to trade/maintainers team
+apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 
-# canary: PR + checks; stabilisation track
-apply_branch_protection "canary" "0" "$CANARY_CHECKS_JSON" "$CANARY_RESTRICTIONS_JSON"
+# canary: stabilisation track, restricted to trade/maintainers team
+apply_branch_protection "canary" "0" "$CANARY_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 
-# dev: PR + checks; direct pushes configurable by changing restrict_pushes here
-apply_branch_protection "dev" "0" "$DEV_CHECKS_JSON" "$DEV_RESTRICTIONS_JSON"
+# dev: integration track, restricted to trade/maintainers team
+apply_branch_protection "dev" "0" "$DEV_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 
 # Ensure production environment exists
 echo "  - ensuring environment: production"

@@ -113,6 +113,13 @@ check_branch() {
     return 1
   fi
 
+  local push_team
+  push_team="$(jq -r '.restrictions.teams[]?.slug // empty' <<<"$json" | head -1)"
+  if [[ "$push_team" != "maintainers" ]]; then
+    echo "  FAIL: push restrictions do not include maintainers team for ${branch} (got: ${push_team:-none})" >&2
+    return 1
+  fi
+
   local missing=0
   for check in "${expected[@]}"; do
     if ! jq -e --arg c "$check" '.required_status_checks.checks[]?.context | select(. == $c)' <<<"$json" >/dev/null; then
