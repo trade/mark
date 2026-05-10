@@ -58,6 +58,8 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
             revert ProductionModeRequiresProofValidation();
         }
         if (enableValidation && verifierAddress == address(0)) revert VerifierRequired();
+        // Rejects EOAs and undeployed addresses. Does not verify IUTXOSettlementVerifier
+        // compliance — a non-conforming contract would revert at settlement call time.
         if (verifierAddress != address(0) && verifierAddress.code.length == 0) revert VerifierRequired();
 
         verifier = IUTXOSettlementVerifier(verifierAddress);
