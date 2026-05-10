@@ -1,0 +1,25 @@
+name: Governance Verify
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 4 * * 1"
+
+jobs:
+  verify-governance:
+    name: Verify Governance Baseline
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify governance protections
+        env:
+          GH_PAT: ${{ secrets.GOVERNANCE_VERIFY_PAT }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "${GH_PAT}" ]; then
+            echo "Missing required secret: GOVERNANCE_VERIFY_PAT" >&2
+            exit 1
+          fi
+          ./scripts/github/verify-governance.sh

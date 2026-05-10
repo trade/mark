@@ -1,6 +1,11 @@
 name: Contracts Staging Rehearsal
 
 on:
+  push:
+    branches:
+      - canary
+    paths:
+      - "contracts/**"
   workflow_dispatch:
     inputs:
       rpc_url:
@@ -51,27 +56,28 @@ jobs:
       run:
         working-directory: contracts
     env:
-      RPC_URL: ${{ inputs.rpc_url }}
+      RPC_URL: ${{ github.event_name == 'push' && vars.MARK_STAGING_RPC_URL || inputs.rpc_url }}
       PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
-      MARK_RYLA_OWNER: ${{ inputs.owner_address }}
-      MARK_SETTLEMENT_OPERATOR: ${{ inputs.settlement_operator }}
-      MARK_BRIDGE_OPERATOR: ${{ inputs.bridge_operator }}
-      MARK_BRIDGE_DESTINATION_CHAIN_ID: ${{ inputs.destination_chain_id }}
-      MARK_SETTLEMENT_ATTESTER: ${{ inputs.attester_address }}
-      MARK_RELEASE_ARTIFACT_PATH: ${{ inputs.release_artifact_path }}
-      MARK_REHEARSAL_ARTIFACT_PATH: ${{ inputs.rehearsal_artifact_path }}
+      MARK_RYLA_OWNER: ${{ github.event_name == 'push' && vars.MARK_STAGING_OWNER_ADDRESS || inputs.owner_address }}
+      MARK_SETTLEMENT_OPERATOR: ${{ github.event_name == 'push' && vars.MARK_STAGING_SETTLEMENT_OPERATOR || inputs.settlement_operator }}
+      MARK_BRIDGE_OPERATOR: ${{ github.event_name == 'push' && vars.MARK_STAGING_BRIDGE_OPERATOR || inputs.bridge_operator }}
+      MARK_BRIDGE_DESTINATION_CHAIN_ID: ${{ github.event_name == 'push' && vars.MARK_STAGING_DESTINATION_CHAIN_ID || inputs.destination_chain_id }}
+      MARK_SETTLEMENT_ATTESTER: ${{ github.event_name == 'push' && vars.MARK_STAGING_ATTESTER_ADDRESS || inputs.attester_address }}
+      MARK_RELEASE_ARTIFACT_PATH: ${{ github.event_name == 'push' && 'broadcast/mark-staging-release.json' || inputs.release_artifact_path }}
+      MARK_REHEARSAL_ARTIFACT_PATH: ${{ github.event_name == 'push' && 'broadcast/mark-staging-rehearsal.json' || inputs.rehearsal_artifact_path }}
       MARK_GIT_COMMIT: ${{ github.sha }}
 
     steps:
-      - name: Enforce dev or main branch for rehearsal
+      - name: Enforce canary or dev or main branch for rehearsal
+        working-directory: .
         run: |
-          if [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
-            echo "Staging rehearsal must run from dev or main branch. Current: ${GITHUB_REF_NAME}"
+          if [ "${GITHUB_REF_NAME}" != "canary" ] && [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Staging rehearsal must run from canary, dev, or main branch. Current: ${GITHUB_REF_NAME}"
             exit 1
           fi
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -79,6 +85,14 @@ jobs:
         run: |
           test -n "${PRIVATE_KEY}" || {
             echo "MARK_STAGING_DEPLOYER_PRIVATE_KEY secret is required";
+            exit 1;
+          }
+          test -n "${RPC_URL}" || {
+            echo "RPC_URL is required (for canary push use repository variable MARK_STAGING_RPC_URL, for manual run use rpc_url input)";
+            exit 1;
+          }
+          test -n "${MARK_SETTLEMENT_OPERATOR}" || {
+            echo "MARK_SETTLEMENT_OPERATOR is required (for canary push use MARK_STAGING_SETTLEMENT_OPERATOR variable)";
             exit 1;
           }
 
@@ -90,16 +104,16 @@ jobs:
 
       - name: Upload release artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mark-staging-release
-          path: contracts/${{ inputs.release_artifact_path }}
+          path: contracts/${{ env.MARK_RELEASE_ARTIFACT_PATH }}
           if-no-files-found: ignore
 
       - name: Upload rehearsal artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mark-staging-rehearsal
-          path: contracts/${{ inputs.rehearsal_artifact_path }}
+          path: contracts/${{ env.MARK_REHEARSAL_ARTIFACT_PATH }}
           if-no-files-found: ignore

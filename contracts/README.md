@@ -3,6 +3,7 @@
 Smart contracts for Superchain interoperability and `RYLA` standard credit primitives.
 
 Operational procedures (deployment, incident, rollback) are documented in [RUNBOOK.md](./RUNBOOK.md).
+Pre-mainnet promotion criteria are documented in [STAGING_GO_NO_GO_CHECKLIST.md](./STAGING_GO_NO_GO_CHECKLIST.md).
 
 ## Contracts
 
@@ -13,14 +14,14 @@ Operational procedures (deployment, incident, rollback) are documented in [RUNBO
 - `MINTER_ROLE` / `BURNER_ROLE` for protocol issuance modules
 - Uses `AccessControlDefaultAdminRules` for delayed default-admin transfer hardening
 
-### [MARKBridgeAdapter.sol](./src/protocol/MARKBridgeAdapter.sol)
+### [MARKBridgeAdapter.sol](./src/bridge/MARKBridgeAdapter.sol)
 
 - Operator-gated bridge-out adapter that routes through `SuperchainTokenBridge`
 - Destination allowlist and optional `maxPerTx` / `dailyCap` risk limits
 - Keeps token core bridge authority on the canonical predeploy
 - Uses `AccessControlDefaultAdminRules` (`OPERATOR_ROLE`)
 
-### [MARKSettlementModule.sol](./src/protocol/MARKSettlementModule.sol)
+### [MARKSettlementModule.sol](./src/settlement/MARKSettlementModule.sol)
 
 - Phase-2 integration boundary for UTXO / zk accounting
 - Operator-gated settlement with replay protection (`intentId`)
@@ -28,7 +29,7 @@ Operational procedures (deployment, incident, rollback) are documented in [RUNBO
 - Holds token minter/burner roles for controlled mint and burn settlement
 - Uses `AccessControlDefaultAdminRules` (`OPERATOR_ROLE`)
 
-### [AttestedSettlementVerifier.sol](./src/verifier/AttestedSettlementVerifier.sol)
+### [AttestedSettlementVerifier.sol](./src/settlement/verifier/AttestedSettlementVerifier.sol)
 
 - Signature-based settlement verifier (`ATTESTER_ROLE` allowlist)
 - Intended as a concrete verifier baseline before integrating zk circuits
@@ -37,19 +38,9 @@ Operational procedures (deployment, incident, rollback) are documented in [RUNBO
 - Proof format:
   - `abi.encode(uint256 deadline, bytes32 contextHash, uint8 v, bytes32 r, bytes32 s)`
 
-### [CrossChainCounter.sol](./src/examples/CrossChainCounter.sol)
-
-- Counter that can only be incremented through cross-chain messages
-- Uses `L2ToL2CrossDomainMessenger` for message verification
-- Tracks last incrementer's chain ID and address
-- Events emitted for all increments with source chain details
-
-### [CrossChainCounterIncrementer.sol](./src/examples/CrossChainCounterIncrementer.sol)
-
-- Sends cross-chain increment messages to `CrossChainCounter` instances
-- Uses `L2ToL2CrossDomainMessenger` for message passing
-
 ## Development
+
+Note: legacy CrossChainCounter example contracts and tests were retired in favor of MARK protocol deployment/ops flows. Current CI and release gates focus on MARK stack contracts and governance evidence artifacts.
 
 ### Dependencies
 
@@ -69,12 +60,46 @@ forge build
 forge test
 ```
 
+Run the fast local CI checks (recommended during iteration):
+
+```bash
+make ci-fast
+```
+
+Run the full local CI checks (includes explicit production-lock checks):
+
+```bash
+make ci-full
+```
+
+Run canonical release gate checks and emit a timestamped evidence artifact:
+
+```bash
+make release-gate
+```
+
+For remote/mainnet-style verification, run with:
+- `RPC_URL` and `PRIVATE_KEY`
+- anchored release artifact via `MARK_RELEASE_VERIFY_ARTIFACT_PATH` or `MARK_RELEASE_ARTIFACT_PATH`
+- signed evidence verification inputs (default-on):
+  - `VERIFY_PUBLIC_KEY_FILE` or `VERIFY_PUBLIC_KEY_PEM`
+  - optional manifest path overrides:
+    - `MARK_RELEASE_VERIFY_MANIFEST_PATH`
+    - `MARK_RELEASE_VERIFY_SIGNATURE_PATH`
+    - `MARK_RELEASE_VERIFY_SIGNATURE_META_PATH`
+
+Set `MARK_RELEASE_VERIFY_REQUIRE_SIGNED_MANIFEST=false` only for controlled break-glass scenarios.
+
+```bash
+MARK_RELEASE_GATE_MODE=remote make release-gate
+```
+
 Run integration (fork/RPC-dependent) tests only:
 
 ```bash
 CHAIN_A_RPC_URL=http://127.0.0.1:9545 \
 CHAIN_B_RPC_URL=http://127.0.0.1:9546 \
-FOUNDRY_PROFILE=integration forge test --match-path 'test/integration/*.t.sol'
+FOUNDRY_PROFILE=integration forge test --match-path 'test/integration/**/*.t.sol'
 ```
 
 ### Deploy
@@ -87,31 +112,32 @@ Deploy to multiple chains using either:
 cd ../ && pnpm sup
 ```
 
-2. Direct Forge script:
+2. Direct Forge script (MARK stack):
 
 ```bash
-forge script script/examples/Deploy.s.sol --rpc-url $RPC_URL --broadcast
+set -a && source .env && set +a
+forge script script/deploy/bridge/DeployMARKStack.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 Deploy `RYLA` stack:
 
 ```bash
 set -a && source .env && set +a
-forge script script/deploy/DeployMARKStack.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/deploy/bridge/DeployMARKStack.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 Deploy settlement module:
 
 ```bash
 set -a && source .env && set +a
-forge script script/deploy/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/deploy/settlement/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 Deploy settlement module with in-script attested verifier:
 
 ```bash
 set -a && source .env && set +a
-forge script script/deploy/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/deploy/settlement/DeployMARKSettlementModule.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 ### Post-Deploy Setup
@@ -120,7 +146,7 @@ Apply deterministic role/config setup on already deployed contracts:
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/PostDeployMARKSetup.s.sol --rpc-url $RPC_URL --broadcast
+forge script script/ops/settlement/PostDeployMARKSetup.s.sol --rpc-url $RPC_URL --broadcast
 ```
 
 ### Preflight (Recommended Before Broadcast)
@@ -129,7 +155,7 @@ Run read-only checks to validate env wiring and admin permissions before deploym
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/PreflightMARKDeployment.s.sol --rpc-url $RPC_URL
+forge script script/ops/settlement/PreflightMARKDeployment.s.sol --rpc-url $RPC_URL
 ```
 
 `MARK_PREFLIGHT_MODE` values:
@@ -143,7 +169,7 @@ Run full release pipeline (preflight -> deploy -> optional setup -> verify -> ar
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/ReleaseMARK.s.sol --rpc-url $RPC_URL
+forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL
 ```
 
 Local production-mode smoke (starts Anvil, deploys verifier, runs strict release verify):
@@ -193,7 +219,7 @@ Run read-only checks against deployed contracts and role wiring:
 
 ```bash
 set -a && source .env && set +a
-forge script script/ops/VerifyMARKDeployment.s.sol --rpc-url $RPC_URL
+forge script script/ops/settlement/VerifyMARKDeployment.s.sol --rpc-url $RPC_URL
 ```
 
 Optional strict checks supported by verify script:
@@ -355,18 +381,12 @@ Optional: cancel pending transfer before acceptance
 
 ## Architecture
 
-### Cross-Chain Messaging Flow (1)
+### MARK Settlement Flow
 
-1. User calls `increment(chainId, counterAddress)` on `CrossChainCounterIncrementer`
-2. `CrossChainCounterIncrementer` sends message via `L2ToL2CrossDomainMessenger`
-3. Target chain's messenger delivers message to `CrossChainCounter`
-4. `CrossChainCounter` verifies messenger and executes increment
-
-### Cross-Chain Messaging Flow (2)
-
-1. User calls `increment(chainId, counterAddress)` on `CrossChainCounterIncrementer` by directly ending a message through `L2ToL2CrossDomainMessenger`
-2. Target chain's messenger delivers message to `CrossChainCounter`
-3. `CrossChainCounter` verifies messenger and executes increment
+1. Operators submit settlement intents through `MARKSettlementModule`.
+2. Optional verifier (`AttestedSettlementVerifier` or custom `IUTXOSettlementVerifier`) validates intent proof material.
+3. Settlement module mints/burns `RYLA` under role-constrained rules.
+4. Bridge adapter enforces destination/risk controls for cross-chain transfers.
 
 ## Testing
 
@@ -385,16 +405,10 @@ forge test
 Run Slither locally on MARK core contracts:
 
 ```bash
-cd /Users/iap/mark/contracts
-slither \
-  src/token/RYLA.sol \
-  src/protocol/MARKBridgeAdapter.sol \
-  src/protocol/MARKSettlementModule.sol \
-  src/verifier/AttestedSettlementVerifier.sol \
-  --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
-  --exclude-dependencies \
-  --filter-paths "lib|test|script|out|cache" \
-  --fail-medium
+cd contracts
+make slither-install
+export PATH="$HOME/Library/Python/3.9/bin:$PATH"
+make slither-core
 ```
 
 CI workflow:

@@ -25,7 +25,7 @@ contract RYLA is SuperchainERC20, AccessControlDefaultAdminRules, TokenErrors {
     }
 
     function name() public pure override returns (string memory) {
-        return "RYLA";
+        return "RYLA Credits";
     }
 
     function symbol() public pure override returns (string memory) {

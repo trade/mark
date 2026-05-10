@@ -1,0 +1,14 @@
+name: Frontend CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - canary
+      - dev
+  workflow_dispatch:
+
+jobs:
+  frontend-checks:
+    uses: ./.github/workflows/_reusable-frontend-checks.yml

@@ -1,0 +1,32 @@
+name: Governance Policy Guard
+
+on:
+  pull_request:
+    paths:
+      - "scripts/github/apply-governance.sh"
+      - "BRANCHING.md"
+      - ".github/PRODUCTION_GOVERNANCE_CHECKLIST.md"
+      - ".github/workflows/governance-policy-guard.yml"
+  push:
+    branches:
+      - main
+      - canary
+      - dev
+    paths:
+      - "scripts/github/apply-governance.sh"
+      - "BRANCHING.md"
+      - ".github/PRODUCTION_GOVERNANCE_CHECKLIST.md"
+      - ".github/workflows/governance-policy-guard.yml"
+  workflow_dispatch:
+
+jobs:
+  validate-governance-policy:
+    name: Validate Governance Policy Consistency
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run governance policy validator
+        run: bash scripts/ci/validate-governance-policy.sh

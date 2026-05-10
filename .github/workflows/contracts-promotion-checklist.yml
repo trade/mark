@@ -53,6 +53,7 @@ jobs:
 
     steps:
       - name: Enforce main branch for promotion checklist
+        working-directory: .
         run: |
           if [ "${GITHUB_REF_NAME}" != "main" ]; then
             echo "Promotion checklist workflow must run from main branch. Current: ${GITHUB_REF_NAME}"
@@ -60,7 +61,7 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -69,7 +70,7 @@ jobs:
 
       - name: Upload checklist artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mark-promotion-checklist
           path: |

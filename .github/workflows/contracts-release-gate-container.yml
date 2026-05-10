@@ -1,0 +1,47 @@
+name: Contracts Release Gate (Containerized)
+
+on:
+  pull_request:
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts-release-gate-container.yml"
+  workflow_dispatch:
+    inputs:
+      gate_mode:
+        description: "MARK_RELEASE_GATE_MODE: local or remote"
+        required: false
+        default: "local"
+        type: choice
+        options:
+          - local
+          - remote
+  push:
+    branches:
+      - main
+      - canary
+      - dev
+    paths:
+      - "contracts/**"
+      - ".github/workflows/contracts-release-gate-container.yml"
+
+jobs:
+  release-gate-container:
+    name: Release Gate Container
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      MARK_RELEASE_GATE_MODE: ${{ inputs.gate_mode || 'local' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Run release gate in container
+        run: make release-gate-container

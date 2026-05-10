@@ -1,0 +1,28 @@
+name: Setup Node + pnpm
+
+description: Setup Node.js and activate a pinned pnpm version via corepack.
+
+inputs:
+  node-version:
+    description: Node.js version
+    required: true
+  pnpm-version:
+    description: pnpm version to activate via corepack
+    required: false
+    default: "9.0.2"
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        package-manager-cache: false
+
+    - name: Setup pnpm (corepack)
+      shell: bash
+      run: |
+        corepack enable
+        corepack prepare pnpm@${{ inputs.pnpm-version }} --activate
+        pnpm --version

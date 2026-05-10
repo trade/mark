@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - canary
       - dev
     paths:
       - "contracts/**"
@@ -59,7 +60,7 @@ jobs:
         working-directory: contracts
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -109,7 +110,7 @@ jobs:
 
       - name: Upload self-test manifest artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mark-evidence-manifest-self-test
           path: |
@@ -142,6 +143,7 @@ jobs:
 
     steps:
       - name: Enforce main branch for production manifest run
+        working-directory: .
         run: |
           if [ "${GITHUB_REF_NAME}" != "main" ]; then
             echo "Manual production manifest verification must run from main branch. Current: ${GITHUB_REF_NAME}"
@@ -149,7 +151,7 @@ jobs:
           fi
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -180,7 +182,7 @@ jobs:
 
       - name: Upload manifest artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mark-evidence-manifest
           path: |

@@ -1,0 +1,45 @@
+# Format: <path> @owner
+# Paths are matched top-to-bottom; first match wins.
+
+* @trade/maintainers
+
+# Contracts
+
+/contracts/src/** @trade/maintainers
+/contracts/test/** @trade/maintainers
+/contracts/script/** @trade/maintainers
+/contracts/foundry.toml @trade/maintainers
+/contracts/Makefile @trade/maintainers
+/contracts/RUNBOOK.md @trade/maintainers
+/contracts/README.md @trade/maintainers
+
+# CI and governance
+
+/.github/workflows/** @trade/maintainers
+/.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @trade/maintainers
+/.github/CODEOWNERS @trade/maintainers
+/BRANCHING.md @trade/maintainers
+/CONTRIBUTING.md @trade/maintainers
+
+# Frontend
+
+/src/** @trade/maintainers
+/index.html @trade/maintainers
+
+# Configuration and build
+
+/package.json @trade/maintainers
+/pnpm-lock.yaml @trade/maintainers
+/tsconfig*.json @trade/maintainers
+/vite.config.ts @trade/maintainers
+/eslint.config.js @trade/maintainers
+/.prettierrc.json @trade/maintainers
+/mprocs.yaml @trade/maintainers
+/remappings.txt @trade/maintainers
+
+# Documentation
+
+/README.md @trade/maintainers
+/DEPLOYMENT.md @trade/maintainers
+/TROUBLESHOOTING.md @trade/maintainers
+/LICENSE @trade/maintainers
