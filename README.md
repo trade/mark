@@ -1,4 +1,4 @@
-# Mark Protocol
+# MARK Protocol
 
 Decentralised and privacy-first by design. Leveraging zero-knowledge proofs for secure, scalable settlement on the Superchain.
 
@@ -12,8 +12,8 @@ Decentralised and privacy-first by design. Leveraging zero-knowledge proofs for 
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repository-url>
-cd <your-repository>
+git clone https://github.com/trade/mark.git
+cd mark
 ```
 
 ### 2. Install dependencies
@@ -46,7 +46,7 @@ Full policy is documented in [BRANCHING.md](./BRANCHING.md).
 
 ## Deploying Contracts
 
-Mark uses `super-cli` (`sup`) for contract deployment across the Superchain.
+MARK uses `super-cli` (`sup`) for contract deployment across the Superchain.
 
 ### Interactive mode
 
@@ -74,6 +74,13 @@ pnpm build:contracts
 
 ## Overview
 
+### Contracts
+
+- **RYLA Credits** (`RYLA`) — Superchain-compatible credit token. Mintable and burnable only by the settlement module.
+- **MARKSettlementModule** — Operator-gated settlement boundary with replay protection and optional ZK proof verification.
+- **MARKBridgeAdapter** — Operator-gated bridge adapter routing RYLA cross-chain via SuperchainTokenBridge with rate limits.
+- **AttestedSettlementVerifier** — EIP-712 signature-based verifier for settlement intents.
+
 ### Tools
 
 - **[supersim](https://github.com/ethereum-optimism/supersim)** — local Superchain test environment with pre-deployed contracts
@@ -88,7 +95,6 @@ pnpm build:contracts
 mark/
 ├── contracts/          # Smart contract code (Foundry)
 ├── src/                # Frontend code (vite, tailwind, shadcn, wagmi, viem)
-│   └── App.tsx         # Main application component
 ├── public/             # Static assets
 ├── supersim-logs/      # Local supersim logs
 ├── package.json        # Project dependencies and scripts
