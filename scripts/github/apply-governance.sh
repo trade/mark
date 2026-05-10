@@ -2,15 +2,16 @@
 set -euo pipefail
 
 # Applies repository governance defaults:
-# - branch protection for main and dev
+# - branch protection for dev, canary, and main
 # - creates/updates production environment
+#
+# All branches use 0 required approvals. The sole maintainer cannot approve
+# their own PRs, so CI gates are the enforcement mechanism.
 #
 # Required env:
 #   GH_PAT=<github token with repo admin permissions>
 # Optional env:
 #   GH_REPO=owner/repo (default: inferred from git remote origin)
-#   MAIN_REVIEW_COUNT=2
-#   DEV_REVIEW_COUNT=1
 #   PRODUCTION_REVIEWER_IDS=12345,67890   # GitHub user IDs
 #   MAIN_PUSH_ALLOW_USERS=user1,user2     # optional login allowlist for direct push
 #   MAIN_PUSH_ALLOW_TEAMS=team-slug       # optional team slug allowlist
@@ -53,8 +54,6 @@ infer_repo_from_remote() {
 }
 
 GH_REPO="${GH_REPO:-$(infer_repo_from_remote)}"
-MAIN_REVIEW_COUNT="${MAIN_REVIEW_COUNT:-2}"
-DEV_REVIEW_COUNT="${DEV_REVIEW_COUNT:-1}"
 
 owner="${GH_REPO%%/*}"
 repo="${GH_REPO##*/}"
@@ -259,13 +258,13 @@ if [[ "$MAIN_RESTRICTIONS_JSON" == "null" ]]; then
 fi
 
 # main: strict, no direct pushes
-apply_branch_protection "main" "${MAIN_REVIEW_COUNT}" "$MAIN_CHECKS_JSON" "$MAIN_RESTRICTIONS_JSON"
+apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAIN_RESTRICTIONS_JSON"
 
 # canary: PR + checks; stabilisation track
 apply_branch_protection "canary" "0" "$CANARY_CHECKS_JSON" "$CANARY_RESTRICTIONS_JSON"
 
 # dev: PR + checks; direct pushes configurable by changing restrict_pushes here
-apply_branch_protection "dev" "${DEV_REVIEW_COUNT}" "$DEV_CHECKS_JSON" "$DEV_RESTRICTIONS_JSON"
+apply_branch_protection "dev" "0" "$DEV_CHECKS_JSON" "$DEV_RESTRICTIONS_JSON"
 
 # Ensure production environment exists
 echo "  - ensuring environment: production"
