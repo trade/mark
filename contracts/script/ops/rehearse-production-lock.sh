@@ -61,7 +61,7 @@ export MARK_SETTLEMENT_VERIFIER="${MARK_SETTLEMENT_VERIFIER:-0x00000000000000000
 VALIDATE_MODE=rehearsal ./script/ops/validate-prod-env.sh
 
 echo "Running staging rehearsal release..."
-forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url "$RPC_URL" --broadcast -q
+forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url "$RPC_URL" --broadcast --slow -q
 
 if [[ ! -f "$RELEASE_ARTIFACT_PATH" ]]; then
   echo "Missing release artifact: $RELEASE_ARTIFACT_PATH" >&2
