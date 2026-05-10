@@ -262,7 +262,7 @@ fi
 apply_branch_protection "main" "${MAIN_REVIEW_COUNT}" "$MAIN_CHECKS_JSON" "$MAIN_RESTRICTIONS_JSON"
 
 # canary: PR + checks; stabilisation track
-apply_branch_protection "canary" "1" "$CANARY_CHECKS_JSON" "$CANARY_RESTRICTIONS_JSON"
+apply_branch_protection "canary" "0" "$CANARY_CHECKS_JSON" "$CANARY_RESTRICTIONS_JSON"
 
 # dev: PR + checks; direct pushes configurable by changing restrict_pushes here
 apply_branch_protection "dev" "${DEV_REVIEW_COUNT}" "$DEV_CHECKS_JSON" "$DEV_RESTRICTIONS_JSON"

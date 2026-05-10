@@ -146,8 +146,8 @@ Apply these repository settings:
   - `slither-core / Slither Core Contracts`
   - `frontend-checks / Frontend Checks (Node 20)`
   - `frontend-checks / Frontend Checks (Node 22)`
-- Require at least 1 approval.
-- Dismiss stale approvals on new commits.
+- 0 required approvals (solo maintainer — CI checks are the gate).
+  Restore to 1 when a second team member joins.
 
 3. Protect `dev`
 - Require pull request before merge (or allow maintainers direct push if desired).
