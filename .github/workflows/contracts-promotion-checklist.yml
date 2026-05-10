@@ -53,6 +53,7 @@ jobs:
 
     steps:
       - name: Enforce main branch for promotion checklist
+        working-directory: .
         run: |
           if [ "${GITHUB_REF_NAME}" != "main" ]; then
             echo "Promotion checklist workflow must run from main branch. Current: ${GITHUB_REF_NAME}"
