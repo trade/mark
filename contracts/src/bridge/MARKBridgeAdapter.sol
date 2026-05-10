@@ -15,6 +15,9 @@ import {BridgeErrors} from "../errors/BridgeErrors.sol";
 /// @title MARKBridgeAdapter
 /// @notice Operator-gated bridge-out adapter for RYLA using SuperchainTokenBridge.
 /// @dev Uses destination allowlist and optional per-tx / daily caps.
+///      No pause mechanism is provided by design: emergency containment is achieved by
+///      revoking all OPERATOR_ROLE holders (see RUNBOOK.md section 5), which stops all
+///      bridge operations without introducing pause-admin key risk.
 contract MARKBridgeAdapter is ReentrancyGuard, AccessControlDefaultAdminRules, BridgeErrors {
     using SafeERC20 for IERC20;
 

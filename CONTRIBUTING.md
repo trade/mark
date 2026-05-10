@@ -453,9 +453,3 @@ Each exclusion is documented in the codebase. If you disagree with an exclusion,
 ## Questions?
 
 Feel free to open an issue or ask in a PR. We're here to help!
-
----
-
-**Happy contributing!** 🚀
-
-*Last updated: 2026-05-06*
