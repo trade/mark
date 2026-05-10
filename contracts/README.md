@@ -5,6 +5,11 @@ Smart contracts for Superchain interoperability and `RYLA` standard credit primi
 Operational procedures (deployment, incident, rollback) are documented in [RUNBOOK.md](./RUNBOOK.md).
 Pre-mainnet promotion criteria are documented in [STAGING_GO_NO_GO_CHECKLIST.md](./STAGING_GO_NO_GO_CHECKLIST.md).
 
+## Audit Preparation
+
+- [THREAT_MODEL.md](./THREAT_MODEL.md) — trust assumptions, role compromise impact, external dependencies
+- [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) — accepted design decisions and known limitations
+
 ## Contracts
 
 ### [RYLA.sol](./src/token/RYLA.sol)
