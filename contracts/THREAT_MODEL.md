@@ -103,7 +103,7 @@ Worst case: cross-chain token accounting failure.
 ## Invariants the Protocol Relies On
 
 1. Only `MARKSettlementModule` holds `MINTER_ROLE` and `BURNER_ROLE` on RYLA in production.
-2. `consumedIntents[intentId]` is checked before any external call in `_consumeAndValidate`, and set to `true` after proof validation passes — preventing replay even if the verifier makes a reentrant call (the verifier is `view`, so reentrancy is not possible in practice).
+2. `consumedIntents[intentId]` is set to `true` before the external call to `verifier_.verifySettlement()`, following the CEI pattern. This prevents replay even if a future non-view verifier makes a reentrant call.
 3. `bridgedInDailyCapEpoch` never exceeds `dailyCap` within a single epoch.
 4. `productionMode` is irreversible once set — proof validation cannot be disabled.
 5. The module's RYLA balance returns to its pre-settlement value after each `settleBurn` operation. The module does not accumulate tokens across settlements. Note: tokens sent directly to the module address outside of settlement flows are not covered by this invariant.
