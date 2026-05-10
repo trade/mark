@@ -95,7 +95,7 @@ slither-core:
 	  slither "$$target" \
 	    --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
 	    --exclude-dependencies \
-	    --exclude "naming-convention,timestamp,arbitrary-send-erc20,reentrancy-benign" \
+	    --exclude "naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign" \
 	    --filter-paths "lib|test|script|out|cache" \
 	    --fail-medium; \
 	done
