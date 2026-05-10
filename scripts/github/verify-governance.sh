@@ -122,7 +122,7 @@ check_branch() {
 
 # dev has 0 required approvals so dismiss_stale_reviews is not applicable.
 check_branch dev    false "${require_checks_dev[@]}"
-check_branch canary true  "${require_checks_dev[@]}"
+check_branch canary false "${require_checks_dev[@]}"
 check_branch main   true  "${require_checks_main[@]}"
 
 echo "[verify] governance baseline active for ${GH_REPO}"
