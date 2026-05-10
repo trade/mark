@@ -52,6 +52,7 @@ jobs:
 
     steps:
       - name: Enforce main branch for production verification
+        working-directory: .
         run: |
           if [ "${GITHUB_REF_NAME}" != "main" ]; then
             echo "Production lock verification workflow must run from main branch. Current: ${GITHUB_REF_NAME}"

@@ -19,6 +19,8 @@ import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 ///      `contextHash` is an opaque attester-controlled binding value (e.g. off-chain UTXO
 ///      state root or batch id) included in the signed digest to tie the attestation to
 ///      external state without exposing that state on-chain.
+///      EIP-5267: `eip712Domain()` is inherited from OZ EIP712 and available for wallets
+///      to discover domain parameters without reading source code.
 contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessControlDefaultAdminRules {
     using ECDSA for bytes32;
 
