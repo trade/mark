@@ -98,6 +98,13 @@ contract ReleaseMARK is Script {
         if (runPostDeploy) {
             vm.setEnv("MARK_BRIDGE_ADAPTER", vm.toString(address(adapter)));
             vm.setEnv("MARK_SETTLEMENT_MODULE", vm.toString(address(module)));
+            // Export the deployed verifier address so PostDeployMARKSetup can read it.
+            // DeployMARKSettlementModule deploys the verifier when MARK_DEPLOY_ATTESTED_VERIFIER=true
+            // but does not export the address; read it from the module state instead.
+            address deployedVerifier = address(module.verifier());
+            if (deployedVerifier != address(0)) {
+                vm.setEnv("MARK_SETTLEMENT_VERIFIER", vm.toString(deployedVerifier));
+            }
 
             _runPostDeployPreflight(preflight, deployerKey, deployer, address(token), address(adapter), address(module));
 
