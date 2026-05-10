@@ -116,13 +116,15 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
         if (amount == 0) revert InvalidAmount();
         if (consumedIntents[intentId]) revert IntentAlreadyConsumed();
 
+        // Mark consumed before external call to follow CEI pattern.
+        // Prevents replay even if a future non-view verifier makes a reentrant call.
+        consumedIntents[intentId] = true;
+
         if (proofValidationEnabled) {
             IUTXOSettlementVerifier verifier_ = verifier;
             if (address(verifier_) == address(0)) revert VerifierRequired();
             bool ok = verifier_.verifySettlement(intentId, address(this), account, amount, isMint, proof);
             if (!ok) revert VerificationFailed();
         }
-
-        consumedIntents[intentId] = true;
     }
 }
