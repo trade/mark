@@ -80,7 +80,7 @@ contract MARKPoolTest is Test {
         vm.prank(operator);
         pool.commit(COMMITMENT, AMOUNT);
 
-        pool.withdraw(recipient, AMOUNT, NULLIFIER, COMMITMENT, A, B, C);
+        pool.withdraw(recipient, AMOUNT, true, NULLIFIER, COMMITMENT, A, B, C);
 
         assertEq(token.balanceOf(recipient), AMOUNT);
         assertTrue(pool.usedNullifiers(NULLIFIER));
@@ -95,20 +95,20 @@ contract MARKPoolTest is Test {
         pool.commit(COMMITMENT, AMOUNT);
 
         vm.expectRevert(PoolErrors.InvalidProof.selector);
-        pool.withdraw(recipient, AMOUNT, NULLIFIER, COMMITMENT, A, B, C);
+        pool.withdraw(recipient, AMOUNT, true, NULLIFIER, COMMITMENT, A, B, C);
     }
 
     function testWithdrawRevertsOnNullifierReplay() public {
         vm.prank(operator);
         pool.commit(COMMITMENT, AMOUNT);
-        pool.withdraw(recipient, AMOUNT, NULLIFIER, COMMITMENT, A, B, C);
+        pool.withdraw(recipient, AMOUNT, true, NULLIFIER, COMMITMENT, A, B, C);
 
         bytes32 commitment2 = bytes32(uint256(3));
         vm.prank(operator);
         pool.commit(commitment2, AMOUNT);
 
         vm.expectRevert(PoolErrors.NullifierUsed.selector);
-        pool.withdraw(recipient, AMOUNT, NULLIFIER, commitment2, A, B, C);
+        pool.withdraw(recipient, AMOUNT, true, NULLIFIER, commitment2, A, B, C);
     }
 
     function testWithdrawRevertsOnAmountMismatch() public {
@@ -116,12 +116,12 @@ contract MARKPoolTest is Test {
         pool.commit(COMMITMENT, AMOUNT);
 
         vm.expectRevert(PoolErrors.CommitmentInvalid.selector);
-        pool.withdraw(recipient, AMOUNT + 1, NULLIFIER, COMMITMENT, A, B, C);
+        pool.withdraw(recipient, AMOUNT + 1, true, NULLIFIER, COMMITMENT, A, B, C);
     }
 
     function testWithdrawRevertsOnUnregisteredCommitment() public {
         vm.expectRevert(PoolErrors.CommitmentInvalid.selector);
-        pool.withdraw(recipient, AMOUNT, NULLIFIER, COMMITMENT, A, B, C);
+        pool.withdraw(recipient, AMOUNT, true, NULLIFIER, COMMITMENT, A, B, C);
     }
 
     function testProductionModeBlocksVerifierChange() public {
