@@ -105,10 +105,15 @@ contract MARKPool is ReentrancyGuard, AccessControlDefaultAdminRules, PoolErrors
 
     /// @notice Withdraws RYLA by proving ownership of a committed note.
     /// @dev The proof binds to chainId and address(this) via the commitmentHash,
-    ///      preventing cross-chain and cross-contract replay.
+    ///      preventing cross-chain and cross-contract replay. The settlementModule
+    ///      binding is enforced by the circuit — the prover must know the secret
+    ///      that hashes to a commitment including address(this) as settlementModule.
+    ///      isMint=1: mints RYLA to recipient (withdraw from pool).
+    ///      isMint=0: burns RYLA from recipient (deposit-and-burn flow).
     function withdraw(
         address recipient,
         uint256 amount,
+        bool isMint,
         bytes32 nullifierHash,
         bytes32 commitmentHash,
         uint256[2] calldata a,
@@ -125,23 +130,28 @@ contract MARKPool is ReentrancyGuard, AccessControlDefaultAdminRules, PoolErrors
         IUTXOVerifier v = verifier;
         if (address(v) == address(0)) revert VerifierRequired();
 
-        // Public signals: [nullifierHash, commitmentHash, amount, isMint=1]
+        // Public signals: [nullifierHash, commitmentHash, amount, isMint]
         uint256[4] memory signals;
         signals[0] = uint256(nullifierHash);
         signals[1] = uint256(commitmentHash);
         signals[2] = amount;
-        signals[3] = 1; // isMint=1 for withdraw (minting to recipient)
+        signals[3] = isMint ? 1 : 0;
 
         // G2 coordinate swap: snarkjs uses (x[1],x[0]) order
         uint256[2][2] memory bFixed = [[b[0][1], b[0][0]], [b[1][1], b[1][0]]];
 
         if (!v.verifyProof(a, bFixed, c, signals)) revert InvalidProof();
 
-        // CEI: mark nullifier used before minting
+        // CEI: mark nullifier used before any token operation
         usedNullifiers[nullifierHash] = true;
         delete commitments[commitmentHash];
 
-        TOKEN.mint(recipient, amount);
+        if (isMint) {
+            TOKEN.mint(recipient, amount);
+        } else {
+            TOKEN.safeTransferFrom(recipient, address(this), amount);
+            TOKEN.burn(amount);
+        }
         emit NoteWithdrawn(nullifierHash, recipient, amount);
     }
 }

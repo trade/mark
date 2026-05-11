@@ -1,6 +1,5 @@
 // Witness test for UTXOSettlement circuit.
-// Verifies that valid inputs produce a correct witness and invalid inputs fail constraint checks.
-// Run: node test/UTXOSettlement.test.js
+// Run: node test/UTXOSettlement.test.mjs
 
 import { buildPoseidon } from "circomlibjs";
 import { readFileSync } from "fs";
@@ -18,38 +17,31 @@ function poseidonHash(...inputs) {
   return F.toObject(poseidon(inputs.map(BigInt)));
 }
 
-// Load the compiled wasm witness calculator (CJS module — use createRequire)
 const wasmPath = path.join(__dirname, "../build/UTXOSettlement_js/UTXOSettlement.wasm");
-const wcPath = path.join(__dirname, "../build/UTXOSettlement_js/witness_calculator.js");
-const WitnessCalculator = require(wcPath);
+const WitnessCalculator = require(path.join(__dirname, "../build/UTXOSettlement_js/witness_calculator.js"));
 const wasm = readFileSync(wasmPath);
 const wc = await WitnessCalculator(wasm);
 
-async function calcWitness(input) {
-  return wc.calculateWitness(input, false);
-}
-
 async function expectPass(label, input) {
   try {
-    await calcWitness(input);
+    await wc.calculateWitness(input, false);
     console.log(`  PASS: ${label}`);
   } catch (e) {
-    console.error(`  FAIL: ${label} — expected pass but got: ${e.message}`);
+    console.error(`  FAIL: ${label} — ${e.message}`);
     process.exit(1);
   }
 }
 
 async function expectFail(label, input) {
   try {
-    await calcWitness(input);
-    console.error(`  FAIL: ${label} — expected constraint failure but witness succeeded`);
+    await wc.calculateWitness(input, false);
+    console.error(`  FAIL: ${label} — expected constraint failure`);
     process.exit(1);
   } catch {
     console.log(`  PASS: ${label}`);
   }
 }
 
-// Test values
 const secret = 12345678901234567890n;
 const nonce = 98765432109876543210n;
 const recipient = BigInt("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
@@ -61,23 +53,38 @@ const isMint = 1n;
 const nullifierHash = poseidonHash(secret, nonce);
 const commitmentHash = poseidonHash(secret, amount, isMint, recipient, chainId, settlementModule);
 
-const validInput = { secret, nonce, recipient, chainId, settlementModule, nullifierHash, commitmentHash, amount, isMint };
+const valid = { secret, nonce, recipient, chainId, settlementModule, nullifierHash, commitmentHash, amount, isMint };
 
 console.log("UTXOSettlement circuit tests");
 
-await expectPass("valid inputs", validInput);
-await expectFail("wrong nullifierHash", { ...validInput, nullifierHash: nullifierHash + 1n });
-await expectFail("wrong commitmentHash", { ...validInput, commitmentHash: commitmentHash + 1n });
-await expectFail("non-binary isMint (2)", { ...validInput, isMint: 2n });
+await expectPass("valid mint", valid);
+await expectPass("valid burn (isMint=0)", {
+  ...valid,
+  isMint: 0n,
+  commitmentHash: poseidonHash(secret, amount, 0n, recipient, chainId, settlementModule),
+});
+await expectFail("wrong nullifierHash", { ...valid, nullifierHash: nullifierHash + 1n });
+await expectFail("wrong commitmentHash", { ...valid, commitmentHash: commitmentHash + 1n });
+await expectFail("non-binary isMint (2)", { ...valid, isMint: 2n });
 await expectFail("zero amount", {
-  ...validInput,
+  ...valid,
   amount: 0n,
   commitmentHash: poseidonHash(secret, 0n, isMint, recipient, chainId, settlementModule),
 });
-await expectPass("isMint=0 (burn)", {
-  ...validInput,
-  isMint: 0n,
-  commitmentHash: poseidonHash(secret, amount, 0n, recipient, chainId, settlementModule),
+await expectFail("amount exceeds 64 bits", {
+  ...valid,
+  amount: 2n ** 64n,
+  commitmentHash: poseidonHash(secret, 2n ** 64n, isMint, recipient, chainId, settlementModule),
+});
+await expectFail("recipient exceeds 160 bits", {
+  ...valid,
+  recipient: 2n ** 160n,
+  commitmentHash: poseidonHash(secret, amount, isMint, 2n ** 160n, chainId, settlementModule),
+});
+await expectFail("chainId exceeds 64 bits", {
+  ...valid,
+  chainId: 2n ** 64n,
+  commitmentHash: poseidonHash(secret, amount, isMint, recipient, 2n ** 64n, settlementModule),
 });
 
 console.log("\nAll tests passed.");
