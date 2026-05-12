@@ -17,8 +17,8 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
     bytes32 public constant WITHDRAW_INTENT_DOMAIN = keccak256("MARKWithdrawAdapter.Intent.v1");
     uint256 public constant DEFAULT_MAX_INTENT_VALIDITY = 1 hours;
 
-    ICreditLedger public immutable assetLedger;
-    IPoolNullifier public immutable proofPool;
+    ICreditLedger public immutable ASSET_LEDGER;
+    IPoolNullifier public immutable PROOF_POOL;
     uint256 public maxIntentValidity;
     uint256 public totalNativePaid;
     mapping(address => uint256) public withdrawNonce;
@@ -46,8 +46,8 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         if (poolAddress == address(0)) revert InvalidProofPool();
         if (ledgerAddress.code.length == 0) revert AssetLedgerMustBeContract();
         if (poolAddress.code.length == 0) revert ProofPoolMustBeContract();
-        assetLedger = ICreditLedger(ledgerAddress);
-        proofPool = IPoolNullifier(poolAddress);
+        ASSET_LEDGER = ICreditLedger(ledgerAddress);
+        PROOF_POOL = IPoolNullifier(poolAddress);
         maxIntentValidity = DEFAULT_MAX_INTENT_VALIDITY;
         emit MaxIntentValiditySet(0, DEFAULT_MAX_INTENT_VALIDITY);
     }
@@ -95,8 +95,8 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
                 WITHDRAW_INTENT_DOMAIN,
                 address(this),
                 block.chainid,
-                address(assetLedger),
-                address(proofPool),
+                address(ASSET_LEDGER),
+                address(PROOF_POOL),
                 creditOwner,
                 recipient,
                 amount,
@@ -144,7 +144,7 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         emit WithdrawIntentAuthorized(intentSigner, intentHash, creditOwner);
         emit NullifierClaimed(nullifiers[0], creditOwner);
         emit NullifierClaimed(nullifiers[1], creditOwner);
-        assetLedger.debit(creditOwner, amount);
+        ASSET_LEDGER.debit(creditOwner, amount);
         totalNativePaid += amount;
 
         (bool ok,) = payable(recipient).call{value: amount}("");
@@ -178,8 +178,8 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         if (nullifiers[0] == bytes32(0)) revert NullifierInvalid();
         if (nullifiers[1] == bytes32(0)) revert NullifierInvalid();
         if (nullifiers[0] == nullifiers[1]) revert NullifierDuplicate();
-        if (!proofPool.isNullifierUsedGlobal(nullifiers[0])) revert NullifierNotConsumed();
-        if (!proofPool.isNullifierUsedGlobal(nullifiers[1])) revert NullifierNotConsumed();
+        if (!PROOF_POOL.isNullifierUsedGlobal(nullifiers[0])) revert NullifierNotConsumed();
+        if (!PROOF_POOL.isNullifierUsedGlobal(nullifiers[1])) revert NullifierNotConsumed();
         if (claimedNullifiers[nullifiers[0]]) revert NullifierAlreadyClaimed();
         if (claimedNullifiers[nullifiers[1]]) revert NullifierAlreadyClaimed();
     }
@@ -190,9 +190,9 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         address recipient,
         uint256 amount
     ) internal view {
-        bytes32 expectedBinding = proofPool.computeWithdrawBindingHash(owner, recipient, amount);
-        if (proofPool.nullifierWithdrawBinding(nullifiers[0]) != expectedBinding) revert WithdrawBindingMismatch();
-        if (proofPool.nullifierWithdrawBinding(nullifiers[1]) != expectedBinding) revert WithdrawBindingMismatch();
+        bytes32 expectedBinding = PROOF_POOL.computeWithdrawBindingHash(owner, recipient, amount);
+        if (PROOF_POOL.nullifierWithdrawBinding(nullifiers[0]) != expectedBinding) revert WithdrawBindingMismatch();
+        if (PROOF_POOL.nullifierWithdrawBinding(nullifiers[1]) != expectedBinding) revert WithdrawBindingMismatch();
     }
 
     function _requireSignatures(

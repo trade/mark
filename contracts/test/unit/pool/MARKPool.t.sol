@@ -59,10 +59,10 @@ contract MARKPoolTest is Test {
 
         vm.startPrank(admin);
         accessManager = new AccessManager(admin);
-        pool = new MARKPool(address(accessManager), address(mockOk), address(ledger));
+        pool = new MARKPool(address(accessManager), address(mockOk));
 
         // Grant admin all restricted selectors via a custom role (role 1)
-        bytes4[] memory selectors = new bytes4[](13);
+        bytes4[] memory selectors = new bytes4[](14);
         selectors[0] = pool.pause.selector;
         selectors[1] = pool.unpause.selector;
         selectors[2] = pool.pauseWithdrawals.selector;
@@ -76,9 +76,11 @@ contract MARKPoolTest is Test {
         selectors[10] = pool.setProtocolEpoch.selector;
         selectors[11] = pool.setBridgeOutEntrypoint.selector;
         selectors[12] = pool.bridgeIn.selector;
+        selectors[13] = pool.setAssetLedger.selector;
         accessManager.setTargetFunctionRole(address(pool), selectors, 1);
         accessManager.grantRole(1, admin, 0);
         vm.warp(block.timestamp + 1); // ensure role grant is active
+        pool.setAssetLedger(address(ledger));
         vm.stopPrank();
     }
 

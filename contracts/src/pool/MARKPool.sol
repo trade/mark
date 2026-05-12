@@ -15,6 +15,28 @@ import {PoolErrors} from "./errors/PoolErrors.sol";
 
 /// @title MARKPool
 /// @notice ZK UTXO pool for private RYLA transfers with Merkle tree membership proofs.
+/// @dev Withdrawal flow (burn-to-claim model):
+///      Notes enter the pool via transact() or bridgeIn() — both require a valid ZK proof
+///      or restricted access respectively. Notes do NOT deposit tokens into the pool;
+///      the pool is a nullifier registry backed by a Merkle tree.
+///
+///      To withdraw RYLA, a note owner calls transactWithWithdrawBinding(), which:
+///        1. Verifies the ZK proof (Merkle membership + balance equation)
+///        2. Marks nullifiers as spent (prevents double-spend)
+///        3. Records a withdraw binding: hash(owner, recipient, amount) per nullifier
+///        4. Does NOT transfer any tokens
+///
+///      The note owner then calls MARKWithdrawAdapter.withdrawWithSig(), which:
+///        1. Verifies the withdraw binding matches the pool's recorded binding
+///        2. Verifies owner + intent signer signatures (EIP-712)
+///        3. Calls RYLACreditLedger.debit(owner, amount) — burns RYLA from owner
+///
+///      The owner must hold RYLA tokens equal to the withdrawal amount and approve
+///      RYLACreditLedger before calling withdrawWithSig. The ZK proof proves the owner
+///      controls the note; the RYLA burn proves they are redeeming it.
+///
+///      Relayer fees are credited via ASSET_LEDGER.credit(relayer, fee) during transact().
+///      ASSET_LEDGER must be set via setAssetLedger() after deployment.
 contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     using MerkleTree for MerkleTree.Tree;
 
@@ -35,7 +57,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     uint256 public constant MAX_FEE_BURN_BPS = 10_000;
     uint256 public constant MAX_MIN_FEE = type(uint64).max;
 
-    ICreditLedger public immutable assetLedger;
+    ICreditLedger public ASSET_LEDGER;
     bool public withdrawalsPaused;
     uint256 public maxRootAge;
     uint256 public feeBurnBps;
@@ -74,6 +96,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     event NoteCreated(bytes32 indexed commitment);
     event FeePaid(address indexed relayer, uint256 fee);
     event FeeBurned(uint256 amount);
+    event AssetLedgerSet(address indexed assetLedger);
     event BridgeOutEntrypointSet(address indexed entrypoint);
     event RootPruned(bytes32 indexed root);
     event BridgeOut(
@@ -89,17 +112,14 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         bytes32 indexed commitment1
     );
 
-    constructor(address initialAuthority, address _verifier, address _assetLedger)
+    constructor(address initialAuthority, address _verifier)
         AccessManaged(initialAuthority)
     {
         if (_verifier == address(0)) revert InvalidVerifier();
-        if (_assetLedger == address(0)) revert InvalidAssetLedger();
         if (_verifier.code.length == 0) revert VerifierMustBeContract();
-        if (_assetLedger.code.length == 0) revert AssetLedgerMustBeContract();
 
         verifiers[PROOF_TYPE_TRANSFER] = _verifier;
         proofTypeEnabled[PROOF_TYPE_TRANSFER] = true;
-        assetLedger = ICreditLedger(_assetLedger);
 
         tree.init(20);
         bytes32 initialRoot = tree.getRoot();
@@ -225,6 +245,17 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (tightening && !withdrawalsPaused) revert WithdrawalsNotPaused();
         bridgeOutEntrypoint = entrypoint;
         emit BridgeOutEntrypointSet(entrypoint);
+    }
+
+    /// @notice Sets the asset ledger used for relayer fee credits. Can only be set once.
+    /// @dev Separated from the constructor to break the circular dependency between
+    ///      MARKPool and RYLACreditLedger (each needs the other's address at construction).
+    function setAssetLedger(address ledgerAddress) external restricted {
+        if (address(ASSET_LEDGER) != address(0)) revert NoStateChange();
+        if (ledgerAddress == address(0)) revert InvalidAssetLedger();
+        if (ledgerAddress.code.length == 0) revert AssetLedgerMustBeContract();
+        ASSET_LEDGER = ICreditLedger(ledgerAddress);
+        emit AssetLedgerSet(ledgerAddress);
     }
 
     function pruneRoots(uint256 maxToPrune) external returns (uint256 pruned) {
@@ -437,7 +468,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         // "Burn" is applied by withholding mint; total supply increases only by relayerAmount.
         if (relayerAmount > 0) {
             if (relayer == address(0)) revert InvalidRelayer();
-            assetLedger.credit(relayer, relayerAmount);
+            ASSET_LEDGER.credit(relayer, relayerAmount);
             emit FeePaid(relayer, relayerAmount);
         }
         if (burnAmount > 0) {
