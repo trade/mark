@@ -28,5 +28,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install circom
+        run: |
+          curl -L https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64 -o /usr/local/bin/circom
+          chmod +x /usr/local/bin/circom
+          circom --version
+
+      - name: Compile circuit
+        run: npm run build
+
       - name: Run witness tests
         run: npm test
