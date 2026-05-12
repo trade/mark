@@ -1,0 +1,32 @@
+name: Circuits CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - canary
+      - dev
+
+jobs:
+  circuits-test:
+    name: Circuits Witness Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: circuits
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run witness tests
+        run: npm test
