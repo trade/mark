@@ -72,8 +72,11 @@ contract DeployMARKPool is Script {
             address(d.pool)
         );
 
-        // 5. Grant POOL_ADMIN_ROLE to owner
+        // 5. Grant POOL_ADMIN_ROLE to owner and deployer (deployer needs it for setup calls below)
         d.accessManager.grantRole(POOL_ADMIN_ROLE, cfg.owner, 0);
+        if (cfg.deployer != cfg.owner) {
+            d.accessManager.grantRole(POOL_ADMIN_ROLE, cfg.deployer, 0);
+        }
 
         // 6. Assign restricted selectors on MARKPool to POOL_ADMIN_ROLE
         bytes4[] memory poolSelectors = new bytes4[](14);
@@ -112,6 +115,11 @@ contract DeployMARKPool is Script {
         // 10. Grant RYLA roles to ledger
         token.setMinter(address(d.ledger), true);
         token.setBurner(address(d.ledger), true);
+
+        // 11. Revoke deployer's temporary admin role if deployer != owner
+        if (cfg.deployer != cfg.owner) {
+            d.accessManager.revokeRole(POOL_ADMIN_ROLE, cfg.deployer);
+        }
 
         vm.stopBroadcast();
 

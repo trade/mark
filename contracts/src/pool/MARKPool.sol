@@ -468,6 +468,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         // "Burn" is applied by withholding mint; total supply increases only by relayerAmount.
         if (relayerAmount > 0) {
             if (relayer == address(0)) revert InvalidRelayer();
+            if (address(ASSET_LEDGER) == address(0)) revert InvalidAssetLedger();
             ASSET_LEDGER.credit(relayer, relayerAmount);
             emit FeePaid(relayer, relayerAmount);
         }
