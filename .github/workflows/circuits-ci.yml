@@ -35,7 +35,7 @@ jobs:
           circom --version
 
       - name: Compile circuit
-        run: npm run build
+        run: mkdir -p build && npm run build
 
       - name: Run witness tests
         run: npm test
