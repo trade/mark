@@ -27,8 +27,9 @@ jobs:
 
       - name: Install circom
         run: |
-          curl -L https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64 -o /usr/local/bin/circom
-          chmod +x /usr/local/bin/circom
+          curl -L https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64 -o circom
+          chmod +x circom
+          sudo mv circom /usr/local/bin/circom
 
       - name: Install dependencies
         run: npm ci

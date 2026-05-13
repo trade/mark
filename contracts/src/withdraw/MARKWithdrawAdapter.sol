@@ -108,6 +108,11 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         );
     }
 
+    /// @notice Returns the EIP-191 personal_sign digest for a withdraw intent.
+    /// @dev Uses toEthSignedMessageHash (personal_sign) intentionally — signers use
+    ///      eth_sign or personal_sign, not eth_signTypedData. The intent hash is a
+    ///      structured keccak256 hash; wrapping it in EIP-191 prevents raw-hash signing
+    ///      attacks while keeping wallet compatibility broad.
     function computeWithdrawIntentDigest(
         address creditOwner,
         address recipient,
