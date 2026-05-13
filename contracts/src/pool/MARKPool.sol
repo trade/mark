@@ -69,6 +69,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     mapping(uint8 => address) private verifiers;
     mapping(uint8 => bool) public proofTypeEnabled;
     mapping(bytes32 => bool) private usedNullifiersGlobal;
+    mapping(bytes32 => bool) public processedBridgeMessages;
     mapping(bytes32 => bytes32) public nullifierWithdrawBinding;
     mapping(bytes32 => bool) public knownRoots;
     mapping(bytes32 => uint256) public rootTimestamps;
@@ -376,13 +377,18 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @notice Inserts incoming cross-chain commitments into the Merkle tree. Restricted.
     /// @dev Called by the bridge relay after a bridgeOut on the source chain is confirmed.
     ///      Restricted to prevent unauthorized note insertion.
-    function bridgeIn(uint256 srcChainId, bytes32[2] calldata outCommitments)
+    ///      `messageId` is a unique identifier for the source-chain message (e.g. the
+    ///      SuperchainTokenBridge message hash) and prevents duplicate delivery.
+    function bridgeIn(uint256 srcChainId, bytes32 messageId, bytes32[2] calldata outCommitments)
         external
         restricted
         whenNotPaused
     {
         if (srcChainId == 0) revert InvalidSource();
         if (srcChainId == block.chainid) revert SourceIsDestination();
+        if (messageId == bytes32(0)) revert InvalidRoot();
+        if (processedBridgeMessages[messageId]) revert BridgeMessageAlreadyProcessed();
+        processedBridgeMessages[messageId] = true;
         _insertCommitments(outCommitments);
         emit BridgeIn(srcChainId, outCommitments[0], outCommitments[1]);
     }

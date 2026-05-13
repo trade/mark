@@ -294,14 +294,14 @@ contract MARKPoolTest is Test {
     function testBridgeInRevertsWhenCallerNotRestricted() public {
         bytes32[2] memory commitments = [C0, C1];
         vm.expectRevert();
-        pool.bridgeIn(901, commitments);
+        pool.bridgeIn(901, bytes32(uint256(1)), commitments);
     }
 
     function testBridgeInRevertsOnSameChain() public {
         bytes32[2] memory commitments = [C0, C1];
         vm.prank(admin);
         vm.expectRevert(PoolErrors.SourceIsDestination.selector);
-        pool.bridgeIn(block.chainid, commitments);
+        pool.bridgeIn(block.chainid, bytes32(uint256(1)), commitments);
     }
 
     // --- transactWithWithdrawBinding ---
