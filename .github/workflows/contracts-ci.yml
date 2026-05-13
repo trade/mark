@@ -123,9 +123,17 @@ jobs:
       - name: Run pool release orchestrator dry-run
         run: |
           TOKEN=$(jq -r '.token' broadcast/mark-release-ci.json)
-          MODULE=$(jq -r '.module' broadcast/mark-release-ci.json)
+          POOL_VERIFIER=$(forge create src/pool/verifier/MARKPoolVerifier.sol:MARKPoolVerifier \
+            --rpc-url $RPC_URL \
+            --private-key $PRIVATE_KEY \
+            --broadcast \
+            --json | jq -r '.deployedTo')
+          if [ -z "$POOL_VERIFIER" ] || [ "$POOL_VERIFIER" = "null" ]; then
+            echo "failed to deploy MARKPoolVerifier for pool dry-run" >&2
+            exit 1
+          fi
           MARK_RYLA_TOKEN="$TOKEN" \
-          MARK_POOL_VERIFIER="$MODULE" \
+          MARK_POOL_VERIFIER="$POOL_VERIFIER" \
           forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL -vv
 
       # Pool execute smoke is omitted: MARKPool and PoseidonT3 exceed the EIP-170

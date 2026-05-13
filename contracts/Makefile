@@ -4,7 +4,7 @@
 ci-fast: architecture-guard layering-guard test-core
 
 test-core:
-	@FOUNDRY_OFFLINE=true forge test --no-match-path 'test/invariant/**' -q
+	@FOUNDRY_OFFLINE=true forge test -q
 
 test-invariants:
 	@FOUNDRY_OFFLINE=true FOUNDRY_INVARIANT_RUNS=64 forge test --match-path 'test/invariant/**/*.t.sol' -q
@@ -78,7 +78,7 @@ verify-evidence-signature:
 	@./script/ops/verify-evidence-signature.sh
 
 slither-install:
-	@python3 -m pip install --user slither-analyzer==0.11.5
+	@python3 -m pip install --user slither-analyzer==0.11.4
 
 slither-core:
 	@command -v slither >/dev/null 2>&1 || { \

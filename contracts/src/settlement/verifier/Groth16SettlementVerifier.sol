@@ -27,18 +27,29 @@ import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 ///        [4]  fee              = 0
 ///        [5]  relayer          = 0
 ///        [6]  nullifier[0]     = uint256(intentId)  — reuse intentId as nullifier
-///        [7]  nullifier[1]     = 0
+///        [7]  nullifier[1]     = 0 (or optional direction signal when enforcement enabled)
 ///        [8]  outCommitment[0] = 0
 ///        [9]  outCommitment[1] = 0
 ///        [10] withdrawOwner    = uint160(account)
 ///        [11] withdrawRecipient = uint160(account)
 ///        [12] withdrawAmount   = amount
+///
+///      Direction migration:
+///        - By default, signal[7] must be zero for backward compatibility.
+///        - After upgrading proof generation, admins can enable direction enforcement so
+///          signal[7] must equal `isMint ? 1 : 0`.
 contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefaultAdminRules {
     uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
+    uint256 public constant DIRECTION_FALSE = 0;
+    uint256 public constant DIRECTION_TRUE = 1;
 
     event VerifierContractUpdated(address indexed verifierContract);
+    event SettlementModuleUpdated(address indexed settlementModule);
+    event DirectionEnforcementUpdated(bool enabled);
 
     IGroth16Verifier public verifierContract;
+    address public settlementModule;
+    bool public directionEnforcementEnabled;
 
     constructor(address initialAdmin)
         AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin)
@@ -53,21 +64,43 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
         emit VerifierContractUpdated(verifierContract_);
     }
 
+    /// @notice Binds this verifier instance to one settlement module.
+    /// @dev Prevents cross-module replay when multiple modules exist.
+    function setSettlementModule(address settlementModule_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (settlementModule_ == address(0)) revert ZeroAddress();
+        if (settlementModule_.code.length == 0) revert ZeroAddress();
+        settlementModule = settlementModule_;
+        emit SettlementModuleUpdated(settlementModule_);
+    }
+
+    /// @notice Enables/disables proof-level isMint direction binding.
+    /// @dev When enabled, signal[7] must equal `isMint ? 1 : 0`.
+    ///      Keep disabled until proof generation includes this signal mapping.
+    function setDirectionEnforcementEnabled(bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        directionEnforcementEnabled = enabled;
+        emit DirectionEnforcementUpdated(enabled);
+    }
+
     /// @inheritdoc IUTXOSettlementVerifier
     function verifySettlement(
         bytes32 intentId,
-        address settlementModule,
+        address settlementModule_,
         address account,
         uint256 amount,
         bool isMint,
         bytes calldata proof
     ) external view override returns (bool) {
-        if (intentId == bytes32(0) || settlementModule == address(0) || account == address(0) || amount == 0) {
+        if (intentId == bytes32(0) || settlementModule_ == address(0) || account == address(0) || amount == 0) {
             return false;
         }
 
         IGroth16Verifier v = verifierContract;
         if (address(v) == address(0)) return false;
+
+        // Fail closed if module binding is not configured.
+        address boundModule = settlementModule;
+        if (boundModule == address(0)) return false;
+        if (settlementModule_ != boundModule) return false;
 
         (
             uint256[2] memory a,
@@ -78,19 +111,23 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
 
         // Verify public signals match settlement parameters.
         if (signals[0] != uint256(intentId)) return false;
+        if (signals[1] != block.chainid) return false;
+        if (signals[2] != block.chainid) return false;
+        if (signals[3] != 0) return false;
+        if (signals[4] != 0) return false;
+        if (signals[5] != 0) return false;
+        if (signals[6] != uint256(intentId)) return false;
+        if (directionEnforcementEnabled) {
+            uint256 expectedDirection = isMint ? DIRECTION_TRUE : DIRECTION_FALSE;
+            if (signals[7] != expectedDirection) return false;
+        } else {
+            if (signals[7] != 0) return false;
+        }
+        if (signals[8] != 0) return false;
+        if (signals[9] != 0) return false;
         if (signals[10] != uint256(uint160(account))) return false;
         if (signals[11] != uint256(uint160(account))) return false;
         if (signals[12] != amount) return false;
-        // isMint direction is not directly validated in settlement mode. The circuit's balance
-        // equation (sum(inputs) = sum(outputs) + fee + withdrawAmount) and withdrawal binding
-        // enforce correctness. For pool usage, the circuit validates the full UTXO flow including
-        // Merkle membership and nullifier uniqueness. For settlement usage, we use a simplified
-        // mapping where intentId maps to merkleRoot/nullifier and account maps to withdrawOwner/
-        // withdrawRecipient. The isMint parameter is passed for interface compatibility but the
-        // circuit enforces correctness via the withdrawal amount and balance constraints.
-        // TODO: add an explicit isMint signal check once the settlement-specific circuit finalizes
-        // a dedicated direction signal.
-        (isMint);
 
         return v.verifyProof(a, b, c, signals);
     }

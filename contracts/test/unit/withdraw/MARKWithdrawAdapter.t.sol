@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { Test } from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {MARKWithdrawAdapter} from "../../../src/withdraw/MARKWithdrawAdapter.sol";
+import {MARKWithdrawErrors} from "../../../src/withdraw/MARKWithdrawErrors.sol";
 import {RYLACreditLedger} from "../../../src/pool/RYLACreditLedger.sol";
-import { RYLA } from "../../../src/token/RYLA.sol";
-import { AccessManager } from "@openzeppelin/contracts/access/manager/AccessManager.sol";
+import {RYLA} from "../../../src/token/RYLA.sol";
+import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
 
 /// @notice Mock Pool for testing WithdrawAdapter.
 /// @dev computeWithdrawBindingHash must match Pool.computeWithdrawBindingHash exactly,
@@ -23,7 +24,8 @@ contract MockPool {
         address recipient,
         uint256 amount
     ) external {
-        nullifierWithdrawBinding[nullifier] = computeWithdrawBindingHash(owner, recipient, amount);
+        nullifierWithdrawBinding[nullifier] =
+            computeWithdrawBindingHash(owner, recipient, amount);
         nullifierUsed[nullifier] = true;
     }
 
@@ -44,7 +46,11 @@ contract MockPool {
         );
     }
 
-    function isNullifierUsedGlobal(bytes32 nullifier) external view returns (bool) {
+    function isNullifierUsedGlobal(bytes32 nullifier)
+        external
+        view
+        returns (bool)
+    {
         return nullifierUsed[nullifier];
     }
 }
@@ -70,18 +76,14 @@ contract MARKWithdrawAdapterTest is Test {
         user = vm.addr(userPrivateKey);
         intentSigner = vm.addr(intentSignerPrivateKey);
 
-        // Deploy access manager with admin
         accessManager = new AccessManager(admin);
 
-        // Deploy RYLA token
         vm.prank(admin);
         token = new RYLA(admin);
 
-        // Deploy credit ledger
         pool = new MockPool();
         ledger = new RYLACreditLedger(address(token), address(pool));
 
-        // Deploy WithdrawAdapter
         adapter = new MARKWithdrawAdapter(
             address(accessManager),
             address(ledger),
@@ -90,33 +92,28 @@ contract MARKWithdrawAdapterTest is Test {
         ledger.setAdapter(address(adapter));
 
         vm.startPrank(admin);
-        
-        // Grant adapter admin role (simplified for testing)
+
         bytes4[] memory selectors = new bytes4[](4);
         selectors[0] = adapter.setIntentSigner.selector;
         selectors[1] = adapter.pause.selector;
         selectors[2] = adapter.unpause.selector;
         selectors[3] = adapter.setMaxIntentValidity.selector;
-        
+
         accessManager.setTargetFunctionRole(address(adapter), selectors, 1);
         accessManager.grantRole(1, admin, 0);
 
-        // Grant roles to ledger
         vm.warp(block.timestamp + 1 days + 1);
-        
+
         token.grantRole(token.MINTER_ROLE(), address(ledger));
         token.grantRole(token.BURNER_ROLE(), address(ledger));
 
-        // Enable intent signer
         adapter.setIntentSigner(intentSigner, true);
 
-        // Fund adapter with native tokens
         vm.deal(address(adapter), 100 ether);
-        
+
         vm.stopPrank();
     }
 
-    /// @notice Test withdraw intent hash computation
     function testComputeWithdrawIntentHash() public view {
         bytes32[2] memory nullifiers = [
             keccak256("nullifier1"),
@@ -135,7 +132,6 @@ contract MARKWithdrawAdapterTest is Test {
         assertTrue(intentHash != bytes32(0));
     }
 
-    /// @notice Test withdraw intent digest computation
     function testComputeWithdrawIntentDigest() public view {
         bytes32[2] memory nullifiers = [
             keccak256("nullifier1"),
@@ -154,78 +150,299 @@ contract MARKWithdrawAdapterTest is Test {
         assertTrue(digest != bytes32(0));
     }
 
-    /// @notice Test that adapter checks native token balance
-    function testWithdrawRequiresSufficientLiquidity() public {
-        // Deploy adapter with no native tokens
+    function testWithdrawWithSigHappyPathIncrementsNonceAndClaimsNullifiers()
+        public
+    {
+        bytes32[2] memory nullifiers = [
+            keccak256("n-happy-1"),
+            keccak256("n-happy-2")
+        ];
+        uint256 amount = 2 ether;
+        uint256 nonce = adapter.withdrawNonce(user);
+        uint256 deadline = block.timestamp + 30 minutes;
+
+        _configureBindingAndMint(user, recipient, amount, nullifiers);
+        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            userPrivateKey,
+            intentSignerPrivateKey
+        );
+
+        uint256 recipientBefore = recipient.balance;
+        uint256 userTokenBefore = token.balanceOf(user);
+
+        adapter.withdrawWithSig(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            ownerSig,
+            intentSig
+        );
+
+        assertEq(adapter.withdrawNonce(user), nonce + 1);
+        assertTrue(adapter.claimedNullifiers(nullifiers[0]));
+        assertTrue(adapter.claimedNullifiers(nullifiers[1]));
+        assertEq(recipient.balance, recipientBefore + amount);
+        assertEq(token.balanceOf(user), userTokenBefore - amount);
+    }
+
+    function testWithdrawWithSigRevertsForInsufficientLiquidity() public {
         MARKWithdrawAdapter emptyAdapter = new MARKWithdrawAdapter(
             address(accessManager),
             address(ledger),
             address(pool)
         );
 
-        // Verify it has no balance
-        assertEq(address(emptyAdapter).balance, 0);
-        
-        // Withdrawal would fail with "Insufficient liquidity"
+        bytes32[2] memory nullifiers = [
+            keccak256("n-empty-1"),
+            keccak256("n-empty-2")
+        ];
+        uint256 amount = 1 ether;
+        uint256 nonce = 0;
+        uint256 deadline = block.timestamp + 30 minutes;
+
+        _configureBindingAndMint(user, recipient, amount, nullifiers);
+
+        bytes32 intentHash = emptyAdapter.computeWithdrawIntentHash(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline
+        );
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash)
+        );
+
+        (uint8 ov, bytes32 or_, bytes32 os) = vm.sign(userPrivateKey, digest);
+        (uint8 iv, bytes32 ir, bytes32 is_) = vm.sign(
+            intentSignerPrivateKey,
+            digest
+        );
+
+        bytes memory ownerSig = abi.encodePacked(or_, os, ov);
+        bytes memory intentSig = abi.encodePacked(ir, is_, iv);
+
+        vm.expectRevert(MARKWithdrawErrors.InsufficientLiquidity.selector);
+        emptyAdapter.withdrawWithSig(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            ownerSig,
+            intentSig
+        );
     }
 
-    /// @notice Test that nonce increments correctly
-    function testWithdrawNonceIncrement() public view {
-        assertEq(adapter.withdrawNonce(user), 0);
-        // After successful withdrawal, nonce should be 1
+    function testWithdrawWithSigRevertsOnReplayByNonce() public {
+        bytes32[2] memory nullifiers = [
+            keccak256("n-replay-1"),
+            keccak256("n-replay-2")
+        ];
+        uint256 amount = 1 ether;
+        uint256 nonce = adapter.withdrawNonce(user);
+        uint256 deadline = block.timestamp + 30 minutes;
+
+        _configureBindingAndMint(user, recipient, amount, nullifiers);
+        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            userPrivateKey,
+            intentSignerPrivateKey
+        );
+
+        adapter.withdrawWithSig(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            ownerSig,
+            intentSig
+        );
+
+        vm.expectRevert(MARKWithdrawErrors.NonceMismatch.selector);
+        adapter.withdrawWithSig(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            ownerSig,
+            intentSig
+        );
     }
 
-    /// @notice Test that nullifiers cannot be claimed twice
-    function testNullifierCannotBeClaimedTwice() public view {
-        bytes32 nullifier = keccak256("test");
-        assertFalse(adapter.claimedNullifiers(nullifier));
-        // After claiming, should be true
+    function testWithdrawWithSigRevertsOnBindingMismatch() public {
+        bytes32[2] memory nullifiers = [
+            keccak256("n-bind-1"),
+            keccak256("n-bind-2")
+        ];
+        uint256 amount = 1 ether;
+        uint256 nonce = adapter.withdrawNonce(user);
+        uint256 deadline = block.timestamp + 30 minutes;
+
+        _configureBindingAndMint(user, recipient, amount, nullifiers);
+        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            userPrivateKey,
+            intentSignerPrivateKey
+        );
+
+        vm.expectRevert(MARKWithdrawErrors.WithdrawBindingMismatch.selector);
+        adapter.withdrawWithSig(
+            user,
+            makeAddr("other-recipient"),
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            ownerSig,
+            intentSig
+        );
     }
 
-    /// @notice Test adapter can receive native tokens
+    function testWithdrawWithSigRevertsOnUnauthorizedIntentSigner() public {
+        bytes32[2] memory nullifiers = [
+            keccak256("n-auth-1"),
+            keccak256("n-auth-2")
+        ];
+        uint256 amount = 1 ether;
+        uint256 nonce = adapter.withdrawNonce(user);
+        uint256 deadline = block.timestamp + 30 minutes;
+
+        _configureBindingAndMint(user, recipient, amount, nullifiers);
+        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            userPrivateKey,
+            0xDEAD
+        );
+
+        vm.expectRevert(MARKWithdrawErrors.UnauthorizedIntentSigner.selector);
+        adapter.withdrawWithSig(
+            user,
+            recipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline,
+            ownerSig,
+            intentSig
+        );
+    }
+
     function testAdapterReceivesNativeTokens() public {
         uint256 balanceBefore = address(adapter).balance;
-        
+
         vm.deal(address(this), 1 ether);
-        (bool ok,) = address(adapter).call{value: 1 ether}("");
-        
+        (bool ok, ) = address(adapter).call{value: 1 ether}("");
+
         assertTrue(ok);
         assertEq(address(adapter).balance, balanceBefore + 1 ether);
     }
 
-    /// @notice Test max intent validity can be updated
     function testSetMaxIntentValidity() public {
         vm.prank(admin);
         adapter.setMaxIntentValidity(2 hours);
-        
+
         assertEq(adapter.maxIntentValidity(), 2 hours);
     }
 
-    /// @notice Test intent signer can be enabled/disabled
     function testSetIntentSigner() public {
         address newSigner = address(0x999);
-        
+
         vm.prank(admin);
         adapter.setIntentSigner(newSigner, true);
-        
+
         assertTrue(adapter.intentSigners(newSigner));
-        
+
         vm.prank(admin);
         adapter.setIntentSigner(newSigner, false);
-        
+
         assertFalse(adapter.intentSigners(newSigner));
     }
 
-    /// @notice Test adapter can be paused
     function testAdapterPause() public {
         vm.prank(admin);
         adapter.pause();
-        
+
         assertTrue(adapter.paused());
-        
+
         vm.prank(admin);
         adapter.unpause();
-        
+
         assertFalse(adapter.paused());
+    }
+
+    function _configureBindingAndMint(
+        address owner,
+        address withdrawRecipient,
+        uint256 amount,
+        bytes32[2] memory nullifiers
+    ) internal {
+        pool.setWithdrawBinding(nullifiers[0], owner, withdrawRecipient, amount);
+        pool.setWithdrawBinding(nullifiers[1], owner, withdrawRecipient, amount);
+
+        vm.prank(address(pool));
+        ledger.credit(owner, amount);
+
+        vm.prank(owner);
+        token.approve(address(ledger), type(uint256).max);
+    }
+
+    function _signWithdraw(
+        address owner,
+        address withdrawRecipient,
+        uint256 amount,
+        bytes32[2] memory nullifiers,
+        uint256 nonce,
+        uint256 deadline,
+        uint256 ownerPk,
+        uint256 intentPk
+    ) internal view returns (bytes memory ownerSig, bytes memory intentSig) {
+        bytes32 intentHash = adapter.computeWithdrawIntentHash(
+            owner,
+            withdrawRecipient,
+            amount,
+            nullifiers,
+            nonce,
+            deadline
+        );
+        bytes32 digest = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash)
+        );
+
+        (uint8 ov, bytes32 or_, bytes32 os) = vm.sign(ownerPk, digest);
+        (uint8 iv, bytes32 ir, bytes32 is_) = vm.sign(intentPk, digest);
+
+        ownerSig = abi.encodePacked(or_, os, ov);
+        intentSig = abi.encodePacked(ir, is_, iv);
     }
 }
