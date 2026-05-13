@@ -74,29 +74,15 @@ This document lists known limitations and intentional design decisions that audi
 
 ---
 
-## KI-7: Production UTXO pool with 13-signal circuit integrated
-
-**Contracts:** `Pool`, `MARKSettlementModule`, `Groth16SettlementVerifier`, `utxo.circom`
-
-**Description:** The pool (`Pool.sol`) now uses a production-ready 13-signal UTXO circuit (`utxo.circom`) with Merkle tree privacy, in-circuit fee enforcement (0.5%), and cross-chain support. The circuit includes: merkleRoot, chainId, dstChainId, protocolEpoch, fee, relayer, nullifier[2], outCommitment[2], withdrawOwner, withdrawRecipient, withdrawAmount. The settlement module (`MARKSettlementModule`) uses `Groth16SettlementVerifier` which expects the same 13-signal layout. `AttestedSettlementVerifier` remains available as a signature-based fallback.
-
-**Impact:** The pool is now production-ready with full ZK privacy via Merkle tree membership proofs. The circuit enforces balance conservation, prevents double-spends, and validates withdrawal fees in-circuit. The settlement module can use either the Groth16 verifier (with ZK proofs) or the attested verifier (with signatures).
-
-**Status:** Circuit artifacts exist in `/Users/iap/contracts/circuits/artifacts/prod/` and can be regenerated from `utxo.circom`. The verifier contract needs to be generated from the circuit and integrated with `Groth16SettlementVerifier`.
-
----
-
 ## KI-7: Two separate ZK systems with different circuit designs
 
 **Scope:** `circuits/`, `src/pool/`, `src/settlement/verifier/Groth16SettlementVerifier.sol`
 
-**Description:** The project contains two distinct ZK systems that use different circuit designs and signal layouts:
+**Description:** The project contains two distinct ZK systems:
 
-- **Pool system** (`Pool.sol` + `UTXOVerifier.sol`): uses a 13-signal circuit with Merkle root membership, epochs, relayers, and cross-chain support. The circuit is compiled and the verifier is deployed.
-- **Settlement system** (`MARKSettlementModule` + `Groth16SettlementVerifier`): expects the same 13-signal circuit via `IGroth16Verifier`. `AttestedSettlementVerifier` bridges the gap until the settlement-specific ZK integration is wired up.
+- **Pool system** (`MARKPool` + `MARKPoolVerifier`): uses `circuits/mark/MARKPool.circom` — a 13-signal Groth16 circuit (merkleRoot, chainId, dstChainId, protocolEpoch, fee, relayer, nullifier[2], outCommitment[2], withdrawOwner, withdrawRecipient, withdrawAmount). The circuit is compiled, the verifier is generated at `src/pool/verifier/MARKPoolVerifier.sol`, and witness tests pass.
+- **Settlement system** (`MARKSettlementModule` + `Groth16SettlementVerifier`): expects the same 13-signal layout via `IGroth16Verifier`. The settlement-specific verifier contract (`MARKPoolVerifier`) needs to be wired into `Groth16SettlementVerifier.setVerifierContract()` before ZK-based settlement is active. `AttestedSettlementVerifier` is the production-safe fallback until that wiring is complete.
 
-The `circuits/utxo/UTXOSettlement.circom` file is an earlier 4-signal circuit (nullifierHash, commitmentHash, amount, isMint) that predates the current pool design. It is not used by `Pool.sol` or `Groth16SettlementVerifier`. It is retained for reference and its witness tests remain valid.
+**Impact:** Auditors should verify that `Groth16SettlementVerifier.verifierContract` is set to a deployed `MARKPoolVerifier` instance before evaluating ZK settlement security. Until then, settlement security depends on `AttestedSettlementVerifier` (EIP-712 signatures).
 
-**Impact:** Auditors should not assume the circom circuit and the deployed verifier are aligned — they use different signal layouts by design.
-
-**Accepted because:** The pool circuit and verifier are consistent with each other. The settlement ZK integration is in progress. `AttestedSettlementVerifier` provides production-safe coverage in the interim.
+**Accepted because:** `AttestedSettlementVerifier` provides meaningful security (role-gated, replay-protected, deadline-bound, module-bound). The pool circuit and verifier are consistent with each other. Settlement ZK integration is in progress.

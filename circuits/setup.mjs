@@ -5,7 +5,7 @@
 // Powers of tau: pot15 (2^15 = 32768 >= 26387*2 wires required by MARKPool(20,2,2))
 
 import { zKey, powersOfTau } from 'snarkjs';
-import { readFileSync, writeFileSync } from 'fs';
+import { writeFileSync } from 'fs';
 
 console.log('Step 1: Powers of Tau (pot15)...');
 await powersOfTau.newAccumulator('bn128', 15, 'build/pot15_0000.ptau');

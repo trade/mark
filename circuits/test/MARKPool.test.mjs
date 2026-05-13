@@ -98,20 +98,13 @@ const out1Secret = 777n; const out1Blinding = 888n; const out1Amount = 100n;
 const fee = 500n; // 500 = 500 (in0+in1=1000, out0+out1=500, fee=500, withdraw=0)
 
 const path0 = buildMerklePath(in0.commitment, DEPTH);
-const path1 = buildMerklePath(in1.commitment, DEPTH);
-// For 2-input tree: root after inserting both leaves
-// Insert in0 at index 0, in1 at index 1
-const zeros = buildZeroTree(DEPTH);
-const rootAfterIn0 = path0.root;
 // After inserting in1 at index 1, the root changes — for simplicity use a single-leaf tree
 // where in1 is also at index 0 in its own path (both share the same root for test purposes).
 // Use a shared root: insert both into the same tree.
 function buildTwoLeafRoot(leaf0, leaf1, depth) {
   const zeros = buildZeroTree(depth);
   // Level 0: leaf0 at 0, leaf1 at 1
-  const level0 = [leaf0, leaf1];
   let cur0 = poseidonHash(leaf0, leaf1); // parent of both
-  let cur1 = poseidonHash(zeros[0], zeros[0]);
   let root = cur0;
   for (let i = 1; i < depth; i++) {
     root = poseidonHash(root, zeros[i]);

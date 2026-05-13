@@ -66,6 +66,7 @@ abstract contract PoolErrors {
     error SourceIsDestination();
     error DestinationIsSource();
     error InvalidRoot();
+    error BridgeMessageAlreadyProcessed();
 
     // Generic
     error NoStateChange();
