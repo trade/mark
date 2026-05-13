@@ -80,7 +80,7 @@ contract RYLACreditLedger is ICreditLedger {
     ///      Cannot underflow: debit() burns tokens that were previously credited or
     ///      held by the user, so _totalBurned never exceeds _totalMinted in normal operation.
     function totalCreditsOutstanding() external view returns (uint256) {
-        return _totalMinted - _totalBurned;
+        return _totalMinted >= _totalBurned ? _totalMinted - _totalBurned : 0;
     }
 
     function maxCredits() external pure returns (uint256) {
