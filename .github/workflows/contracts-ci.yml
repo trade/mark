@@ -120,6 +120,34 @@ jobs:
             .gitCommit != null
           ' broadcast/mark-release-ci.json
 
+      - name: Run pool release orchestrator dry-run
+        run: |
+          TOKEN=$(jq -r '.token' broadcast/mark-release-ci.json)
+          MARK_RYLA_TOKEN="$TOKEN" \
+          MARK_POOL_VERIFIER="0x0000000000000000000000000000000000000001" \
+          forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL -vv || true
+
+      - name: Run pool release orchestrator execute smoke (local Anvil)
+        run: |
+          TOKEN=$(jq -r '.token' broadcast/mark-release-ci.json)
+          MARK_RYLA_TOKEN="$TOKEN" \
+          MARK_POOL_VERIFIER="$(jq -r '.module' broadcast/mark-release-ci.json)" \
+          MARK_POOL_RELEASE_EXECUTE="true" \
+          MARK_POOL_RELEASE_WRITE_ARTIFACT="true" \
+          MARK_POOL_RELEASE_ARTIFACT_PATH="broadcast/mark-pool-release-ci.json" \
+          forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL --broadcast -vv
+
+      - name: Assert pool release artifact schema
+        run: |
+          test -f broadcast/mark-pool-release-ci.json
+          jq -e '
+            .chainId != null and
+            .pool != "0x0000000000000000000000000000000000000000" and
+            .ledger != "0x0000000000000000000000000000000000000000" and
+            .adapter != "0x0000000000000000000000000000000000000000" and
+            .timestamp != null
+          ' broadcast/mark-pool-release-ci.json
+
       - name: Print anvil logs on failure
         if: failure()
         run: tail -n 200 /tmp/anvil.log || true
