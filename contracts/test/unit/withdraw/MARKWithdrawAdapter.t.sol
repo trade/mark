@@ -87,6 +87,7 @@ contract MARKWithdrawAdapterTest is Test {
             address(ledger),
             address(pool)
         );
+        ledger.setAdapter(address(adapter));
 
         vm.startPrank(admin);
         

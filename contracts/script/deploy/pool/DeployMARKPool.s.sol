@@ -72,6 +72,9 @@ contract DeployMARKPool is Script {
             address(d.pool)
         );
 
+        // Wire adapter into ledger (one-time call — breaks circular deploy dependency)
+        d.ledger.setAdapter(address(d.adapter));
+
         // 5. Grant POOL_ADMIN_ROLE to owner and deployer (deployer needs it for setup calls below)
         d.accessManager.grantRole(POOL_ADMIN_ROLE, cfg.owner, 0);
         if (cfg.deployer != cfg.owner) {

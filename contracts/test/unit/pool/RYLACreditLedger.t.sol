@@ -11,6 +11,7 @@ contract RYLACreditLedgerTest is Test {
 
     address internal admin = makeAddr("admin");
     address internal pool = makeAddr("pool");
+    address internal adapter = makeAddr("adapter");
     address internal user = makeAddr("user");
     address internal other = makeAddr("other");
 
@@ -18,6 +19,7 @@ contract RYLACreditLedgerTest is Test {
         vm.startPrank(admin);
         token = new RYLA(admin);
         ledger = new RYLACreditLedger(address(token), pool);
+        ledger.setAdapter(adapter);
         token.setMinter(address(ledger), true);
         token.setBurner(address(ledger), true);
         vm.stopPrank();
@@ -43,7 +45,7 @@ contract RYLACreditLedgerTest is Test {
         vm.prank(user);
         token.approve(address(ledger), 100e18);
 
-        vm.prank(pool);
+        vm.prank(adapter);
         ledger.debit(user, 100e18);
 
         assertEq(token.balanceOf(user), 0);
@@ -57,10 +59,27 @@ contract RYLACreditLedgerTest is Test {
         ledger.credit(user, 100e18);
     }
 
-    function testDebitRevertsForNonPool() public {
+    function testDebitRevertsForNonAdapter() public {
         vm.prank(other);
         vm.expectRevert(RYLACreditLedger.Unauthorized.selector);
         ledger.debit(user, 100e18);
+    }
+
+    function testDebitRevertsForPool() public {
+        vm.prank(pool);
+        vm.expectRevert(RYLACreditLedger.Unauthorized.selector);
+        ledger.debit(user, 100e18);
+    }
+
+    function testSetAdapterRevertsIfAlreadySet() public {
+        vm.expectRevert(RYLACreditLedger.AdapterAlreadySet.selector);
+        ledger.setAdapter(makeAddr("other-adapter"));
+    }
+
+    function testSetAdapterRevertsOnZeroAddress() public {
+        RYLACreditLedger fresh = new RYLACreditLedger(address(token), pool);
+        vm.expectRevert(RYLACreditLedger.ZeroAddress.selector);
+        fresh.setAdapter(address(0));
     }
 
     function testConstructorRevertsOnZeroToken() public {
