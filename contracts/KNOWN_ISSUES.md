@@ -81,7 +81,7 @@ This document lists known limitations and intentional design decisions that audi
 **Description:** The project contains two distinct ZK systems:
 
 - **Pool system** (`MARKPool` + `MARKPoolVerifier`): uses `circuits/mark/MARKPool.circom` — a 13-signal Groth16 circuit (merkleRoot, chainId, dstChainId, protocolEpoch, fee, relayer, nullifier[2], outCommitment[2], withdrawOwner, withdrawRecipient, withdrawAmount). The circuit is compiled, the verifier is generated at `src/pool/verifier/MARKPoolVerifier.sol`, and witness tests pass.
-- **Settlement system** (`MARKSettlementModule` + `Groth16SettlementVerifier`): expects the same 13-signal layout via `IGroth16Verifier`. The settlement-specific verifier contract (`MARKPoolVerifier`) needs to be wired into `Groth16SettlementVerifier.setVerifierContract()` before ZK-based settlement is active. `AttestedSettlementVerifier` is the production-safe fallback until that wiring is complete.
+- **Settlement system** (`MARKSettlementModule` + `Groth16SettlementVerifier`): expects the same 13-signal layout via `IGroth16Verifier`. The shared pool verifier contract (`MARKPoolVerifier`) must be wired into `Groth16SettlementVerifier.setVerifierContract()` before ZK-based settlement is active. `AttestedSettlementVerifier` is the production-safe fallback until that wiring is complete.
 
 **Impact:** Auditors should verify that `Groth16SettlementVerifier.verifierContract` is set to a deployed `MARKPoolVerifier` instance before evaluating ZK settlement security. Until then, settlement security depends on `AttestedSettlementVerifier` (EIP-712 signatures).
 

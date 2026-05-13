@@ -28,7 +28,7 @@ import {PoolErrors} from "./errors/PoolErrors.sol";
 ///
 ///      The note owner then calls MARKWithdrawAdapter.withdrawWithSig(), which:
 ///        1. Verifies the withdraw binding matches the pool's recorded binding
-///        2. Verifies owner + intent signer signatures (EIP-712)
+///        2. Verifies owner + intent signer signatures (EIP-191 personal_sign)
 ///        3. Calls RYLACreditLedger.debit(owner, amount) — burns RYLA from owner
 ///
 ///      The owner must hold RYLA tokens equal to the withdrawal amount and approve
