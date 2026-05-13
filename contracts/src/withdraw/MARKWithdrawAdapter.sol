@@ -149,11 +149,13 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         emit WithdrawIntentAuthorized(intentSigner, intentHash, creditOwner);
         emit NullifierClaimed(nullifiers[0], creditOwner);
         emit NullifierClaimed(nullifiers[1], creditOwner);
-        ASSET_LEDGER.debit(creditOwner, amount);
         totalNativePaid += amount;
 
+        // Transfer ETH before burning RYLA — if the transfer fails, RYLA is not burned.
         (bool ok,) = payable(recipient).call{value: amount}("");
         if (!ok) revert NativeTransferFailed();
+
+        ASSET_LEDGER.debit(creditOwner, amount);
 
         emit WithdrawExecuted(creditOwner, recipient, amount, nonce, intentHash, msg.sender);
     }

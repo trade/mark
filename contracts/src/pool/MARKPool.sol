@@ -528,17 +528,6 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         }
     }
 
-    function _seedRoot(bytes32 root) internal {
-        if (root == bytes32(0)) revert InvalidRoot();
-        if (knownRoots[root]) revert RootAlreadyKnown();
-        uint256 tail = rootQueueTail;
-        knownRoots[root] = true;
-        rootTimestamps[root] = block.timestamp;
-        rootQueue[tail] = root;
-        rootQueueTail = tail + 1;
-        emit RootAdded(root);
-    }
-
     function computePublicInputs(
         bytes32[2] memory nullifiers,
         bytes32[2] memory outCommitments,
@@ -551,6 +540,10 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         return computePublicInputsWithWithdraw(nullifiers, outCommitments, merkleRoot, dstChainId, protocolEpoch_, fee, relayer, address(0), address(0), 0);
     }
 
+    /// @notice Builds the 13 public signals for a UTXO proof with optional withdraw binding.
+    /// @dev `dstChainId` is the destination chain for bridge-out proofs; for same-chain
+    ///      transact calls, pass block.chainid. The source chainId is always block.chainid
+    ///      and is not a parameter — it is read from the EVM directly.
     function computePublicInputsWithWithdraw(
         bytes32[2] memory nullifiers,
         bytes32[2] memory outCommitments,

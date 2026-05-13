@@ -25,6 +25,7 @@ contract RYLACreditLedger is ICreditLedger {
 
     IRYLA public immutable TOKEN;
     address public immutable POOL;
+    address public immutable OWNER;
     address public ADAPTER;
 
     uint256 private _totalMinted;
@@ -34,12 +35,14 @@ contract RYLACreditLedger is ICreditLedger {
         if (token_ == address(0) || pool_ == address(0)) revert ZeroAddress();
         TOKEN = IRYLA(token_);
         POOL = pool_;
+        OWNER = msg.sender;
     }
 
-    /// @notice Sets the adapter address. Can only be called once.
-    /// @dev Called post-deployment to break the circular dependency between
-    ///      RYLACreditLedger and MARKWithdrawAdapter.
+    /// @notice Sets the adapter address. Can only be called once, by the deployer.
+    /// @dev Restricted to OWNER (the deployer) to prevent front-running between
+    ///      deployment and the setAdapter call in the release script.
     function setAdapter(address adapter_) external {
+        if (msg.sender != OWNER) revert Unauthorized();
         if (ADAPTER != address(0)) revert AdapterAlreadySet();
         if (adapter_ == address(0)) revert ZeroAddress();
         ADAPTER = adapter_;
@@ -71,6 +74,11 @@ contract RYLACreditLedger is ICreditLedger {
         return _totalBurned;
     }
 
+    /// @notice Returns net credits flowing through this ledger (minted minus burned).
+    /// @dev Tracks only flows via credit() and debit() on this contract. RYLA minted
+    ///      through other paths (e.g. MARKSettlementModule) is not reflected here.
+    ///      Cannot underflow: debit() burns tokens that were previously credited or
+    ///      held by the user, so _totalBurned never exceeds _totalMinted in normal operation.
     function totalCreditsOutstanding() external view returns (uint256) {
         return _totalMinted - _totalBurned;
     }

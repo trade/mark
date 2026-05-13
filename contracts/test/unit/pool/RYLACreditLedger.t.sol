@@ -72,14 +72,25 @@ contract RYLACreditLedgerTest is Test {
     }
 
     function testSetAdapterRevertsIfAlreadySet() public {
+        vm.prank(admin);
         vm.expectRevert(RYLACreditLedger.AdapterAlreadySet.selector);
         ledger.setAdapter(makeAddr("other-adapter"));
     }
 
     function testSetAdapterRevertsOnZeroAddress() public {
+        vm.prank(admin);
         RYLACreditLedger fresh = new RYLACreditLedger(address(token), pool);
+        vm.prank(admin);
         vm.expectRevert(RYLACreditLedger.ZeroAddress.selector);
         fresh.setAdapter(address(0));
+    }
+
+    function testSetAdapterRevertsForNonOwner() public {
+        vm.prank(admin);
+        RYLACreditLedger fresh = new RYLACreditLedger(address(token), pool);
+        vm.prank(other);
+        vm.expectRevert(RYLACreditLedger.Unauthorized.selector);
+        fresh.setAdapter(makeAddr("attacker"));
     }
 
     function testConstructorRevertsOnZeroToken() public {
