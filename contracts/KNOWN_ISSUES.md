@@ -86,3 +86,17 @@ This document lists known limitations and intentional design decisions that audi
 **Impact:** Auditors should verify that `Groth16SettlementVerifier.verifierContract` is set to a deployed `MARKPoolVerifier` instance before evaluating ZK settlement security. Until then, settlement security depends on `AttestedSettlementVerifier` (EIP-712 signatures).
 
 **Accepted because:** `AttestedSettlementVerifier` provides meaningful security (role-gated, replay-protected, deadline-bound, module-bound). The pool circuit and verifier are consistent with each other. Settlement ZK integration is in progress.
+
+---
+
+## KI-8: PoseidonT3 exceeds EIP-170 contract size limit
+
+**Contract:** `src/crypto/generated/PoseidonT3.sol`
+
+**Description:** `PoseidonT3` is 55,856 bytes — more than double the 24,576 byte EIP-170 limit. It cannot be deployed directly on any EVM chain. `MerkleTree.sol` imports it inline, which means `MARKPool` also inherits this size issue.
+
+**Impact:** `MARKPool` cannot be deployed as-is. The CI pool release smoke test uses `--skip-simulation` to bypass the size check and test script orchestration only.
+
+**Required before mainnet:** `PoseidonT3` must be deployed as a standalone contract and `MerkleTree.sol` must be refactored to call it via an interface rather than importing it inline. This is a standard pattern for large Poseidon implementations (e.g., Tornado Cash deploys Poseidon as a separate contract).
+
+**Accepted for now because:** The pool domain is pre-production. The settlement layer (which does not use `MARKPool`) is unaffected and can proceed to mainnet independently.

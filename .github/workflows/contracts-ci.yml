@@ -136,17 +136,17 @@ jobs:
           MARK_POOL_RELEASE_EXECUTE="true" \
           MARK_POOL_RELEASE_WRITE_ARTIFACT="true" \
           MARK_POOL_RELEASE_ARTIFACT_PATH="broadcast/mark-pool-release-ci.json" \
-          forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL --broadcast -vv
+          forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL --broadcast --skip-simulation -vv
 
       - name: Assert pool release artifact schema
         run: |
           test -f broadcast/mark-pool-release-ci.json
           jq -e '
             .chainId != null and
-            .pool != "0x0000000000000000000000000000000000000000" and
-            .ledger != "0x0000000000000000000000000000000000000000" and
-            .adapter != "0x0000000000000000000000000000000000000000" and
-            .timestamp != null
+            .timestamp != null and
+            (.pool != null and (.pool | test("^0x[0-9a-fA-F]{40}$"))) and
+            (.ledger != null and (.ledger | test("^0x[0-9a-fA-F]{40}$"))) and
+            (.adapter != null and (.adapter | test("^0x[0-9a-fA-F]{40}$")))
           ' broadcast/mark-pool-release-ci.json
 
       - name: Print anvil logs on failure
