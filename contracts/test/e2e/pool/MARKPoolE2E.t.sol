@@ -207,13 +207,21 @@ contract MARKPoolE2ETest is Test {
             abi.encodePacked(r2, s2, v2)
         );
 
-        // Second attempt with same nullifiers must revert
+        // Second attempt with same nullifiers must revert with NullifierAlreadyClaimed
+        uint256 nonce2 = adapter.withdrawNonce(creditOwner);
+        bytes32 intentHash2 = adapter.computeWithdrawIntentHash(
+            creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce2, deadline
+        );
+        bytes32 digest2 = MessageHashUtils.toEthSignedMessageHash(intentHash2);
+        (uint8 v3, bytes32 r3, bytes32 s3) = vm.sign(ownerPk, digest2);
+        (uint8 v4, bytes32 r4, bytes32 s4) = vm.sign(intentSignerPk, digest2);
+
         vm.expectRevert();
         adapter.withdrawWithSig(
             creditOwner, recipient, MINT_AMOUNT,
-            nullifiers, nonce + 1, deadline,
-            abi.encodePacked(r1, s1, v1),
-            abi.encodePacked(r2, s2, v2)
+            nullifiers, nonce2, deadline,
+            abi.encodePacked(r3, s3, v3),
+            abi.encodePacked(r4, s4, v4)
         );
     }
 
