@@ -16,6 +16,10 @@ contract RYLACreditLedgerTest is Test {
     address internal other = makeAddr("other");
 
     function setUp() public {
+        // Give pool and adapter contract bytecode so code.length checks pass
+        vm.etch(pool, hex"00");
+        vm.etch(adapter, hex"00");
+
         vm.startPrank(admin);
         token = new RYLA(admin);
         ledger = new RYLACreditLedger(address(token), pool);
@@ -107,5 +111,23 @@ contract RYLACreditLedgerTest is Test {
         vm.prank(pool);
         ledger.credit(user, 50e18);
         assertEq(ledger.creditBalanceOf(user), 50e18);
+    }
+
+    function testConstructorRevertsOnEOAToken() public {
+        vm.expectRevert(RYLACreditLedger.InvalidContract.selector);
+        new RYLACreditLedger(makeAddr("eoa-token"), pool);
+    }
+
+    function testConstructorRevertsOnEOAPool() public {
+        vm.expectRevert(RYLACreditLedger.InvalidContract.selector);
+        new RYLACreditLedger(address(token), makeAddr("eoa-pool"));
+    }
+
+    function testSetAdapterRevertsOnEOA() public {
+        vm.prank(admin);
+        RYLACreditLedger fresh = new RYLACreditLedger(address(token), pool);
+        vm.prank(admin);
+        vm.expectRevert(RYLACreditLedger.InvalidContract.selector);
+        fresh.setAdapter(makeAddr("eoa-adapter"));
     }
 }

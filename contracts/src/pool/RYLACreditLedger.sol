@@ -20,6 +20,7 @@ contract RYLACreditLedger is ICreditLedger {
     error Unauthorized();
     error ZeroAddress();
     error AdapterAlreadySet();
+    error InvalidContract();
 
     event AdapterSet(address indexed adapter);
 
@@ -33,6 +34,8 @@ contract RYLACreditLedger is ICreditLedger {
 
     constructor(address token_, address pool_) {
         if (token_ == address(0) || pool_ == address(0)) revert ZeroAddress();
+        if (token_.code.length == 0) revert InvalidContract();
+        if (pool_.code.length == 0) revert InvalidContract();
         TOKEN = IRYLA(token_);
         POOL = pool_;
         OWNER = msg.sender;
@@ -45,6 +48,7 @@ contract RYLACreditLedger is ICreditLedger {
         if (msg.sender != OWNER) revert Unauthorized();
         if (ADAPTER != address(0)) revert AdapterAlreadySet();
         if (adapter_ == address(0)) revert ZeroAddress();
+        if (adapter_.code.length == 0) revert InvalidContract();
         ADAPTER = adapter_;
         emit AdapterSet(adapter_);
     }
