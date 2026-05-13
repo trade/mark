@@ -123,9 +123,10 @@ jobs:
       - name: Run pool release orchestrator dry-run
         run: |
           TOKEN=$(jq -r '.token' broadcast/mark-release-ci.json)
+          MODULE=$(jq -r '.module' broadcast/mark-release-ci.json)
           MARK_RYLA_TOKEN="$TOKEN" \
-          MARK_POOL_VERIFIER="0x0000000000000000000000000000000000000001" \
-          forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL -vv || true
+          MARK_POOL_VERIFIER="$MODULE" \
+          forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL -vv
 
       - name: Run pool release orchestrator execute smoke (local Anvil)
         run: |

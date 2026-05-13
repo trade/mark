@@ -74,11 +74,12 @@ contract RYLACreditLedger is ICreditLedger {
         return _totalBurned;
     }
 
-    /// @notice Returns net credits flowing through this ledger (minted minus burned).
-    /// @dev Tracks only flows via credit() and debit() on this contract. RYLA minted
-    ///      through other paths (e.g. MARKSettlementModule) is not reflected here.
-    ///      Cannot underflow: debit() burns tokens that were previously credited or
-    ///      held by the user, so _totalBurned never exceeds _totalMinted in normal operation.
+    /// @notice Returns net credits tracked by this ledger (credit() calls minus debit() calls).
+    /// @dev Scope is limited to flows through this contract's credit() and debit() functions
+    ///      (_totalMinted and _totalBurned). RYLA minted or burned via other paths
+    ///      (e.g. MARKSettlementModule, direct token burns) is not reflected here, so
+    ///      _totalBurned may exceed _totalMinted as measured by this ledger. Returns 0
+    ///      in that case rather than reverting.
     function totalCreditsOutstanding() external view returns (uint256) {
         return _totalMinted >= _totalBurned ? _totalMinted - _totalBurned : 0;
     }
