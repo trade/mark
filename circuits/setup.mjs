@@ -5,7 +5,7 @@
 // Powers of tau: pot15 (2^15 = 32768 >= 26387*2 wires required by MARKPool(20,2,2))
 
 import { randomBytes } from 'crypto';
-import { mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { zKey, powersOfTau } from 'snarkjs';
 
@@ -23,6 +23,12 @@ await powersOfTau.contribute('build/pot15_0000.ptau', 'build/pot15_final.ptau',
 
 console.log('Step 3: Prepare phase 2...');
 await powersOfTau.preparePhase2('build/pot15_final.ptau', 'build/pot15_phase2.ptau');
+
+// Verify compiled circuit exists before attempting trusted setup
+if (!existsSync('build/MARKPool.r1cs')) {
+  console.error('Error: build/MARKPool.r1cs not found. Run: npm run build');
+  process.exit(1);
+}
 
 console.log('Step 4: Phase 2 setup...');
 await zKey.newZKey('build/MARKPool.r1cs', 'build/pot15_phase2.ptau', 'build/markpool_0000.zkey');

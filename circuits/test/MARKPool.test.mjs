@@ -26,21 +26,6 @@ function buildZeroTree(depth) {
   return zeros;
 }
 
-// Build a Merkle path for a single leaf inserted at index 0 in an otherwise-empty tree
-function buildMerklePath(leaf, depth) {
-  const zeros = buildZeroTree(depth);
-  const pathElements = [];
-  const pathIndices = [];
-  let cur = leaf;
-  for (let i = 0; i < depth; i++) {
-    // Leaf is at index 0, so it's always the left child
-    pathElements.push(zeros[i]);
-    pathIndices.push(0n);
-    cur = poseidonHash(cur, zeros[i]);
-  }
-  return { pathElements, pathIndices, root: cur };
-}
-
 const wasmPath = path.join(__dirname, "../build/MARKPool_js/MARKPool.wasm");
 const WitnessCalculator = require(path.join(__dirname, "../build/MARKPool_js/witness_calculator.js"));
 const wasm = readFileSync(wasmPath);
