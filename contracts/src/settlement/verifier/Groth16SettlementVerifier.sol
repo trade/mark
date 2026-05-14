@@ -105,6 +105,10 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
         if (boundModule == address(0)) return false;
         if (settlementModule_ != boundModule) return false;
 
+        // Validate proof length before decoding to return false (not revert) on malformed input.
+        // Expected: uint256[2](64) + uint256[2][2](128) + uint256[2](64) + uint256[13](416) = 672 bytes.
+        if (proof.length != 672) return false;
+
         (
             uint256[2] memory a,
             uint256[2][2] memory b,
