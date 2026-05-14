@@ -223,4 +223,19 @@ contract Groth16SettlementVerifierTest is Test {
         bytes memory burnProofWithOne = _buildProofWithDirection(INTENT, user, AMOUNT, 1);
         assertFalse(verifier.verifySettlement(INTENT, module, user, AMOUNT, false, burnProofWithOne));
     }
+    function testVerifySettlementReturnsFalseForMalformedProof() public view {
+        // Malformed proof (wrong length) must return false, not revert.
+        bool result = verifier.verifySettlement(
+            INTENT, address(module), user, AMOUNT, true, bytes("malformed")
+        );
+        assertFalse(result);
+    }
+
+    function testVerifySettlementReturnsFalseForEmptyProof() public view {
+        bool result = verifier.verifySettlement(
+            INTENT, address(module), user, AMOUNT, true, bytes("")
+        );
+        assertFalse(result);
+    }
+
 }
