@@ -78,7 +78,7 @@ verify-evidence-signature:
 	@./script/ops/verify-evidence-signature.sh
 
 slither-install:
-	@python3 -m pip install --user slither-analyzer==0.11.5
+	@python3 -m pip install --user slither-analyzer==0.11.4
 
 slither-core:
 	@command -v slither >/dev/null 2>&1 || { \

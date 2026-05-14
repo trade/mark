@@ -4,8 +4,8 @@
   "private": true,
   "description": "MARK Protocol ZK circuits (circom)",
   "scripts": {
-    "build": "circom utxo/UTXOSettlement.circom --r1cs --wasm --sym -l ../node_modules -l node_modules --output build",
-    "test": "node test/UTXOSettlement.test.mjs"
+    "build": "circom mark/MARKPool.circom --r1cs --wasm --sym -l node_modules --output build",
+    "test": "mkdir -p build && npm run build && node test/MARKPool.test.mjs"
   },
   "dependencies": {
     "circomlib": "2.0.5"
