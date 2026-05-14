@@ -74,7 +74,7 @@ This document lists known limitations and intentional design decisions that audi
 
 ---
 
-## KI-7: Two separate ZK systems with different circuit designs
+## KI-7: Two separate ZK systems sharing the MARKPool 13-signal circuit
 
 **Scope:** `circuits/`, `src/pool/`, `src/settlement/verifier/Groth16SettlementVerifier.sol`
 
@@ -95,7 +95,7 @@ This document lists known limitations and intentional design decisions that audi
 
 **Description:** `PoseidonT3` is 55,856 bytes — more than double the 24,576 byte EIP-170 limit. It cannot be deployed directly on any EVM chain. `MerkleTree.sol` imports it inline, which means `MARKPool` also inherits this size issue.
 
-**Impact:** `MARKPool` cannot be deployed as-is. The CI pool release smoke test uses `--skip-simulation` to bypass the size check and test script orchestration only.
+**Impact:** `MARKPool` cannot be deployed as-is. CI omits pool execute smoke entirely and runs only the pool release dry-run orchestration path.
 
 **Required before mainnet:** `PoseidonT3` must be deployed as a standalone contract and `MerkleTree.sol` must be refactored to call it via an interface rather than importing it inline. This is a standard pattern for large Poseidon implementations (e.g., Tornado Cash deploys Poseidon as a separate contract).
 

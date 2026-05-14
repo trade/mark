@@ -65,6 +65,7 @@ abstract contract PoolErrors {
     error UnauthorizedBridgeOutCaller();
     error InvalidSource();
     error InvalidDestination();
+    error InvalidMessageId();
     error SourceIsDestination();
     error DestinationIsSource();
     error InvalidRoot();

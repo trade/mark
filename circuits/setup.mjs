@@ -6,6 +6,7 @@
 
 import { randomBytes } from 'crypto';
 import { mkdirSync, writeFileSync, readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 import { zKey, powersOfTau } from 'snarkjs';
 
 mkdirSync('build', { recursive: true });
@@ -35,7 +36,9 @@ const vKey = await zKey.exportVerificationKey('build/markpool_final.zkey');
 writeFileSync('build/markpool_verification_key.json', JSON.stringify(vKey, null, 2));
 
 console.log('Step 7: Export Solidity verifier...');
-const templatePath = new URL('node_modules/snarkjs/templates/verifier_groth16.sol.ejs', import.meta.url).pathname;
+const templatePath = fileURLToPath(
+  new URL('node_modules/snarkjs/templates/verifier_groth16.sol.ejs', import.meta.url)
+);
 const solidityTemplate = readFileSync(templatePath, 'utf8');
 const verifier = await zKey.exportSolidityVerifier('build/markpool_final.zkey', { groth16: solidityTemplate });
 writeFileSync('build/MARKPoolVerifier.sol', verifier);

@@ -44,13 +44,13 @@ check_no_imports \
 # Pool contracts must not depend on settlement or bridge concrete contracts.
 check_no_imports \
   "src/pool" \
-  '^import\s+.*"(?:\.\.\/settlement\/|\.\.\/bridge\/|src\/settlement\/|src\/bridge\/)' \
+  '^import\s+.*"(?:((?:\.\.\/)+(?:src\/)?(?:settlement|bridge)\/)|(?:src\/(?:settlement|bridge)\/))' \
   "pool -> settlement/bridge"
 
 # Withdraw contracts must not depend on settlement or bridge concrete contracts.
 check_no_imports \
   "src/withdraw" \
-  '^import\s+.*"(?:\.\.\/settlement\/|\.\.\/bridge\/|src\/settlement\/|src\/bridge\/)' \
+  '^import\s+.*"(?:((?:\.\.\/)+(?:src\/)?(?:settlement|bridge)\/)|(?:src\/(?:settlement|bridge)\/))' \
   "withdraw -> settlement/bridge"
 
 echo "[architecture-guard] OK"

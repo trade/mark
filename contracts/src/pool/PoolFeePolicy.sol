@@ -8,6 +8,8 @@ library PoolFeePolicy {
         pure
         returns (uint256 burnAmount, uint256 relayerAmount)
     {
+        require(maxFeeBurnBps != 0, "maxFeeBurnBps>0");
+        require(feeBurnBps <= maxFeeBurnBps, "feeBurnBps<=maxFeeBurnBps");
         burnAmount = fee * feeBurnBps / maxFeeBurnBps;
         relayerAmount = fee - burnAmount;
     }

@@ -386,7 +386,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     {
         if (srcChainId == 0) revert InvalidSource();
         if (srcChainId == block.chainid) revert SourceIsDestination();
-        if (messageId == bytes32(0)) revert InvalidRoot();
+        if (messageId == bytes32(0)) revert InvalidMessageId();
         if (processedBridgeMessages[messageId]) revert BridgeMessageAlreadyProcessed();
         processedBridgeMessages[messageId] = true;
         _insertCommitments(outCommitments);

@@ -97,7 +97,6 @@ const out0Secret = 555n; const out0Blinding = 666n; const out0Amount = 400n;
 const out1Secret = 777n; const out1Blinding = 888n; const out1Amount = 100n;
 const fee = 500n; // 500 = 500 (in0+in1=1000, out0+out1=500, fee=500, withdraw=0)
 
-const path0 = buildMerklePath(in0.commitment, DEPTH);
 // After inserting in1 at index 1, the root changes — for simplicity use a single-leaf tree
 // where in1 is also at index 0 in its own path (both share the same root for test purposes).
 // Use a shared root: insert both into the same tree.

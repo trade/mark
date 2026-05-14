@@ -293,7 +293,7 @@ contract MARKPoolTest is Test {
 
     function testBridgeInRevertsWhenCallerNotRestricted() public {
         bytes32[2] memory commitments = [C0, C1];
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSignature("AccessManagedUnauthorized(address)", address(this)));
         pool.bridgeIn(901, bytes32(uint256(1)), commitments);
     }
 
@@ -302,6 +302,18 @@ contract MARKPoolTest is Test {
         vm.prank(admin);
         vm.expectRevert(PoolErrors.SourceIsDestination.selector);
         pool.bridgeIn(block.chainid, bytes32(uint256(1)), commitments);
+    }
+
+    function testBridgeInRevertsOnMessageReplay() public {
+        bytes32[2] memory commitments = [C0, C1];
+        bytes32 messageId = bytes32(uint256(123));
+
+        vm.prank(admin);
+        pool.bridgeIn(901, messageId, commitments);
+
+        vm.prank(admin);
+        vm.expectRevert(PoolErrors.BridgeMessageAlreadyProcessed.selector);
+        pool.bridgeIn(901, messageId, commitments);
     }
 
     // --- transactWithWithdrawBinding ---
