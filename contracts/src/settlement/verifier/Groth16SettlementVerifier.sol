@@ -8,6 +8,9 @@ import {IUTXOSettlementVerifier} from "../interfaces/IUTXOSettlementVerifier.sol
 import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 
+error VerifierNotAContract();
+error SettlementModuleNotAContract();
+
 /// @title Groth16SettlementVerifier
 /// @notice Groth16 proof verifier for UTXO settlement intents.
 /// @dev Implements IUTXOSettlementVerifier by delegating to a Groth16 verifier contract (e.g. MARKPoolVerifier)
@@ -59,7 +62,7 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
 
     function setVerifierContract(address verifierContract_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (verifierContract_ == address(0)) revert ZeroAddress();
-        if (verifierContract_.code.length == 0) revert ZeroAddress();
+        if (verifierContract_.code.length == 0) revert VerifierNotAContract();
         verifierContract = IGroth16Verifier(verifierContract_);
         emit VerifierContractUpdated(verifierContract_);
     }
@@ -68,7 +71,7 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
     /// @dev Prevents cross-module replay when multiple modules exist.
     function setSettlementModule(address settlementModule_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (settlementModule_ == address(0)) revert ZeroAddress();
-        if (settlementModule_.code.length == 0) revert ZeroAddress();
+        if (settlementModule_.code.length == 0) revert SettlementModuleNotAContract();
         settlementModule = settlementModule_;
         emit SettlementModuleUpdated(settlementModule_);
     }

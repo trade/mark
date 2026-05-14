@@ -3,13 +3,15 @@ pragma solidity ^0.8.25;
 
 /// @notice Fee policy and split helpers for Pool.
 library PoolFeePolicy {
+    error FeePolicyInvalidBps();
+
     function split(uint256 fee, uint256 feeBurnBps, uint256 maxFeeBurnBps)
         internal
         pure
         returns (uint256 burnAmount, uint256 relayerAmount)
     {
-        require(maxFeeBurnBps != 0, "maxFeeBurnBps>0");
-        require(feeBurnBps <= maxFeeBurnBps, "feeBurnBps<=maxFeeBurnBps");
+        if (maxFeeBurnBps == 0) revert FeePolicyInvalidBps();
+        if (feeBurnBps > maxFeeBurnBps) revert FeePolicyInvalidBps();
         burnAmount = fee * feeBurnBps / maxFeeBurnBps;
         relayerAmount = fee - burnAmount;
     }
