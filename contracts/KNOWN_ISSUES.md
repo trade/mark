@@ -81,7 +81,7 @@ This document lists known limitations and intentional design decisions that audi
 **Description:** The project contains two contract domains that both use the same ZK circuit (`circuits/mark/MARKPool.circom`, 13 public signals):
 
 - **Pool system** (`MARKPool` + `MARKPoolVerifier`): uses the circuit directly for UTXO transfers. The circuit is compiled, the verifier is generated at `src/pool/verifier/MARKPoolVerifier.sol`, and witness tests pass.
-- **Settlement system** (`MARKSettlementModule` + `Groth16SettlementVerifier`): uses the same 13-signal layout via `IGroth16Verifier`. `MARKPoolVerifier` must be wired into `Groth16SettlementVerifier.setVerifierContract()` before ZK-based settlement is active. `AttestedSettlementVerifier` is the production-safe fallback until that wiring is complete.
+- **Settlement system** (`MARKSettlementModule` + `Groth16SettlementVerifier`): the design supports the same 13-signal layout via `IGroth16Verifier` and is compatible with `MARKPoolVerifier`. However, `MARKPoolVerifier` has not yet been wired into `Groth16SettlementVerifier.setVerifierContract()` — this configuration step is required before ZK-based settlement is active. `AttestedSettlementVerifier` remains the production-safe fallback until that wiring is completed.
 
 **Impact:** Auditors should verify that `Groth16SettlementVerifier.verifierContract` is set to a deployed `MARKPoolVerifier` instance before evaluating ZK settlement security. Until then, settlement security depends on `AttestedSettlementVerifier` (EIP-712 signatures).
 

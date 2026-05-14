@@ -46,8 +46,15 @@ async function expectFail(label, input) {
     await wc.calculateWitness(input, false);
     console.error(`  FAIL: ${label} — expected constraint failure`);
     process.exit(1);
-  } catch {
-    console.log(`  PASS: ${label}`);
+  } catch (e) {
+    // Only treat constraint/assertion failures as expected. Rethrow anything else
+    // (malformed input, missing signal, internal error) so regressions surface.
+    const msg = e?.message ?? '';
+    if (msg.includes('Assert Failed') || msg.includes('constraint') || msg.includes('Error in template')) {
+      console.log(`  PASS: ${label}`);
+    } else {
+      throw e;
+    }
   }
 }
 

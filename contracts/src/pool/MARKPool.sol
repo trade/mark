@@ -179,6 +179,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     function setVerifier(uint8 proofType, address verifierAddr) external restricted {
         if (proofType == 0) revert InvalidProofType();
         if (verifierAddr == address(0)) revert InvalidVerifier();
+        if (verifierAddr.code.length == 0) revert VerifierMustBeContract();
         if (verifiers[proofType] == verifierAddr) revert NoStateChange();
         if (proofTypeEnabled[proofType] && !withdrawalsPaused) revert WithdrawalsNotPaused();
         verifiers[proofType] = verifierAddr;
