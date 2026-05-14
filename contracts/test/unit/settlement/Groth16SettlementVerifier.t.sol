@@ -16,10 +16,13 @@ contract MockGroth16Verifier is IGroth16Verifier {
     ) external view returns (bool) { return _result; }
 }
 
+contract MockSettlementModule {}
+
 contract Groth16SettlementVerifierTest is Test {
     Groth16SettlementVerifier internal verifier;
     MockGroth16Verifier internal mockOk;
     MockGroth16Verifier internal mockFail;
+    MockSettlementModule internal mockModule;
 
     address internal owner = makeAddr("owner");
     address internal module = makeAddr("module");
@@ -33,11 +36,24 @@ contract Groth16SettlementVerifierTest is Test {
         verifier = new Groth16SettlementVerifier(owner);
         mockOk = new MockGroth16Verifier(true);
         mockFail = new MockGroth16Verifier(false);
+        mockModule = new MockSettlementModule();
         vm.prank(owner);
         verifier.setVerifierContract(address(mockOk));
+        vm.prank(owner);
+        verifier.setSettlementModule(address(mockModule));
+        module = address(mockModule);
     }
 
     function _buildProof(bytes32 intentId, address account, uint256 amount) internal view returns (bytes memory) {
+        return _buildProofWithDirection(intentId, account, amount, 0);
+    }
+
+    function _buildProofWithDirection(
+        bytes32 intentId,
+        address account,
+        uint256 amount,
+        uint256 direction
+    ) internal view returns (bytes memory) {
         uint256[2] memory a;
         uint256[2][2] memory b;
         uint256[2] memory c;
@@ -45,6 +61,8 @@ contract Groth16SettlementVerifierTest is Test {
         signals[0] = uint256(intentId);
         signals[1] = block.chainid;
         signals[2] = block.chainid;
+        signals[6] = uint256(intentId);
+        signals[7] = direction;
         signals[10] = uint256(uint160(account));
         signals[11] = uint256(uint160(account));
         signals[12] = amount;
@@ -66,6 +84,17 @@ contract Groth16SettlementVerifierTest is Test {
     function testVerifySettlementReturnsFalseWhenNoVerifierSet() public {
         vm.prank(owner);
         Groth16SettlementVerifier fresh = new Groth16SettlementVerifier(owner);
+        vm.prank(owner);
+        fresh.setSettlementModule(address(mockModule));
+        bytes memory proof = _buildProof(INTENT, user, AMOUNT);
+        assertFalse(fresh.verifySettlement(INTENT, module, user, AMOUNT, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseWhenSettlementModuleNotConfigured() public {
+        vm.prank(owner);
+        Groth16SettlementVerifier fresh = new Groth16SettlementVerifier(owner);
+        vm.prank(owner);
+        fresh.setVerifierContract(address(mockOk));
         bytes memory proof = _buildProof(INTENT, user, AMOUNT);
         assertFalse(fresh.verifySettlement(INTENT, module, user, AMOUNT, true, proof));
     }
@@ -95,6 +124,11 @@ contract Groth16SettlementVerifierTest is Test {
         assertFalse(verifier.verifySettlement(INTENT, address(0), user, AMOUNT, true, proof));
     }
 
+    function testVerifySettlementReturnsFalseForModuleMismatch() public {
+        bytes memory proof = _buildProof(INTENT, user, AMOUNT);
+        assertFalse(verifier.verifySettlement(INTENT, makeAddr("other-module"), user, AMOUNT, true, proof));
+    }
+
     function testVerifySettlementReturnsFalseForZeroAccount() public view {
         bytes memory proof = _buildProof(INTENT, address(0), AMOUNT);
         assertFalse(verifier.verifySettlement(INTENT, module, address(0), AMOUNT, true, proof));
@@ -115,5 +149,78 @@ contract Groth16SettlementVerifierTest is Test {
         vm.prank(owner);
         vm.expectRevert();
         verifier.setVerifierContract(makeAddr("eoa"));
+    }
+
+    function testSetSettlementModuleRevertsForZeroAddress() public {
+        vm.prank(owner);
+        vm.expectRevert();
+        verifier.setSettlementModule(address(0));
+    }
+
+    function testSetSettlementModuleRevertsForEOA() public {
+        vm.prank(owner);
+        vm.expectRevert();
+        verifier.setSettlementModule(makeAddr("eoa"));
+    }
+
+    function testVerifySettlementReturnsFalseForChainIdMismatch() public view {
+        uint256[2] memory a;
+        uint256[2][2] memory b;
+        uint256[2] memory c;
+        uint256[13] memory signals;
+        signals[0] = uint256(INTENT);
+        signals[1] = block.chainid + 1;
+        signals[2] = block.chainid;
+        signals[6] = uint256(INTENT);
+        signals[10] = uint256(uint160(user));
+        signals[11] = uint256(uint160(user));
+        signals[12] = AMOUNT;
+        bytes memory proof = abi.encode(a, b, c, signals);
+        assertFalse(verifier.verifySettlement(INTENT, module, user, AMOUNT, true, proof));
+    }
+
+    function testVerifySettlementReturnsFalseForContextSignalMismatch() public view {
+        uint256[2] memory a;
+        uint256[2][2] memory b;
+        uint256[2] memory c;
+        uint256[13] memory signals;
+        signals[0] = uint256(INTENT);
+        signals[1] = block.chainid;
+        signals[2] = block.chainid;
+        signals[4] = 1; // fee must be zero for settlement mapping
+        signals[6] = uint256(INTENT);
+        signals[10] = uint256(uint160(user));
+        signals[11] = uint256(uint160(user));
+        signals[12] = AMOUNT;
+        bytes memory proof = abi.encode(a, b, c, signals);
+        assertFalse(verifier.verifySettlement(INTENT, module, user, AMOUNT, true, proof));
+    }
+
+    function testVerifySettlementDirectionEnforcementDisabledAcceptsLegacyZeroDirection() public view {
+        bytes memory proof = _buildProofWithDirection(INTENT, user, AMOUNT, 0);
+        assertTrue(verifier.verifySettlement(INTENT, module, user, AMOUNT, true, proof));
+        assertTrue(verifier.verifySettlement(INTENT, module, user, AMOUNT, false, proof));
+    }
+
+    function testVerifySettlementDirectionEnforcementEnabledAcceptsMatchingDirection() public {
+        vm.prank(owner);
+        verifier.setDirectionEnforcementEnabled(true);
+
+        bytes memory mintProof = _buildProofWithDirection(INTENT, user, AMOUNT, 1);
+        assertTrue(verifier.verifySettlement(INTENT, module, user, AMOUNT, true, mintProof));
+
+        bytes memory burnProof = _buildProofWithDirection(INTENT, user, AMOUNT, 0);
+        assertTrue(verifier.verifySettlement(INTENT, module, user, AMOUNT, false, burnProof));
+    }
+
+    function testVerifySettlementDirectionEnforcementEnabledRejectsMismatchedDirection() public {
+        vm.prank(owner);
+        verifier.setDirectionEnforcementEnabled(true);
+
+        bytes memory mintProofWithZero = _buildProofWithDirection(INTENT, user, AMOUNT, 0);
+        assertFalse(verifier.verifySettlement(INTENT, module, user, AMOUNT, true, mintProofWithZero));
+
+        bytes memory burnProofWithOne = _buildProofWithDirection(INTENT, user, AMOUNT, 1);
+        assertFalse(verifier.verifySettlement(INTENT, module, user, AMOUNT, false, burnProofWithOne));
     }
 }

@@ -120,6 +120,26 @@ jobs:
             .gitCommit != null
           ' broadcast/mark-release-ci.json
 
+      - name: Run pool release orchestrator dry-run
+        run: |
+          TOKEN=$(jq -r '.token' broadcast/mark-release-ci.json)
+          POOL_VERIFIER=$(forge create src/pool/verifier/MARKPoolVerifier.sol:MARKPoolVerifier \
+            --rpc-url $RPC_URL \
+            --private-key $PRIVATE_KEY \
+            --broadcast \
+            --json | jq -r '.deployedTo')
+          if [ -z "$POOL_VERIFIER" ] || [ "$POOL_VERIFIER" = "null" ]; then
+            echo "failed to deploy MARKPoolVerifier for pool dry-run" >&2
+            exit 1
+          fi
+          MARK_RYLA_TOKEN="$TOKEN" \
+          MARK_POOL_VERIFIER="$POOL_VERIFIER" \
+          forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL -vv
+
+      # Pool execute smoke is omitted: MARKPool and PoseidonT3 exceed the EIP-170
+      # 24,576-byte contract size limit and cannot be broadcast to Anvil until the
+      # PoseidonT3 refactor (KI-8 in contracts/KNOWN_ISSUES.md) is complete.
+
       - name: Print anvil logs on failure
         if: failure()
         run: tail -n 200 /tmp/anvil.log || true

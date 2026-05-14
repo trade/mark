@@ -1,0 +1,43 @@
+name: Circuits CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - canary
+      - dev
+
+jobs:
+  circuits-test:
+    name: Circuits Witness Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: circuits
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install circom
+        run: |
+          CIRCOM_VERSION="v2.2.3"
+          CIRCOM_URL="https://github.com/iden3/circom/releases/download/${CIRCOM_VERSION}/circom-linux-amd64"
+          curl -L "$CIRCOM_URL" -o circom
+          chmod +x circom
+          sudo mv circom /usr/local/bin/circom
+          circom --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run witness tests
+        run: npm test

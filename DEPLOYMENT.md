@@ -407,6 +407,32 @@ make verify-evidence-manifest
 make sign-evidence-manifest
 ```
 
+#### Step 18: Wire Groth16SettlementVerifier (if using ZK settlement)
+
+After deploying `Groth16SettlementVerifier`, two post-deploy calls are required
+before ZK-based settlement is active. `AttestedSettlementVerifier` remains the
+fallback until this is complete.
+
+```bash
+# 1. Bind the verifier to the settlement module (prevents cross-module replay)
+cast send $GROTH16_VERIFIER_ADDRESS \
+  "setSettlementModule(address)" $SETTLEMENT_MODULE_ADDRESS \
+  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+
+# 2. Set the MARKPoolVerifier contract
+cast send $GROTH16_VERIFIER_ADDRESS \
+  "setVerifierContract(address)" $MARK_POOL_VERIFIER_ADDRESS \
+  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+
+# 3. Wire into settlement module
+cast send $SETTLEMENT_MODULE_ADDRESS \
+  "setVerifier(address,bool)" $GROTH16_VERIFIER_ADDRESS true \
+  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+```
+
+See `contracts/RUNBOOK.md` → "Groth16 Direction Rollout" for the full
+migration sequence before enabling production mode.
+
 ---
 
 ## Verification & Monitoring
