@@ -89,14 +89,14 @@ This document lists known limitations and intentional design decisions that audi
 
 ---
 
-## KI-8: PoseidonT3 exceeds EIP-170 contract size limit
+## KI-8: MARKPool exceeds EIP-170 contract size limit
 
-**Contract:** `src/crypto/generated/PoseidonT3.sol`
+**Contracts:** `src/pool/MARKPool.sol`, `src/crypto/generated/PoseidonT3.sol`
 
-**Description:** `PoseidonT3` is 55,856 bytes — more than double the 24,576 byte EIP-170 limit. It cannot be deployed directly on any EVM chain. `MerkleTree.sol` imports it inline, which means `MARKPool` also inherits this size issue.
+**Description:** `MARKPool` is 24,960 bytes — exceeding the EIP-170 24,576-byte limit. `PoseidonT3` is 55,856 bytes and also cannot be deployed directly. `via_ir = true` in `foundry.toml` already prevents `PoseidonT3` from being inlined into `MARKPool`; the size issue is `MARKPool` itself being too large.
 
 **Impact:** `MARKPool` cannot be deployed as-is. CI omits pool execute smoke entirely and runs only the pool release dry-run orchestration path.
 
-**Required before mainnet:** `PoseidonT3` must be deployed as a standalone contract and `MerkleTree.sol` must be refactored to call it via an interface rather than importing it inline. This is a standard pattern for large Poseidon implementations (e.g., Tornado Cash deploys Poseidon as a separate contract).
+**Required before mainnet:** `MARKPool` must be split into smaller contracts (e.g. extract bridge-out logic, fee policy, or root management into separate contracts) to get under 24,576 bytes. `PoseidonT3` must also be deployed as a standalone contract and called via interface. Both are required.
 
 **Accepted for now because:** The pool domain is pre-production. The settlement layer (which does not use `MARKPool`) is unaffected and can proceed to mainnet independently.
