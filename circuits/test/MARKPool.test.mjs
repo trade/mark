@@ -49,8 +49,8 @@ async function expectFail(label, input) {
   } catch (e) {
     // Only treat constraint/assertion failures as expected. Rethrow anything else
     // (malformed input, missing signal, internal error) so regressions surface.
-    const msg = e?.message ?? '';
-    if (msg.includes('Assert Failed') || msg.includes('constraint') || msg.includes('Error in template')) {
+    const msg = (e?.message ?? '').toLowerCase();
+    if (msg.includes('assert failed') || msg.includes('constraint') || msg.includes('error in template')) {
       console.log(`  PASS: ${label}`);
     } else {
       throw e;
