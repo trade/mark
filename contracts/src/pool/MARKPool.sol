@@ -143,6 +143,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     function pause() external restricted {
         if (paused()) revert AlreadyPaused();
         _pause();
+        // Also pause withdrawals when the contract is paused.
+        // Note: unpause() does NOT automatically restore withdrawals — call unpauseWithdrawals() explicitly.
         if (!withdrawalsPaused) {
             withdrawalsPaused = true;
             emit WithdrawalsPaused(msg.sender);
@@ -177,7 +179,6 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     function setVerifier(uint8 proofType, address verifierAddr) external restricted {
         if (proofType == 0) revert InvalidProofType();
         if (verifierAddr == address(0)) revert InvalidVerifier();
-        if (verifierAddr.code.length == 0) revert VerifierMustBeContract();
         if (verifiers[proofType] == verifierAddr) revert NoStateChange();
         if (proofTypeEnabled[proofType] && !withdrawalsPaused) revert WithdrawalsNotPaused();
         verifiers[proofType] = verifierAddr;
@@ -389,7 +390,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (messageId == bytes32(0)) revert InvalidMessageId();
         if (processedBridgeMessages[messageId]) revert BridgeMessageAlreadyProcessed();
         processedBridgeMessages[messageId] = true;
-        _insertCommitments(outCommitments);
+        PoolValidation.requireCommitmentsValid(outCommitments);
+        _insertCommitmentsValidated(outCommitments);
         emit BridgeIn(srcChainId, outCommitments[0], outCommitments[1]);
     }
 
@@ -428,10 +430,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
 
         address verifierAddr = verifiers[PROOF_TYPE_TRANSFER];
         if (verifierAddr == address(0)) revert VerifierNotConfigured();
-        if (verifierAddr.code.length == 0) revert VerifierMustBeContract();
 
         PoolValidation.requireNullifiersFresh(nullifiers, usedNullifiersGlobal);
-        _requireCommitmentsValid(outCommitments);
+        PoolValidation.requireCommitmentsValid(outCommitments);
 
         uint256[13] memory publicInputs = _buildPublicInputs(ctx, nullifiers, outCommitments);
         if (!_verifyProof(IVerifier(verifierAddr), publicInputs, a, bSnarkjs, c)) revert InvalidProof();
@@ -442,10 +443,6 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         }
     }
 
-    function _insertCommitments(bytes32[2] calldata outCommitments) internal {
-        _requireCommitmentsValid(outCommitments);
-        _insertCommitmentsValidated(outCommitments);
-    }
 
     function _insertCommitmentsValidated(bytes32[2] calldata outCommitments) internal {
         uint256 tail = rootQueueTail;
@@ -459,14 +456,11 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             emit NoteCreated(outCommitments[i]);
             emit RootAdded(newRoot);
         }
-        if (tail != rootQueueTail) {
+        {
             rootQueueTail = tail;
         }
     }
 
-    function _requireCommitmentsValid(bytes32[2] calldata outCommitments) internal pure {
-        PoolValidation.requireCommitmentsValid(outCommitments);
-    }
 
     function _applyFee(uint256 fee, address relayer) internal {
         if (fee == 0) return;
@@ -499,8 +493,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         bytes32[2] calldata nullifiers,
         bytes32[2] calldata outCommitments
     ) internal view returns (uint256[13] memory publicInputs) {
-        return computePublicInputsWithWithdraw(
-            nullifiers, outCommitments, ctx.merkleRoot, ctx.dstChainId,
+        return PoolPublicInputs.build(
+            nullifiers, outCommitments, ctx.merkleRoot, block.chainid, ctx.dstChainId,
             ctx.protocolEpoch, ctx.fee, ctx.relayer,
             ctx.withdrawOwner, ctx.withdrawRecipient, ctx.withdrawAmount
         );
@@ -528,37 +522,5 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         }
     }
 
-    function computePublicInputs(
-        bytes32[2] memory nullifiers,
-        bytes32[2] memory outCommitments,
-        bytes32 merkleRoot,
-        uint256 dstChainId,
-        uint256 protocolEpoch_,
-        uint256 fee,
-        address relayer
-    ) public view returns (uint256[13] memory publicInputs) {
-        return computePublicInputsWithWithdraw(nullifiers, outCommitments, merkleRoot, dstChainId, protocolEpoch_, fee, relayer, address(0), address(0), 0);
-    }
 
-    /// @notice Builds the 13 public signals for a UTXO proof with optional withdraw binding.
-    /// @dev `dstChainId` is the destination chain for bridge-out proofs; for same-chain
-    ///      transact calls, pass block.chainid. The source chainId is always block.chainid
-    ///      and is not a parameter — it is read from the EVM directly.
-    function computePublicInputsWithWithdraw(
-        bytes32[2] memory nullifiers,
-        bytes32[2] memory outCommitments,
-        bytes32 merkleRoot,
-        uint256 dstChainId,
-        uint256 protocolEpoch_,
-        uint256 fee,
-        address relayer,
-        address withdrawOwner,
-        address withdrawRecipient,
-        uint256 withdrawAmount
-    ) public view returns (uint256[13] memory publicInputs) {
-        return PoolPublicInputs.build(
-            nullifiers, outCommitments, merkleRoot, block.chainid, dstChainId,
-            protocolEpoch_, fee, relayer, withdrawOwner, withdrawRecipient, withdrawAmount
-        );
-    }
 }

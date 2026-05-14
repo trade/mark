@@ -42,13 +42,14 @@ library PoolValidation {
         bytes32[2] calldata nullifiers,
         mapping(bytes32 => bool) storage usedNullifiersGlobal
     ) internal view {
+        // Check duplicate first so the error is precise.
+        if (nullifiers[0] == nullifiers[1]) revert PoolErrors.NullifierDuplicate();
         for (uint256 i = 0; i < nullifiers.length; i++) {
             bytes32 nullifier = nullifiers[i];
             if (nullifier == bytes32(0)) revert PoolErrors.NullifierInvalid();
             if (uint256(nullifier) >= SNARK_SCALAR_FIELD) revert PoolErrors.InputExceedsCircuitRange();
             if (usedNullifiersGlobal[nullifier]) revert PoolErrors.NullifierUsed();
         }
-        if (nullifiers[0] == nullifiers[1]) revert PoolErrors.NullifierDuplicate();
     }
 
     function requireCommitmentsValid(bytes32[2] calldata outCommitments)
