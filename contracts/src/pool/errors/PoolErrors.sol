@@ -26,7 +26,7 @@ abstract contract PoolErrors {
     error FeeTooLow();
     /// @dev Fired when setMinFee is called with a value > 1. minFee is constrained to
     ///      0 or 1 credit unit — values above 1 indicate a misconfigured fee policy.
-    error FixedFeePolicy();
+    error MinFeeTooLarge();
     error InvalidBurnBps();
 
     // Merkle tree

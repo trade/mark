@@ -221,7 +221,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     function setMinFee(uint256 newMinFee) external restricted {
         // Circuit enforces percentage fee; runtime floor is a narrow safety guard only.
         // Allowed values are intentionally constrained to 0/1 credit unit.
-        if (newMinFee > 1) revert FixedFeePolicy();
+        if (newMinFee > 1) revert MinFeeTooLarge();
         if (newMinFee != minFee) {
             minFee = newMinFee;
             emit MinFeeSet(newMinFee);
