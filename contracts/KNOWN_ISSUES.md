@@ -89,14 +89,14 @@ This document lists known limitations and intentional design decisions that audi
 
 ---
 
-## KI-8: MARKPool exceeds EIP-170 contract size limit
+## KI-8: MARKPool and PoseidonT3 contract size
 
 **Contracts:** `src/pool/MARKPool.sol`, `src/crypto/generated/PoseidonT3.sol`
 
-**Description:** `MARKPool` is 24,960 bytes — exceeding the EIP-170 24,576-byte limit. `PoseidonT3` is 55,856 bytes and also cannot be deployed directly. `via_ir = true` in `foundry.toml` already prevents `PoseidonT3` from being inlined into `MARKPool`; the size issue is `MARKPool` itself being too large.
+**Description:** `MARKPool` is currently 24,298 bytes — 278 bytes under the EIP-170 24,576-byte limit. `PoseidonT3` is 55,856 bytes as a standalone artifact, but `via_ir = true` in `foundry.toml` causes the compiler to inline it into `MARKPool` rather than deploying it as a linked library. `MARKPool` has no link references and is deployable as-is.
 
-**Impact:** `MARKPool` cannot be deployed as-is. CI omits pool execute smoke entirely and runs only the pool release dry-run orchestration path.
+**Impact:** `MARKPool` is deployable. The 278-byte margin is tight — any significant feature addition risks exceeding the limit. CI runs pool release dry-run only (no execute smoke) due to the historical size concern.
 
-**Required before mainnet:** `MARKPool` must be split into smaller contracts (e.g. extract bridge-out logic, fee policy, or root management into separate contracts) to get under 24,576 bytes. `PoseidonT3` must also be deployed as a standalone contract and called via interface. Both are required.
+**Required before mainnet:** Monitor `MARKPool` size on every change. If the margin drops below ~100 bytes, extract logic (e.g. bridge-out, fee policy, or root management) into a separate contract. `PoseidonT3` does not need to be deployed separately as long as `via_ir = true` is maintained.
 
-**Accepted for now because:** The pool domain is pre-production. The settlement layer (which does not use `MARKPool`) is unaffected and can proceed to mainnet independently.
+**Accepted for now because:** The pool domain is pre-production. The settlement layer (which does not use `MARKPool`) is unaffected and can proceed to testnet independently.
