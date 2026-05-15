@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {PoseidonT3} from "./generated/PoseidonT3.sol";
+import {IPoseidonT3} from "../interfaces/IPoseidonT3.sol";
 import {PoolErrors} from "../pool/errors/PoolErrors.sol";
 
 library MerkleTree {
@@ -12,21 +12,23 @@ library MerkleTree {
         uint256 depth;
         uint256 nextLeafIndex;
         bytes32 root;
+        address poseidon;
         mapping(uint256 => bytes32) filledSubtrees;
         mapping(uint256 => bytes32) zeros;
     }
 
-    function init(Tree storage tree, uint256 depth) internal {
+    function init(Tree storage tree, uint256 depth, address poseidon) internal {
         if (tree.depth != 0) revert PoolErrors.TreeAlreadyInitialized();
         if (depth == 0 || depth > 32) revert PoolErrors.InvalidRoot();
 
         tree.depth = depth;
+        tree.poseidon = poseidon;
 
         bytes32 current = bytes32(0);
         for (uint256 i = 0; i < depth; i++) {
             tree.zeros[i] = current;
             tree.filledSubtrees[i] = current;
-            current = hashLeftRight(current, current);
+            current = _hash(poseidon, current, current);
         }
         tree.root = current;
     }
@@ -43,13 +45,14 @@ library MerkleTree {
 
         bytes32 current = leaf;
         uint256 idx = index;
+        address poseidon = tree.poseidon;
 
         for (uint256 i = 0; i < tree.depth; i++) {
             if (idx % 2 == 0) {
                 tree.filledSubtrees[i] = current;
-                current = hashLeftRight(current, tree.zeros[i]);
+                current = _hash(poseidon, current, tree.zeros[i]);
             } else {
-                current = hashLeftRight(tree.filledSubtrees[i], current);
+                current = _hash(poseidon, tree.filledSubtrees[i], current);
             }
             idx >>= 1;
         }
@@ -61,12 +64,8 @@ library MerkleTree {
         return tree.root;
     }
 
-    function hashLeftRight(bytes32 left, bytes32 right)
-        internal
-        pure
-        returns (bytes32)
-    {
+    function _hash(address poseidon, bytes32 left, bytes32 right) private view returns (bytes32) {
         uint256[2] memory inputs = [uint256(left), uint256(right)];
-        return bytes32(PoseidonT3.hash(inputs));
+        return bytes32(IPoseidonT3(poseidon).hash(inputs));
     }
 }

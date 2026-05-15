@@ -72,7 +72,8 @@ contract MARKPoolE2ETest is Test {
 
         vm.startPrank(admin);
         accessManager = new AccessManager(admin);
-        pool = new MARKPool(address(accessManager), address(verifier));
+        address poseidon = deployCode("PoseidonT3.sol:PoseidonT3");
+        pool = new MARKPool(address(accessManager), address(verifier), poseidon);
         ledger = new RYLACreditLedger(address(token), address(pool));
         adapter = new MARKWithdrawAdapter(address(accessManager), address(ledger), address(pool));
         ledger.setAdapter(address(adapter));

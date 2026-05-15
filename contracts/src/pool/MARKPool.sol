@@ -113,16 +113,18 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         bytes32 indexed commitment1
     );
 
-    constructor(address initialAuthority, address _verifier)
+    constructor(address initialAuthority, address _verifier, address _poseidon)
         AccessManaged(initialAuthority)
     {
         if (_verifier == address(0)) revert InvalidVerifier();
         if (_verifier.code.length == 0) revert VerifierMustBeContract();
+        if (_poseidon == address(0)) revert InvalidPoseidon();
+        if (_poseidon.code.length == 0) revert PoseidonMustBeContract();
 
         verifiers[PROOF_TYPE_TRANSFER] = _verifier;
         proofTypeEnabled[PROOF_TYPE_TRANSFER] = true;
 
-        tree.init(20);
+        tree.init(20, _poseidon);
         bytes32 initialRoot = tree.getRoot();
         knownRoots[initialRoot] = true;
         rootTimestamps[initialRoot] = block.timestamp;
