@@ -445,4 +445,18 @@ contract MARKWithdrawAdapterTest is Test {
         ownerSig = abi.encodePacked(or_, os, ov);
         intentSig = abi.encodePacked(ir, is_, iv);
     }
+    function testWithdrawWithSigRevertsForZeroRecipient() public {
+        vm.expectRevert(MARKWithdrawErrors.InvalidRecipient.selector);
+        adapter.withdrawWithSig(
+            user,
+            address(0),
+            1 ether,
+            [keccak256("n1"), keccak256("n2")],
+            0,
+            block.timestamp + 1,
+            bytes(""),
+            bytes("")
+        );
+    }
+
 }

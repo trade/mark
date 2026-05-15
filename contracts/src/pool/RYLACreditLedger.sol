@@ -23,6 +23,8 @@ contract RYLACreditLedger is ICreditLedger {
     error InvalidContract();
 
     event AdapterSet(address indexed adapter);
+    event Credit(address indexed to, uint256 amount);
+    event Debit(address indexed from, uint256 amount);
 
     IRYLA public immutable TOKEN;
     address public immutable POOL;
@@ -55,15 +57,17 @@ contract RYLACreditLedger is ICreditLedger {
 
     function credit(address to, uint256 amount) external {
         if (msg.sender != POOL) revert Unauthorized();
-        TOKEN.mint(to, amount);
         _totalMinted += amount;
+        emit Credit(to, amount);
+        TOKEN.mint(to, amount);
     }
 
     function debit(address from, uint256 amount) external {
         if (msg.sender != ADAPTER) revert Unauthorized();
         IERC20(address(TOKEN)).safeTransferFrom(from, address(this), amount);
-        TOKEN.burn(amount);
         _totalBurned += amount;
+        emit Debit(from, amount);
+        TOKEN.burn(amount);
     }
 
     function creditBalanceOf(address account) external view returns (uint256) {
