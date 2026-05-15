@@ -6,7 +6,7 @@ on:
       foundry_version:
         description: Foundry version used for Slither compile path
         required: false
-        default: "1.5.0"
+        default: "1.8.0"
         type: string
 
 jobs:
@@ -29,23 +29,10 @@ jobs:
         run: pip install slither-analyzer==0.11.5
 
       - name: Setup Foundry
-        uses: ./.github/actions/setup-foundry
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d
         with:
-          foundry-version: ${{ inputs.foundry_version }}
+          version: v${{ inputs.foundry_version }}
 
       - name: Run Slither on MARK core contracts
         working-directory: contracts
-        run: |
-          for target in \
-            src/token/RYLA.sol \
-            src/bridge/MARKBridgeAdapter.sol \
-            src/settlement/MARKSettlementModule.sol \
-            src/settlement/verifier/AttestedSettlementVerifier.sol
-          do
-            slither "$target" \
-              --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
-              --exclude-dependencies \
-              --exclude "naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign" \
-              --filter-paths "lib|test|script|out|cache" \
-              --fail-medium
-          done
+        run: make slither-core
