@@ -81,9 +81,8 @@ slither-install:
 	@python3 -m pip install --user slither-analyzer==0.11.4
 
 slither-core:
-	@command -v slither >/dev/null 2>&1 || { \
-	  echo "slither not found in PATH. Try: export PATH=\"$$HOME/Library/Python/3.9/bin:$$PATH\""; \
-	  echo "or run: make slither-install"; \
+	@python3 -m slither --version >/dev/null 2>&1 || { \
+	  echo "slither not found. Run: make slither-install"; \
 	  exit 1; \
 	}
 	# Per-contract exclusion rationale:
