@@ -125,7 +125,8 @@ contract MARKPoolInvariants is StdInvariant, Test {
 
         vm.startPrank(admin);
         accessManager = new AccessManager(admin);
-        pool = new MARKPool(address(accessManager), address(verifier));
+        address poseidon = deployCode("PoseidonT3.sol:PoseidonT3");
+        pool = new MARKPool(address(accessManager), address(verifier), poseidon);
 
         bytes4[] memory selectors = new bytes4[](2);
         selectors[0] = pool.setAssetLedger.selector;

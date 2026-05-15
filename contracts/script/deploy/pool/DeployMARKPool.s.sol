@@ -39,6 +39,7 @@ contract DeployMARKPool is Script {
         address verifierAddress;
         address owner;
         address intentSigner;
+        address poseidonAddress;
     }
 
     struct Deployed {
@@ -60,7 +61,7 @@ contract DeployMARKPool is Script {
         d.accessManager = new AccessManager(cfg.owner);
 
         // 2. MARKPool — no ledger needed at construction
-        d.pool = new MARKPool(address(d.accessManager), cfg.verifierAddress);
+        d.pool = new MARKPool(address(d.accessManager), cfg.verifierAddress, cfg.poseidonAddress);
 
         // 3. RYLACreditLedger — pool address now known
         d.ledger = new RYLACreditLedger(cfg.tokenAddress, address(d.pool));
@@ -139,5 +140,7 @@ contract DeployMARKPool is Script {
         cfg.verifierAddress = vm.envAddress("MARK_POOL_VERIFIER");
         cfg.owner = vm.envOr("MARK_POOL_OWNER", cfg.deployer);
         cfg.intentSigner = vm.envOr("MARK_POOL_INTENT_SIGNER", address(0));
+        // Default: Semaphore PoseidonT3 (same address on all EVM networks, BN254 compatible)
+        cfg.poseidonAddress = vm.envOr("MARK_POOL_POSEIDON", address(0xB43122Ecb241DD50062641f089876679fd06599a));
     }
 }
