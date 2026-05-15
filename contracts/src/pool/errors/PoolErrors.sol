@@ -6,6 +6,8 @@ abstract contract PoolErrors {
     // Verifier / asset ledger configuration
     error InvalidVerifier();
     error VerifierMustBeContract();
+    error InvalidPoseidon();
+    error PoseidonMustBeContract();
     error VerifierNotConfigured();
     error InvalidAssetLedger();
     error AssetLedgerMustBeContract();

@@ -59,7 +59,8 @@ contract MARKPoolTest is Test {
 
         vm.startPrank(admin);
         accessManager = new AccessManager(admin);
-        pool = new MARKPool(address(accessManager), address(mockOk));
+        address poseidon = deployCode("PoseidonT3.sol:PoseidonT3");
+        pool = new MARKPool(address(accessManager), address(mockOk), poseidon);
 
         // Grant admin all restricted selectors via a custom role (role 1)
         bytes4[] memory selectors = new bytes4[](14);
