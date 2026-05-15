@@ -51,7 +51,7 @@ library MerkleTree {
             } else {
                 current = hashLeftRight(tree.filledSubtrees[i], current);
             }
-            idx /= 2;
+            idx >>= 1;
         }
 
         tree.root = current;
