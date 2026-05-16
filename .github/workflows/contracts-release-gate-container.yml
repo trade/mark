@@ -23,6 +23,7 @@ on:
       - dev
     paths:
       - "contracts/**"
+      - "circuits/**"
       - ".github/workflows/contracts-release-gate-container.yml"
 
 jobs:
