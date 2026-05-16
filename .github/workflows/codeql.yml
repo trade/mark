@@ -6,6 +6,7 @@ on:
     paths:
       - "src/**"
       - "contracts/**"
+      - "circuits/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - ".github/workflows/codeql.yml"
