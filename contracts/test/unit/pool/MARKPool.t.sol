@@ -371,4 +371,20 @@ contract MARKPoolTest is Test {
         vm.stopPrank();
         assertFalse(pool.proofTypeEnabled(pool.PROOF_TYPE_TRANSFER()));
     }
+    function testConstructorRevertsOnZeroPoseidon() public {
+        vm.startPrank(admin);
+        AccessManager am = new AccessManager(admin);
+        vm.expectRevert(PoolErrors.InvalidPoseidon.selector);
+        new MARKPool(address(am), address(mockOk), address(0));
+        vm.stopPrank();
+    }
+
+    function testConstructorRevertsOnEOAPoseidon() public {
+        vm.startPrank(admin);
+        AccessManager am = new AccessManager(admin);
+        vm.expectRevert(PoolErrors.PoseidonMustBeContract.selector);
+        new MARKPool(address(am), address(mockOk), makeAddr("eoa"));
+        vm.stopPrank();
+    }
+
 }
