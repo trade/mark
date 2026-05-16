@@ -2,9 +2,6 @@ name: Contracts Release Gate (Containerized)
 
 on:
   pull_request:
-    paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-release-gate-container.yml"
   workflow_dispatch:
     inputs:
       gate_mode:
