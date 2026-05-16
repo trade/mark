@@ -1,26 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-/// @notice Interface for a Groth16 proof verifier contract.
-/// @dev Matches the output of snarkjs `exportSolidityVerifier`. The verifier contract
-///      is generated from the compiled circuit and is specific to that circuit's
-///      verification key. Swap the implementation by deploying a new verifier contract
-///      and calling `Groth16SettlementVerifier.setVerifierContract`.
+/// @notice Interface for the snarkjs-generated Groth16 verifier contract.
+/// @dev Matches the output of snarkjs `exportSolidityVerifier` for the UTXOSettlement circuit.
+///      Public signal ordering (13 signals, canonical):
+///      [0]  merkleRoot       [1]  chainId         [2]  dstChainId
+///      [3]  protocolEpoch    [4]  fee              [5]  relayer
+///      [6]  nullifier[0]     [7]  nullifier[1]
+///      [8]  outCommitment[0] [9]  outCommitment[1]
+///      [10] withdrawOwner    [11] withdrawRecipient [12] withdrawAmount
 ///
-///      Proof encoding (256 bytes):
-///        uint256[2] a   — G1 point (proof.pi_a)
-///        uint256[2][2] b — G2 point (proof.pi_b)
-///        uint256[2] c   — G1 point (proof.pi_c)
-///
-///      Public signals (4 × uint256, 128 bytes):
-///        [0] nullifierHash  — keccak256(note_secret, nullifier_nonce), prevents double-spend
-///        [1] commitmentHash — keccak256(recipient, amount, blinding_factor), binds output note
-///        [2] amount         — token amount in base units (must match settlement call)
-///        [3] isMint         — 1 for mint, 0 for burn
+///      Proof encoding (passed as separate typed arrays):
+///        uint256[2]    a  — G1 point pi_a
+///        uint256[2][2] b  — G2 point pi_b (snarkjs coordinate order)
+///        uint256[2]    c  — G1 point pi_c
 interface IGroth16Verifier {
-    /// @notice Verifies a Groth16 proof against the circuit's verification key.
-    /// @param proof   ABI-encoded (uint256[2], uint256[2][2], uint256[2]) — 256 bytes.
-    /// @param pubSignals ABI-encoded uint256[4] public signals — 128 bytes.
-    /// @return True if the proof is valid.
-    function verifyProof(bytes calldata proof, bytes calldata pubSignals) external view returns (bool);
+    function verifyProof(
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        uint256[13] calldata input
+    ) external view returns (bool);
 }

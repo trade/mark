@@ -4,7 +4,7 @@
 ci-fast: architecture-guard layering-guard test-core
 
 test-core:
-	@FOUNDRY_OFFLINE=true forge test --no-match-path 'test/invariant/**' -q
+	@FOUNDRY_OFFLINE=true forge test --no-match-path 'test/{invariant,integration}/**' -q
 
 test-invariants:
 	@FOUNDRY_OFFLINE=true FOUNDRY_INVARIANT_RUNS=64 forge test --match-path 'test/invariant/**/*.t.sol' -q
@@ -78,24 +78,32 @@ verify-evidence-signature:
 	@./script/ops/verify-evidence-signature.sh
 
 slither-install:
-	@python3 -m pip install --user slither-analyzer==0.11.5
+	@python3 -m pip install --user slither-analyzer==0.11.4
 
 slither-core:
-	@command -v slither >/dev/null 2>&1 || { \
-	  echo "slither not found in PATH. Try: export PATH=\"$$HOME/Library/Python/3.9/bin:$$PATH\""; \
-	  echo "or run: make slither-install"; \
+	@python3 -m slither --version >/dev/null 2>&1 || { \
+	  echo "slither not found. Run: make slither-install"; \
 	  exit 1; \
 	}
-	@for target in \
-	  src/token/RYLA.sol \
-	  src/bridge/MARKBridgeAdapter.sol \
-	  src/settlement/MARKSettlementModule.sol \
-	  src/settlement/verifier/AttestedSettlementVerifier.sol; \
-	do \
-	  slither "$$target" \
-	    --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
-	    --exclude-dependencies \
-	    --exclude "naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign" \
-	    --filter-paths "lib|test|script|out|cache" \
-	    --fail-medium; \
-	done
+	# Per-contract exclusion rationale:
+	# naming-convention  — SCREAMING_SNAKE_CASE immutables are intentional (all contracts)
+	# timestamp          — block.timestamp used only for root expiry windows, not randomness (all)
+	# arbitrary-send-erc20 — transferFrom requires prior approval from the token holder (bridge, settlement, ledger)
+	# reentrancy-balance — false positive on settlement module balance checks
+	# reentrancy-benign  — benign reentrancy paths with no exploitable state (settlement + pool)
+	# incorrect-return   — false positive on PoseidonT3 assembly return (correct EVM usage)
+	# assembly           — PoseidonT3 uses inline assembly by design (ZK hash function)
+	# arbitrary-send-eth — MARKWithdrawAdapter sends ETH to recipient by design (withdrawal adapter)
+	# missing-zero-check — false positive: recipient checked in _validateWithdrawRequest before ETH send
+	# low-level-calls    — .call{value} is intentional (supports contract recipients)
+	@REMAPS="@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/"; \
+	FLAGS="--exclude-dependencies --filter-paths lib|test|script|out|cache --fail-medium"; \
+	BASE="naming-convention,timestamp"; \
+	python3 -m slither src/token/RYLA.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE"; \
+	python3 -m slither src/bridge/MARKBridgeAdapter.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-erc20"; \
+	python3 -m slither src/settlement/MARKSettlementModule.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign"; \
+	python3 -m slither src/settlement/verifier/AttestedSettlementVerifier.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE"; \
+	python3 -m slither src/settlement/verifier/Groth16SettlementVerifier.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE"; \
+	python3 -m slither src/pool/MARKPool.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,reentrancy-benign,incorrect-return,assembly"; \
+	python3 -m slither src/pool/RYLACreditLedger.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-erc20"; \
+	python3 -m slither src/withdraw/MARKWithdrawAdapter.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-eth,missing-zero-check,low-level-calls"

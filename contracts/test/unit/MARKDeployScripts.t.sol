@@ -5,8 +5,21 @@ import {Test} from "forge-std/Test.sol";
 import {RYLA} from "../../src/token/RYLA.sol";
 import {MARKBridgeAdapter} from "../../src/bridge/MARKBridgeAdapter.sol";
 import {MARKSettlementModule} from "../../src/settlement/MARKSettlementModule.sol";
+import {Groth16SettlementVerifier} from "../../src/settlement/verifier/Groth16SettlementVerifier.sol";
+import {IGroth16Verifier} from "../../src/settlement/interfaces/IGroth16Verifier.sol";
 import {DeployMARKStack} from "../../script/deploy/bridge/DeployMARKStack.s.sol";
 import {DeployMARKSettlementModule} from "../../script/deploy/settlement/DeployMARKSettlementModule.s.sol";
+
+contract MockScriptGroth16Verifier is IGroth16Verifier {
+    function verifyProof(
+        uint256[2] calldata,
+        uint256[2][2] calldata,
+        uint256[2] calldata,
+        uint256[13] calldata
+    ) external pure returns (bool) {
+        return true;
+    }
+}
 
 contract MARKDeployScriptsTest is Test {
     uint256 internal constant DEPLOYER_PK = 0xA11CE;
@@ -42,6 +55,7 @@ contract MARKDeployScriptsTest is Test {
         vm.setEnv("MARK_SETTLEMENT_PROOF_ENABLED", "false");
         vm.setEnv("MARK_DEPLOY_ATTESTED_VERIFIER", "false");
         vm.setEnv("MARK_SETTLEMENT_ATTESTER", vm.toString(address(0)));
+        vm.setEnv("MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT", "false");
     }
 
     function testDeployMARKStackRevertsWhenConfigRequestedWithoutAdapterAdmin() public {
@@ -114,5 +128,30 @@ contract MARKDeployScriptsTest is Test {
         assertTrue(module.hasRole(module.OPERATOR_ROLE(), operator));
         assertTrue(token.hasRole(token.MINTER_ROLE(), address(module)));
         assertTrue(token.hasRole(token.BURNER_ROLE(), address(module)));
+    }
+
+    function testDeployMARKSettlementBindsGroth16VerifierModule() public {
+        vm.prank(deployer);
+        RYLA token = new RYLA(deployer);
+
+        vm.startPrank(deployer);
+        Groth16SettlementVerifier groth = new Groth16SettlementVerifier(deployer);
+        MockScriptGroth16Verifier inner = new MockScriptGroth16Verifier();
+        groth.setVerifierContract(address(inner));
+        vm.stopPrank();
+
+        vm.setEnv("MARK_RYLA_TOKEN", vm.toString(address(token)));
+        vm.setEnv("MARK_MODULE_OWNER", vm.toString(deployer));
+        vm.setEnv("MARK_SETTLEMENT_OPERATOR", vm.toString(operator));
+        vm.setEnv("MARK_SETTLEMENT_VERIFIER", vm.toString(address(groth)));
+        vm.setEnv("MARK_SETTLEMENT_PROOF_ENABLED", "true");
+        vm.setEnv("MARK_DEPLOY_ATTESTED_VERIFIER", "false");
+        vm.setEnv("MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT", "true");
+        assertEq(vm.envAddress("MARK_SETTLEMENT_VERIFIER"), address(groth));
+
+        MARKSettlementModule module = deploySettlement.run();
+
+        assertEq(groth.settlementModule(), address(module));
+        assertTrue(groth.directionEnforcementEnabled());
     }
 }
