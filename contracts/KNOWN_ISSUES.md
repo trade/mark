@@ -93,10 +93,10 @@ This document lists known limitations and intentional design decisions that audi
 
 **Contracts:** `src/pool/MARKPool.sol`, `src/crypto/generated/PoseidonT3.sol`
 
-**Description:** `MARKPool` is currently 24,298 bytes — 278 bytes under the EIP-170 24,576-byte limit. `PoseidonT3` is 55,856 bytes as a standalone artifact, but `via_ir = true` in `foundry.toml` causes the compiler to inline it into `MARKPool` rather than deploying it as a linked library. `MARKPool` has no link references and is deployable as-is.
+**Description:** `MARKPool` is currently 24,231 bytes — 345 bytes under the EIP-170 24,576-byte limit. `PoseidonT3` is 55,856 bytes and cannot be deployed directly. `MerkleTree` calls Poseidon via `IPoseidonT3` interface at a configurable address; `MARKPool` has no link references and is fully self-contained. The default deployment address is `0xB43122Ecb241DD50062641f089876679fd06599a` (Semaphore's PoseidonT3, same address on all EVM networks via CREATE2).
 
-**Impact:** `MARKPool` is deployable. The 278-byte margin is tight — any significant feature addition risks exceeding the limit. CI runs pool release dry-run only (no execute smoke): Foundry's contract size check rejects the `PoseidonT3` library artifact (55,856 bytes) during broadcast even though `via_ir` inlines it into `MARKPool` at compile time. The dry-run validates the release script logic without triggering this check.
+**Impact:** `MARKPool` is deployable. The 345-byte margin is tight — any significant feature addition risks exceeding the limit. CI runs pool release dry-run only (no execute smoke): Foundry's contract size check rejects the `PoseidonT3` library artifact (55,856 bytes) during broadcast. The dry-run validates the release script logic without triggering this check.
 
-**Required before mainnet:** Monitor `MARKPool` size on every change. If the margin drops below ~100 bytes, extract logic (e.g. bridge-out, fee policy, or root management) into a separate contract. `PoseidonT3` does not need to be deployed separately as long as `via_ir = true` is maintained.
+**Required before mainnet:** Monitor `MARKPool` size on every change. If the margin drops below ~100 bytes, extract logic (e.g. bridge-out, fee policy, or root management) into a separate contract.
 
 **Accepted for now because:** The pool domain is pre-production. The settlement layer (which does not use `MARKPool`) is unaffected and can proceed to testnet independently.

@@ -64,9 +64,9 @@ contract RYLACreditLedger is ICreditLedger {
 
     function debit(address from, uint256 amount) external {
         if (msg.sender != ADAPTER) revert Unauthorized();
-        IERC20(address(TOKEN)).safeTransferFrom(from, address(this), amount);
         _totalBurned += amount;
         emit Debit(from, amount);
+        IERC20(address(TOKEN)).safeTransferFrom(from, address(this), amount);
         TOKEN.burn(amount);
     }
 
