@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "contracts/**"
+      - "circuits/**"
       - ".github/workflows/contracts-release-gate-container.yml"
   workflow_dispatch:
     inputs:
