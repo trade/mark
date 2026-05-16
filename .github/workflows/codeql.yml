@@ -9,7 +9,7 @@ on:
       - "circuits/**"
       - "package.json"
       - "pnpm-lock.yaml"
-      - ".github/workflows/codeql.yml"
+      - ".github/workflows/**"
   push:
     branches: [main, canary, dev]
     paths:
