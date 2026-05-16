@@ -3,13 +3,6 @@ name: CodeQL
 on:
   pull_request:
     branches: [main, canary, dev]
-    paths:
-      - "src/**"
-      - "contracts/**"
-      - "circuits/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/**"
   push:
     branches: [main, canary, dev]
     paths:
