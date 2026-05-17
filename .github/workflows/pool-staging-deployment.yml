@@ -73,7 +73,7 @@ jobs:
           validate_address "$MARK_RYLA_TOKEN" "ryla_token"
           validate_address "$MARK_POOL_POSEIDON" "pool_poseidon"
           validate_address "$MARK_POOL_INTENT_SIGNER" "pool_intent_signer"
-          if [ -z "$RPC_URL" ]; then echo "rpc_url is required" >&2; exit 1; fi
+          if [ -z "$RPC_URL" ]; then echo "RPC_URL is required (use rpc_url input or set MARK_STAGING_RPC_URL repository variable)" >&2; exit 1; fi
           if [ -z "$MARK_POOL_RELEASE_ARTIFACT_PATH" ] || [ "$MARK_POOL_RELEASE_ARTIFACT_PATH" = "." ] || [ "$MARK_POOL_RELEASE_ARTIFACT_PATH" = ".." ]; then
             echo "artifact_path must be a safe relative path" >&2; exit 1
           fi
@@ -94,10 +94,7 @@ jobs:
             echo "MARK_STAGING_DEPLOYER_PRIVATE_KEY secret is required";
             exit 1;
           }
-          test -n "${RPC_URL}" || {
-            echo "RPC_URL is required (use rpc_url input or set MARK_STAGING_RPC_URL repository variable)";
-            exit 1;
-          }
+
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
