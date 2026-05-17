@@ -83,6 +83,10 @@ pnpm build:contracts
 - **MARKSettlementModule** — Operator-gated settlement boundary with replay protection and optional ZK proof verification.
 - **MARKBridgeAdapter** — Operator-gated bridge adapter routing RYLA cross-chain via SuperchainTokenBridge with rate limits.
 - **AttestedSettlementVerifier** — EIP-712 signature-based verifier for settlement intents.
+- **MARKPool** — ZK UTXO pool. Nullifier registry backed by a Merkle tree. Accepts deposits via ZK proof and records withdraw bindings.
+- **MARKPoolVerifier** — Groth16 verifier generated from the MARKPool circuit. Validates 13-signal ZK proofs on-chain.
+- **RYLACreditLedger** — Credit ledger bridging the pool to RYLA mint/burn. Mints RYLA for relayer fees; burns RYLA on withdrawal.
+- **MARKWithdrawAdapter** — EIP-191 signature-based withdrawal adapter. Verifies withdraw bindings and sends ETH to recipients.
 
 ### Tools
 
