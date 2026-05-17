@@ -73,6 +73,9 @@ jobs:
           validate_address "$MARK_POOL_POSEIDON" "pool_poseidon"
           validate_address "$MARK_POOL_INTENT_SIGNER" "pool_intent_signer"
           if [ -z "$RPC_URL" ]; then echo "rpc_url is required" >&2; exit 1; fi
+          if [ -z "$MARK_POOL_RELEASE_ARTIFACT_PATH" ] || [ "$MARK_POOL_RELEASE_ARTIFACT_PATH" = "." ] || [ "$MARK_POOL_RELEASE_ARTIFACT_PATH" = ".." ]; then
+            echo "artifact_path must be a safe relative path" >&2; exit 1
+          fi
           case "$MARK_POOL_RELEASE_ARTIFACT_PATH" in
             *../*|*/..|./*|/*|*/./*|*/../*) echo "artifact_path must be a safe relative path" >&2; exit 1 ;;
           esac
