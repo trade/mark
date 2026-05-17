@@ -4,13 +4,35 @@ early_access: false
 
 reviews:
   profile: "chill"
-  request_changes_workflow: true
+  request_changes_workflow: false
   high_level_summary: true
   review_status: true
-  collapse_walkthrough: false
+  collapse_walkthrough: true
   auto_review:
     enabled: true
     drafts: false
+  path_filters:
+    - "!**/*.md"
+    - "!**/*.yaml"
+    - "!**/*.yml"
+    - "!**/*.json"
+    - "!**/*.toml"
+    - "!**/.nvmrc"
+    - "!**/pnpm-lock.yaml"
+  path_instructions:
+    - path: "contracts/src/**/*.sol"
+      instructions: |
+        Focus only on: security vulnerabilities, reentrancy, CEI violations,
+        access control issues, integer overflow/underflow, and incorrect error handling.
+        Skip style, naming, and minor readability suggestions.
+    - path: "circuits/**/*.circom"
+      instructions: |
+        Focus only on: constraint soundness, missing range checks, and
+        signal assignment correctness. Skip style suggestions.
+    - path: ".github/workflows/**"
+      instructions: |
+        Focus only on: secret exposure, injection vulnerabilities, and
+        missing branch enforcement. Skip style suggestions.
 
 chat:
   auto_reply: true
