@@ -105,6 +105,19 @@ mark/
 └── mprocs.yaml         # Multi-process dev runner
 ```
 
+## Deployed Contracts
+
+### OP Sepolia (chainId: 11155420)
+
+| Contract | Address |
+|---|---|
+| RYLA | [`0xa27360e124B94449249D1E919d3363BfF1c10c02`](https://sepolia-optimism.etherscan.io/address/0xa27360e124B94449249D1E919d3363BfF1c10c02) |
+| MARKSettlementModule | [`0xB1CD6e5B88EF5979AE5306A11302Aa2F19c6Ad59`](https://sepolia-optimism.etherscan.io/address/0xB1CD6e5B88EF5979AE5306A11302Aa2F19c6Ad59) |
+| MARKBridgeAdapter | [`0x5F3823739E510981A821aC5E99235e36f65cBc71`](https://sepolia-optimism.etherscan.io/address/0x5F3823739E510981A821aC5E99235e36f65cBc71) |
+| AttestedSettlementVerifier | [`0xECBd3bEf80fd4c05DBEdE45464A1d264E0884260`](https://sepolia-optimism.etherscan.io/address/0xECBd3bEf80fd4c05DBEdE45464A1d264E0884260) |
+
+Staging rehearsal: [run 25979311184](https://github.com/trade/mark/actions/runs/25979311184) — production lock verified.
+
 ## Debugging
 
 - Full interoperability error signatures: [abi-signatures.md](https://github.com/ethereum-optimism/ecosystem/blob/main/packages/viem/docs/abi-signatures.md)
