@@ -1,6 +1,6 @@
 # MARK
 
-Privacy-first settlement infrastructure leveraging zero-knowledge technologies for secure, scalable, and private transactions on EVM-compatible blockchains, with native support for the Optimism Superchain.
+Privacy-first settlement infrastructure leveraging zero-knowledge technologies for secure, private, and scalable transactions. Built for EVM-compatible blockchains, with native support for the Optimism Superchain.
 
 Code is a rule. No DAO, no drama. Don't Trust, Verify.
 
