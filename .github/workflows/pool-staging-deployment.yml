@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       rpc_url:
-        description: "Target RPC URL (e.g. OP Sepolia)"
-        required: true
+        description: "Target RPC URL (leave blank to use MARK_STAGING_RPC_URL repository variable)"
+        required: false
+        default: ""
         type: string
       ryla_token:
         description: "Deployed RYLA token address"
@@ -40,7 +41,7 @@ jobs:
       run:
         working-directory: contracts
     env:
-      RPC_URL: ${{ inputs.rpc_url }}
+      RPC_URL: ${{ inputs.rpc_url != '' && inputs.rpc_url || vars.MARK_STAGING_RPC_URL }}
       MARK_RYLA_TOKEN: ${{ inputs.ryla_token }}
       MARK_POOL_POSEIDON: ${{ inputs.pool_poseidon }}
       MARK_POOL_INTENT_SIGNER: ${{ inputs.pool_intent_signer }}
@@ -91,6 +92,10 @@ jobs:
         run: |
           test -n "${PRIVATE_KEY}" || {
             echo "MARK_STAGING_DEPLOYER_PRIVATE_KEY secret is required";
+            exit 1;
+          }
+          test -n "${RPC_URL}" || {
+            echo "RPC_URL is required (use rpc_url input or set MARK_STAGING_RPC_URL repository variable)";
             exit 1;
           }
 
