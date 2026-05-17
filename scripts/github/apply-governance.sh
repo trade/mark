@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Applies repository governance defaults:
-# - branch protection for dev, canary, and main
+# - branch protection for dev and main
 # - creates/updates production environment
 #
 # All branches use 0 required approvals. The sole maintainer cannot approve
@@ -156,7 +156,7 @@ ensure_environment() {
   return 1
 }
 
-# Baseline checks for dev, canary, and main.
+# Baseline checks for dev and main.
 DEV_CHECKS_JSON='[
   "Analyze (javascript-typescript)",
   "Dependency Review",
@@ -208,8 +208,6 @@ fi
 # main: strict, restricted to trade/maintainers team
 apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 
-# canary: stabilisation track, restricted to trade/maintainers team
-apply_branch_protection "canary" "0" "$CANARY_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 
 # dev: integration track, restricted to trade/maintainers team
 apply_branch_protection "dev" "0" "$DEV_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
