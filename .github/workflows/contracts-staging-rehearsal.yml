@@ -3,7 +3,7 @@ name: Contracts Staging Rehearsal
 on:
   push:
     branches:
-      - canary
+      - dev
     paths:
       - "contracts/**"
   workflow_dispatch:
@@ -68,11 +68,11 @@ jobs:
       MARK_GIT_COMMIT: ${{ github.sha }}
 
     steps:
-      - name: Enforce canary or dev or main branch for rehearsal
+      - name: Enforce dev or main branch for rehearsal
         working-directory: .
         run: |
-          if [ "${GITHUB_REF_NAME}" != "canary" ] && [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
-            echo "Staging rehearsal must run from canary, dev, or main branch. Current: ${GITHUB_REF_NAME}"
+          if [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Staging rehearsal must run from dev or main branch. Current: ${GITHUB_REF_NAME}"
             exit 1
           fi
 
@@ -88,11 +88,11 @@ jobs:
             exit 1;
           }
           test -n "${RPC_URL}" || {
-            echo "RPC_URL is required (for canary push use repository variable MARK_STAGING_RPC_URL, for manual run use rpc_url input)";
+            echo "RPC_URL is required (for dev push use repository variable MARK_STAGING_RPC_URL, for manual run use rpc_url input)";
             exit 1;
           }
           test -n "${MARK_SETTLEMENT_OPERATOR}" || {
-            echo "MARK_SETTLEMENT_OPERATOR is required (for canary push use MARK_STAGING_SETTLEMENT_OPERATOR variable)";
+            echo "MARK_SETTLEMENT_OPERATOR is required (for dev push use MARK_STAGING_SETTLEMENT_OPERATOR variable)";
             exit 1;
           }
 

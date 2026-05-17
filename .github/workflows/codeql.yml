@@ -2,9 +2,9 @@ name: CodeQL
 
 on:
   pull_request:
-    branches: [main, canary, dev]
+    branches: [main, dev]
   push:
-    branches: [main, canary, dev]
+    branches: [main, dev]
     paths:
       - "src/**"
       - "contracts/**"
