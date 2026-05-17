@@ -99,7 +99,7 @@ Contracts Staging Rehearsal Workflow
 
 **Check deployment on OP Sepolia**:
 ```bash
-# Verify contract on OP Sepolia Sepolia explorer
+# Verify contract on OP Sepolia explorer
 # https://sepolia-optimism.etherscan.io
 
 # Expected contracts:
