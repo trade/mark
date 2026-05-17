@@ -43,15 +43,6 @@ Pre-mainnet promotion criteria are documented in [STAGING_GO_NO_GO_CHECKLIST.md]
 - Proof format:
   - `abi.encode(uint256 deadline, bytes32 contextHash, uint8 v, bytes32 r, bytes32 s)`
 
-### [Groth16SettlementVerifier.sol](./src/settlement/verifier/Groth16SettlementVerifier.sol)
-
-- Groth16-based settlement verifier adapter for 13-signal proofs.
-- Binds verifier usage to one `MARKSettlementModule` via `setSettlementModule(address)`.
-- Supports staged `isMint` direction enforcement:
-  - default (migration mode): `signals[7]` must be `0`
-  - strict mode: `signals[7]` must be `isMint ? 1 : 0`
-- Strict mode is toggled by `setDirectionEnforcementEnabled(bool)`.
-
 ## Development
 
 Note: legacy CrossChainCounter example contracts and tests were retired in favor of MARK protocol deployment/ops flows. Current CI and release gates focus on MARK stack contracts and governance evidence artifacts.
@@ -201,22 +192,6 @@ Control behavior with:
 - `MARK_GIT_COMMIT` to tag artifact with commit id
 - `MARK_RELEASE_STRICT_VERIFY=true` to require explicit `VERIFY_MARK_SETTLEMENT_*` expectations during execute-mode verify
 - `MARK_SETTLEMENT_PRODUCTION_MODE=true` to lock settlement verifier/proof validation configuration in production
-- `MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT=true|false` to control Groth16 strict direction binding during deploy/setup
-
-### Groth16 Direction Enforcement Rollout
-
-Use this sequence when `MARK_SETTLEMENT_VERIFIER` points to `Groth16SettlementVerifier`:
-
-1. Deploy/setup with migration-compatible mode:
-   - `MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT=false`
-   - This keeps legacy proof mapping (`signals[7] == 0`) valid.
-2. Upgrade proof generation so `signals[7]` encodes direction:
-   - mint: `1`
-   - burn: `0`
-3. Re-run staging tests and post-deploy verify.
-4. Enable strict mode:
-   - `MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT=true`
-5. Only then activate settlement production mode.
 
 ### Mainnet Readiness Gate
 

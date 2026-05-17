@@ -71,32 +71,3 @@ This document lists known limitations and intentional design decisions that audi
 **Impact:** None — these packages are not part of the deployed protocol.
 
 **Accepted because:** No upstream fix is available. The packages are scoped to development tooling only.
-
----
-
-## KI-7: Two separate ZK systems sharing the MARKPool 13-signal circuit
-
-**Scope:** `circuits/`, `src/pool/`, `src/settlement/verifier/Groth16SettlementVerifier.sol`
-
-**Description:** The project contains two contract domains that both use the same ZK circuit (`circuits/mark/MARKPool.circom`, 13 public signals):
-
-- **Pool system** (`MARKPool` + `MARKPoolVerifier`): uses the circuit directly for UTXO transfers. The circuit is compiled, the verifier is generated at `src/pool/verifier/MARKPoolVerifier.sol`, and witness tests pass.
-- **Settlement system** (`MARKSettlementModule` + `Groth16SettlementVerifier`): the design supports the same 13-signal layout via `IGroth16Verifier` and is compatible with `MARKPoolVerifier`. However, `MARKPoolVerifier` has not yet been wired into `Groth16SettlementVerifier.setVerifierContract()` — this configuration step is required before ZK-based settlement is active. `AttestedSettlementVerifier` remains the production-safe fallback until that wiring is completed.
-
-**Impact:** Auditors should verify that `Groth16SettlementVerifier.verifierContract` is set to a deployed `MARKPoolVerifier` instance before evaluating ZK settlement security. Until then, settlement security depends on `AttestedSettlementVerifier` (EIP-712 signatures).
-
-**Accepted because:** `AttestedSettlementVerifier` provides meaningful security (role-gated, replay-protected, deadline-bound, module-bound). The pool circuit and verifier are consistent with each other. Settlement ZK integration is in progress.
-
----
-
-## KI-8: MARKPool and PoseidonT3 contract size
-
-**Contracts:** `src/pool/MARKPool.sol`, `src/crypto/generated/PoseidonT3.sol`
-
-**Description:** `MARKPool` is currently 24,231 bytes — 345 bytes under the EIP-170 24,576-byte limit. `PoseidonT3` is 55,856 bytes and cannot be deployed directly. `MerkleTree` calls Poseidon via `IPoseidonT3` interface at a configurable address; `MARKPool` has no link references and is fully self-contained. The default deployment address is `0xB43122Ecb241DD50062641f089876679fd06599a` (Semaphore's PoseidonT3, same address on all EVM networks via CREATE2).
-
-**Impact:** `MARKPool` is deployable. The 345-byte margin is tight — any significant feature addition risks exceeding the limit. CI runs pool release dry-run only (no execute smoke): Foundry's contract size check rejects the `PoseidonT3` library artifact (55,856 bytes) during broadcast. The dry-run validates the release script logic without triggering this check.
-
-**Required before mainnet:** Monitor `MARKPool` size on every change. If the margin drops below ~100 bytes, extract logic (e.g. bridge-out, fee policy, or root management) into a separate contract.
-
-**Accepted for now because:** The pool domain is pre-production. The settlement layer (which does not use `MARKPool`) is unaffected and can proceed to testnet independently.

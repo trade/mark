@@ -77,7 +77,6 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
         emit ProductionModeActivated(msg.sender);
     }
 
-    /// @notice Mints RYLA to `recipient` after validating the settlement intent.
     function settleMint(address recipient, uint256 amount, bytes32 intentId, bytes calldata proof)
         external
         onlyRole(OPERATOR_ROLE)
@@ -90,10 +89,6 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
         emit MintSettled(intentId, msg.sender, recipient, amount);
     }
 
-    /// @notice Burns RYLA from `account` by transferring to this module then burning.
-    /// @dev The `account` must have approved this module for at least `amount` tokens
-    ///      before the operator calls this function. Insufficient allowance will revert
-    ///      with a SafeERC20 error.
     function settleBurn(address account, uint256 amount, bytes32 intentId, bytes calldata proof)
         external
         onlyRole(OPERATOR_ROLE)

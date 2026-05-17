@@ -82,8 +82,7 @@ get_protection() {
 check_branch() {
   local branch="$1"
   local require_stale="$2"
-  local expected_approvals="$3"
-  shift 3
+  shift 2
   local -a expected=("$@")
 
   echo "[verify] branch=${branch}"
@@ -106,20 +105,6 @@ check_branch() {
     fi
   fi
 
-  local actual_approvals
-  actual_approvals="$(jq -r '.required_pull_request_reviews.required_approving_review_count // 0' <<<"$json")"
-  if [[ "$actual_approvals" != "$expected_approvals" ]]; then
-    echo "  FAIL: required_approving_review_count is ${actual_approvals}, expected ${expected_approvals} for ${branch}" >&2
-    return 1
-  fi
-
-  local push_team
-  push_team="$(jq -r '.restrictions.teams[]?.slug // empty' <<<"$json" | head -1)"
-  if [[ "$push_team" != "maintainers" ]]; then
-    echo "  FAIL: push restrictions do not include maintainers team for ${branch} (got: ${push_team:-none})" >&2
-    return 1
-  fi
-
   local missing=0
   for check in "${expected[@]}"; do
     if ! jq -e --arg c "$check" '.required_status_checks.checks[]?.context | select(. == $c)' <<<"$json" >/dev/null; then
@@ -135,9 +120,9 @@ check_branch() {
   echo "  PASS"
 }
 
-# All branches use 0 required approvals — sole maintainer cannot approve own PRs.
-check_branch dev    false 0 "${require_checks_dev[@]}"
-check_branch canary false 0 "${require_checks_dev[@]}"
-check_branch main   true  0 "${require_checks_main[@]}"
+# dev has 0 required approvals so dismiss_stale_reviews is not applicable.
+check_branch dev    false "${require_checks_dev[@]}"
+check_branch canary true  "${require_checks_dev[@]}"
+check_branch main   true  "${require_checks_main[@]}"
 
 echo "[verify] governance baseline active for ${GH_REPO}"

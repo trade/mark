@@ -33,7 +33,6 @@ contract PostDeployMARKSetup is Script {
         address settlementAttester;
         bool proofEnabled;
         bool settlementProductionMode;
-        bool groth16DirectionEnforcement;
     }
 
     struct Contracts {
@@ -87,7 +86,6 @@ contract PostDeployMARKSetup is Script {
         cfg.settlementOperator = vm.envOr("MARK_SETTLEMENT_OPERATOR", address(0));
         cfg.settlementAttester = vm.envOr("MARK_SETTLEMENT_ATTESTER", address(0));
         cfg.settlementProductionMode = vm.envOr("MARK_SETTLEMENT_PRODUCTION_MODE", false);
-        cfg.groth16DirectionEnforcement = vm.envOr("MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT", false);
     }
 
     function _bindContracts(Config memory cfg) internal pure returns (Contracts memory ctr) {
@@ -160,13 +158,6 @@ contract PostDeployMARKSetup is Script {
             if (cfg.verifierAddress != address(0) || cfg.proofEnabled) {
                 ctr.module.setVerifier(cfg.verifierAddress, cfg.proofEnabled);
             }
-            if (cfg.verifierAddress != address(0)) {
-                _tryConfigureGroth16Verifier(
-                    cfg.verifierAddress,
-                    cfg.moduleAddress,
-                    cfg.groth16DirectionEnforcement
-                );
-            }
             if (cfg.settlementProductionMode) {
                 ctr.module.activateProductionMode();
             }
@@ -220,27 +211,5 @@ contract PostDeployMARKSetup is Script {
 
     function _assertTrue(bool condition, string memory err) internal pure {
         if (!condition) revert(err);
-    }
-
-    function _tryConfigureGroth16Verifier(
-        address verifierAddress,
-        address moduleAddress,
-        bool directionEnforcement
-    ) internal {
-        (bool hasSetModule,) =
-            verifierAddress.staticcall(abi.encodeWithSelector(bytes4(keccak256("settlementModule()"))));
-        if (!hasSetModule) return;
-
-        (bool okSetModule,) =
-            verifierAddress.call(abi.encodeWithSelector(bytes4(keccak256("setSettlementModule(address)")), moduleAddress));
-        require(okSetModule, "Groth16 setSettlementModule failed");
-
-        (bool okSetDirection,) = verifierAddress.call(
-            abi.encodeWithSelector(
-                bytes4(keccak256("setDirectionEnforcementEnabled(bool)")),
-                directionEnforcement
-            )
-        );
-        require(okSetDirection, "Groth16 setDirectionEnforcementEnabled failed");
     }
 }
