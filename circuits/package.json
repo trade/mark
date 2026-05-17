@@ -1,0 +1,17 @@
+{
+  "name": "@mark/circuits",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MARK Protocol ZK circuits (circom)",
+  "scripts": {
+    "build": "circom mark/MARKPool.circom --r1cs --wasm --sym -l node_modules --output build",
+    "test": "mkdir -p build && npm run build && node test/MARKPool.test.mjs"
+  },
+  "dependencies": {
+    "circomlib": "2.0.5"
+  },
+  "devDependencies": {
+    "circomlibjs": "^0.1.7",
+    "snarkjs": "0.7.5"
+  }
+}

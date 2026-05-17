@@ -366,6 +366,33 @@ Before activating production mode, confirm:
 - The attester key is in secure, long-term storage.
 - The verifier contract has been audited.
 - The admin key is in a hardware wallet or equivalent.
+- If using `Groth16SettlementVerifier`:
+  - `settlementModule` is bound to the deployed module.
+  - `MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT` matches your proof format.
+  - Direction rollout has been completed (below) before enabling production mode.
+
+### Groth16 Direction Rollout (Required If Using Groth16SettlementVerifier)
+
+Goal: enforce `isMint` at proof-signal level without breaking legacy proofs during migration.
+
+1. Deploy or reconfigure verifier/module binding:
+   - Use `DeployMARKSettlementModule.s.sol` or `PostDeployMARKSetup.s.sol`.
+   - Ensure `MARK_SETTLEMENT_VERIFIER=<groth16_verifier_address>`.
+2. Start in compatibility mode:
+   - `MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT=false`
+   - Expected proof mapping: `signals[7] == 0`.
+3. Upgrade prover/circuit output:
+   - mint proofs use `signals[7] = 1`
+   - burn proofs use `signals[7] = 0`
+4. Validate in staging:
+   - run settlement tests and `VerifyMARKDeployment.s.sol`.
+5. Enable strict mode:
+   - `MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT=true`
+6. Re-run verify and only then lock production mode:
+   - `MARK_SETTLEMENT_PRODUCTION_MODE=true`
+
+No-Go rule:
+- Do not enable production mode with Groth16 if strict direction expectations are ambiguous or untested in staging.
 
 ### Key Storage Recommendations
 

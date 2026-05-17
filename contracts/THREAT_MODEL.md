@@ -4,12 +4,19 @@ This document is intended for security auditors. It describes the trust assumpti
 
 ## System Overview
 
-MARK is a settlement and bridging protocol on the Optimism Superchain. It consists of four contracts:
+MARK is a settlement, bridging, and ZK UTXO privacy protocol on the Optimism Superchain. It consists of two independent stacks:
 
+**Settlement stack** (production-bound):
 - **RYLA** — ERC-20 credit token with role-gated mint/burn
 - **MARKSettlementModule** — operator-gated settlement boundary; holds MINTER_ROLE and BURNER_ROLE on RYLA
 - **MARKBridgeAdapter** — operator-gated bridge adapter; routes RYLA cross-chain via SuperchainTokenBridge
 - **AttestedSettlementVerifier** — EIP-712 signature verifier; validates settlement attestations before mint/burn
+- **Groth16SettlementVerifier** — Groth16 proof verifier adapter; validates 13-signal ZK proofs for settlement
+
+**Pool stack** (pre-production):
+- **MARKPool** — ZK UTXO pool; nullifier registry with Merkle commitment tree; does not hold tokens
+- **RYLACreditLedger** — ICreditLedger adapter; mints RYLA for relayer fees (via pool) and burns RYLA on withdrawal (via adapter)
+- **MARKWithdrawAdapter** — EIP-191 signature-based withdrawal adapter; verifies withdraw bindings and sends ETH to recipients
 
 ## Trust Boundaries
 
@@ -32,6 +39,30 @@ External actors
 External contracts
   └── SuperchainTokenBridge (predeploy 0x4200...0028)
         └── called by MARKBridgeAdapter.bridgeTo; trusted as a system predeploy
+
+Pool stack trust boundaries:
+
+```
+External actors
+  └── Pool Authority (AccessManager admin)
+        ├── grants/revokes restricted selectors on MARKPool and MARKWithdrawAdapter
+        ├── sets verifier on MARKPool (one-time per proof type)
+        └── sets asset ledger on MARKPool (one-time)
+
+  └── Note owner (end user)
+        ├── submits ZK proofs to MARKPool.transact / transactWithWithdrawBinding
+        └── calls MARKWithdrawAdapter.withdrawWithSig with EIP-191 signatures
+
+  └── Relayer (permissionless)
+        └── calls MARKPool.transact on behalf of note owners; receives fee credit via RYLACreditLedger
+
+  └── Intent signer (hot key, configured on MARKWithdrawAdapter)
+        └── co-signs withdraw intents; prevents unauthorized withdrawals without owner signature
+
+External contracts
+  └── RYLACreditLedger
+        └── called by MARKPool.credit (relayer fees) and MARKWithdrawAdapter.debit (withdrawals)
+        └── holds MINTER_ROLE and BURNER_ROLE on RYLA
 ```
 
 ## Role Compromise Impact
@@ -85,6 +116,34 @@ Worst case: cross-chain token accounting failure.
 - `MARKBridgeAdapter` handles bridge failure via try/catch — clears approval and reverts `BridgeFailed()` if `sendERC20` fails
 - The bridge is a system predeploy — its security is outside the scope of this protocol
 
+### Pool Authority (AccessManager admin) compromised
+
+Worst case: pool configuration takeover.
+
+- Attacker can replace the verifier with a malicious contract that accepts any proof
+- Attacker can set the asset ledger to a malicious contract that mints unbounded RYLA
+- Attacker can pause/unpause the pool and withdrawal adapter
+- Attacker cannot replay already-consumed nullifiers (stored on-chain, immutable)
+- Attacker cannot forge withdraw bindings for past transactions (bound to nullifier hashes)
+
+Mitigations:
+- `setVerifier` and `setAssetLedger` are restricted to AccessManager — requires the authority contract to be compromised
+- Nullifier registry is append-only — consumed nullifiers cannot be un-consumed
+- Withdraw bindings are cryptographically bound to owner/recipient/amount at proof time
+
+### Intent signer key compromised
+
+Worst case: unauthorized withdrawals for notes whose nullifiers are already consumed.
+
+- Attacker can co-sign withdraw intents for any pending withdraw binding
+- Attacker cannot create new withdraw bindings (requires a valid ZK proof submitted to MARKPool)
+- Attacker cannot withdraw without the note owner's EIP-191 signature (dual-signature requirement)
+
+Mitigations:
+- Dual-signature requirement: both owner signature and intent signer signature required
+- Intent signer can be rotated via AccessManager
+- Withdraw bindings are one-time use (nullifiers marked claimed after withdrawal)
+
 ## External Dependencies
 
 | Dependency | Version | Trust level | Notes |
@@ -95,7 +154,8 @@ Worst case: cross-chain token accounting failure.
 
 ## What Is Explicitly Out of Scope
 
-- **AttestedSettlementVerifier is a placeholder** — it is a production-safe bridge step before ZK verifier integration. The ZK proof system has not been designed yet. Auditors should evaluate the attested verifier as a standalone ECDSA-based verifier, not as a ZK system.
+- **AttestedSettlementVerifier is a production-safe baseline** — it is an ECDSA-based verifier intended as a bridge step before full ZK verifier integration. Auditors should evaluate it as a standalone ECDSA verifier.
+- **MARKPool ZK circuit** — the Groth16 circuit (`circuits/mark/MARKPool.circom`) has not undergone a formal trusted setup ceremony. The current setup used a single contributor. A multi-party ceremony is required before mainnet.
 - **Off-chain operator infrastructure** — the protocol does not specify how operators construct or submit settlement intents. That is provider-layer responsibility.
 - **Frontend** — the frontend is a read-only info page with no wallet interaction or user funds.
 - **Deployment scripts** — `contracts/script/` contains operational tooling, not protocol logic.
@@ -107,3 +167,6 @@ Worst case: cross-chain token accounting failure.
 3. `bridgedInDailyCapEpoch` never exceeds `dailyCap` within a single epoch.
 4. `productionMode` is irreversible once set — proof validation cannot be disabled.
 5. The module's RYLA balance returns to its pre-settlement value after each `settleBurn` operation. The module does not accumulate tokens across settlements. Note: tokens sent directly to the module address outside of settlement flows are not covered by this invariant.
+6. `nullifierUsed[nullifier]` is set to `true` before any state changes in `MARKPool.transact*` — nullifiers cannot be replayed even under reentrancy.
+7. `nullifierWithdrawBinding` is written only after nullifiers are consumed — a withdraw binding cannot be created without a valid ZK proof.
+8. `RYLACreditLedger.debit` requires `from` to have approved the ledger for at least `amount` RYLA — the burn cannot proceed without explicit token approval from the note owner.
