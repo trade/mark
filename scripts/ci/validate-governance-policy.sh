@@ -68,17 +68,13 @@ dev_expected = parse_checks("DEV_CHECKS_JSON")
 main_expected = parse_checks("MAIN_CHECKS_JSON")
 
 branching_dev = parse_branching_section("PRs into `dev`")
-branching_canary = parse_branching_section("PRs into `canary`")
 branching_main = parse_branching_section("PRs into `main` (release candidate)")
 errors += ensure_contains_all(branching_dev, dev_expected, "BRANCHING.md dev matrix")
-errors += ensure_contains_all(branching_canary, dev_expected, "BRANCHING.md canary matrix")
 errors += ensure_contains_all(branching_main, main_expected, "BRANCHING.md main matrix")
 
 checklist_main = parse_checklist_section("1) Protect `main` branch")
-checklist_canary = parse_checklist_section("2) Protect `canary` branch")
-checklist_dev = parse_checklist_section("3) Protect `dev` branch")
+checklist_dev = parse_checklist_section("2) Protect `dev` branch")
 errors += ensure_contains_all(checklist_main, main_expected, "Governance checklist main required checks")
-errors += ensure_contains_all(checklist_canary, dev_expected, "Governance checklist canary required checks")
 errors += ensure_contains_all(checklist_dev, dev_expected, "Governance checklist dev required checks")
 
 if errors:
