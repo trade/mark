@@ -42,10 +42,9 @@ This will:
 
 Full policy is documented in [BRANCHING.md](./BRANCHING.md).
 
-- `dev` — active integration and feature work
-- `canary` — stabilisation, maps to staging deployment
-- `main` — production-ready only
-- Release promotion path: `dev -> canary -> main`
+- `dev` — active integration and testnet (OP Sepolia auto-deploys on push)
+- `main` — mainnet-ready only
+- Release promotion path: `dev -> main`
 - Production readiness workflow is gated to `main`
 
 ## Deploying Contracts

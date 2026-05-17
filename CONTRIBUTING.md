@@ -63,11 +63,10 @@ pnpm build:contracts              # Compile contracts
 
 ### Branching Strategy
 
-MARK uses a **three-track branch model**:
+MARK uses a **two-track branch model**:
 
-- **`dev`** — Active integration branch (default for features)
-- **`canary`** — Staging/stabilization branch
-- **`main`** — Production-ready (release branch)
+- **`dev`** — Active integration and testnet (OP Sepolia auto-deploys on push)
+- **`main`** — Mainnet-ready only (manual promotion)
 
 ### Feature Development
 
@@ -318,16 +317,15 @@ Before opening a PR, verify:
 ### Quick Summary
 
 ```
-1. Create PR: dev → canary
-   ↓ (Staging rehearsal auto-triggers)
+1. Staging rehearsal auto-triggers on push to dev
    
-2. After staging passes, create PR: canary → main
+2. After staging passes, create PR: dev → main
    ↓ (All production gates triggered)
    
-3. After approval, manual dispatch:
-   - Run mainnet readiness workflow
+3. After maintainer approval, manual dispatch:
+   - Run mainnet readiness workflow from main
    
-4. Tag release: v0.1.0
+4. Tag release: v0.x.0
 ```
 
 ### For Solo Maintainers
