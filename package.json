@@ -22,7 +22,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "shadcn:add": "pnpm dlx shadcn@canary add"
+    "shadcn:add": "pnpm dlx shadcn@canary add",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@eth-optimism/viem": "^0.4.15",
@@ -59,14 +60,10 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.59.2",
     "vite": "6.4.2",
-    "wait-port": "^1.1.0"
+    "wait-port": "^1.1.0",
+    "lefthook": "^2.1.6"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
-
-
-
-
-
-
-
-

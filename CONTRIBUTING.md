@@ -18,8 +18,10 @@ Thank you for your interest in contributing to MARK Protocol! This guide will wa
 
 ### Prerequisites
 
-- **Node.js**: 20 or 22 (check `.nvmrc` for pinned version)
+- **Node.js**: 22 (check `.nvmrc`; use `mise install` or `nvm use` to activate)
 - **pnpm**: 9.0.2+ (managed via corepack)
+- **mise** (optional): `brew install mise` — pins Node version via `.mise.toml`
+- **lefthook**: installed automatically via `pnpm install` (`prepare` script)
 - **Foundry**: Latest version ([install](https://book.getfoundry.sh/getting-started/installation))
 - **super-cli**: Latest version ([install](https://github.com/ethereum-optimism/super-cli))
 
