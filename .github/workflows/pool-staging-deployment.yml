@@ -1,0 +1,97 @@
+name: Pool Staging Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      rpc_url:
+        description: "Target RPC URL (e.g. OP Sepolia)"
+        required: true
+        type: string
+      ryla_token:
+        description: "Deployed RYLA token address"
+        required: false
+        default: "0xa27360e124B94449249D1E919d3363BfF1c10c02"
+        type: string
+      pool_poseidon:
+        description: "PoseidonT3 contract address (default: Semaphore)"
+        required: false
+        default: "0xB43122Ecb241DD50062641f089876679fd06599a"
+        type: string
+      pool_intent_signer:
+        description: "Intent signer address (0x0 to skip)"
+        required: false
+        default: "0x0000000000000000000000000000000000000000"
+        type: string
+      artifact_path:
+        description: "Artifact output path under contracts/"
+        required: false
+        default: "broadcast/mark-pool-staging.json"
+        type: string
+
+jobs:
+  pool-staging-deploy:
+    name: Pool Staging Deployment
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC_URL: ${{ inputs.rpc_url }}
+      PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
+      MARK_RYLA_TOKEN: ${{ inputs.ryla_token }}
+      MARK_POOL_POSEIDON: ${{ inputs.pool_poseidon }}
+      MARK_POOL_INTENT_SIGNER: ${{ inputs.pool_intent_signer }}
+      MARK_POOL_RELEASE_EXECUTE: "true"
+      MARK_POOL_RELEASE_WRITE_ARTIFACT: "true"
+      MARK_POOL_RELEASE_ARTIFACT_PATH: ${{ inputs.artifact_path }}
+      MARK_GIT_COMMIT: ${{ github.sha }}
+
+    steps:
+      - name: Enforce dev or main branch
+        working-directory: .
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Pool deployment must run from dev or main branch. Current: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Ensure required secret is present
+        run: |
+          test -n "${PRIVATE_KEY}" || {
+            echo "MARK_STAGING_DEPLOYER_PRIVATE_KEY secret is required";
+            exit 1;
+          }
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+
+      - name: Deploy MARKPoolVerifier
+        run: |
+          VERIFIER=$(forge create src/pool/verifier/MARKPoolVerifier.sol:MARKPoolVerifier \
+            --rpc-url $RPC_URL \
+            --private-key $PRIVATE_KEY \
+            --broadcast \
+            --json | jq -r '.deployedTo')
+          if [ -z "$VERIFIER" ] || [ "$VERIFIER" = "null" ]; then
+            echo "Failed to deploy MARKPoolVerifier" >&2
+            exit 1
+          fi
+          echo "MARKPoolVerifier: $VERIFIER"
+          echo "MARK_POOL_VERIFIER=$VERIFIER" >> "$GITHUB_ENV"
+
+      - name: Run pool release script
+        run: forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL --broadcast --slow -vv
+
+      - name: Upload pool artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mark-pool-staging
+          path: contracts/${{ inputs.artifact_path }}
+          if-no-files-found: ignore
