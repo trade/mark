@@ -60,6 +60,7 @@ jobs:
           fi
 
       - name: Validate inputs
+        working-directory: .
         run: |
           set -euo pipefail
           validate_address() {
@@ -87,6 +88,7 @@ jobs:
           submodules: recursive
 
       - name: Ensure required secret is present
+        working-directory: .
         env:
           PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
         run: |
