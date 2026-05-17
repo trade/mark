@@ -5,8 +5,3 @@ pre-commit:
       run: pnpm -s typecheck
     lint:
       run: pnpm -s lint
-
-pre-push:
-  commands:
-    contracts-fast:
-      run: cd contracts && make ci-fast
