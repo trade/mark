@@ -28,6 +28,9 @@ on:
         default: "broadcast/mark-pool-staging.json"
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   pool-staging-deploy:
     name: Pool Staging Deployment
@@ -38,7 +41,6 @@ jobs:
         working-directory: contracts
     env:
       RPC_URL: ${{ inputs.rpc_url }}
-      PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
       MARK_RYLA_TOKEN: ${{ inputs.ryla_token }}
       MARK_POOL_POSEIDON: ${{ inputs.pool_poseidon }}
       MARK_POOL_INTENT_SIGNER: ${{ inputs.pool_intent_signer }}
@@ -56,6 +58,23 @@ jobs:
             exit 1
           fi
 
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          validate_address() {
+            local val="$1" label="$2"
+            if ! echo "$val" | grep -qE '^0x[0-9a-fA-F]{40}$'; then
+              echo "Invalid address for $label: $val" >&2; exit 1
+            fi
+          }
+          validate_address "$MARK_RYLA_TOKEN" "ryla_token"
+          validate_address "$MARK_POOL_POSEIDON" "pool_poseidon"
+          validate_address "$MARK_POOL_INTENT_SIGNER" "pool_intent_signer"
+          if [ -z "$RPC_URL" ]; then echo "rpc_url is required" >&2; exit 1; fi
+          case "$MARK_POOL_RELEASE_ARTIFACT_PATH" in
+            *../*|./*|/*) echo "artifact_path must be a safe relative path" >&2; exit 1 ;;
+          esac
+
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -72,10 +91,13 @@ jobs:
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
 
       - name: Deploy MARKPoolVerifier
+        env:
+          PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
         run: |
+          set -euo pipefail
           VERIFIER=$(forge create src/pool/verifier/MARKPoolVerifier.sol:MARKPoolVerifier \
-            --rpc-url $RPC_URL \
-            --private-key $PRIVATE_KEY \
+            --rpc-url "$RPC_URL" \
+            --private-key "$PRIVATE_KEY" \
             --broadcast \
             --json | jq -r '.deployedTo')
           if [ -z "$VERIFIER" ] || [ "$VERIFIER" = "null" ]; then
@@ -86,7 +108,9 @@ jobs:
           echo "MARK_POOL_VERIFIER=$VERIFIER" >> "$GITHUB_ENV"
 
       - name: Run pool release script
-        run: forge script script/ops/pool/ReleasePool.s.sol --rpc-url $RPC_URL --broadcast --slow -vv
+        env:
+          PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
+        run: forge script script/ops/pool/ReleasePool.s.sol --rpc-url "$RPC_URL" --broadcast --slow -vv
 
       - name: Upload pool artifact
         if: always()
