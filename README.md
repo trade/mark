@@ -1,10 +1,10 @@
-# MARK Protocol
+# MARK
 
-Decentralised and privacy-first by design. Leveraging zero-knowledge proofs for secure, scalable settlement on the Superchain.
+Privacy-first settlement infrastructure leveraging zero-knowledge technologies for secure, scalable, and private transactions on EVM-compatible blockchains, with native support for the Optimism Superchain.
 
 Code is a rule. No DAO, no drama. Don't Trust, Verify.
 
-The protocol enforces settlement rules on-chain. Whether operators run it as a centralised service or a decentralised network is their choice — the contracts don't care.
+Settlement rules are enforced on-chain. Whether operators run it as a centralised service or a decentralised network is their choice — the contracts don't care.
 
 ## Getting Started
 
