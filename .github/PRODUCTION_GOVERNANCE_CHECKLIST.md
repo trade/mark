@@ -1,6 +1,6 @@
 # Production Governance Checklist (GitHub)
 
-Use this checklist to apply repository settings that enforce the `dev` -> `canary` -> `main` release process.
+Use this checklist to apply repository settings that enforce the `dev` -> `main` release process.
 
 ## 1) Protect `main` branch
 
@@ -36,36 +36,7 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Restrict who can push to matching branches` (maintainers only)
 - Enable `Do not allow bypassing the above settings`
 
-## 2) Protect `canary` branch
-
-GitHub path: `Settings -> Branches -> Add branch protection rule`
-
-- Branch name pattern: `canary`
-- Enable `Require a pull request before merging`
-- Enable `Require approvals` and set minimum to `1`
-- Enable `Dismiss stale pull request approvals when new commits are pushed`
-- Enable `Require status checks to pass before merging`
-- Add required checks:
-  - `Analyze (javascript-typescript)`
-  - `gitleaks / Gitleaks Scan`
-  - `Detect Secrets Drift`
-  - `Release Gate Container`
-  - `Dependency Review`
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Contracts Production Mode Smoke`
-  - `slither-core / Slither Core Contracts`
-  - `frontend-checks / Frontend Checks (Node 20)`
-  - `frontend-checks / Frontend Checks (Node 22)`
-- Optional additional checks (recommended but not globally required):
-  - `Contracts Unit + Invariant`
-  - `Contracts Env Guard`
-  - `Governance Policy Guard`
-- Governance policy PR rule:
-  - If PR changes `scripts/github/apply-governance.sh`, `BRANCHING.md`, or this checklist, ensure `Validate Governance Policy Consistency` passes before merge.
-- Enable `Require branches to be up to date before merging`
-
-## 3) Protect `dev` branch
+## 2) Protect `dev` branch
 
 GitHub path: `Settings -> Branches -> Add branch protection rule`
 
@@ -121,8 +92,7 @@ GitHub path: `Settings -> Rules -> Rulesets` (or tag protection in legacy settin
 1. Open a small PR to `dev` changing docs only.
 2. Confirm required checks run and pass.
 3. Merge PR to `dev`.
-4. Open PR `dev -> canary`; confirm staging rehearsal triggers automatically.
-5. Open PR `canary -> main`.
+4. Open PR `dev -> main`; confirm staging rehearsal passed on dev.
 6. Confirm required checks are enforced on `main`.
 7. Merge into `main`.
 8. Run workflow `Contracts Mainnet Readiness` from `main`.
@@ -133,9 +103,9 @@ GitHub path: `Settings -> Rules -> Rulesets` (or tag protection in legacy settin
 
 ## 7) Ongoing operational rule
 
-- No production deployment from `dev` or `canary`.
+- No production deployment from `dev`.
 - Production readiness + deployment sign-off only from `main`.
-- Any emergency `main` hotfix must be back-merged into `canary` and `dev` immediately after release.
+- Any emergency `main` hotfix must be back-merged into `dev` immediately after release.
 
 ## 8) Optional automation (API)
 
@@ -158,7 +128,6 @@ export GH_PAT=<github_token_with_repo_admin_scope>
 
 What this script applies:
 - `main` branch protection (PR + checks + stale review dismissal)
-- `canary` branch protection (PR + checks)
 - `dev` branch protection (PR + checks)
 - `production` environment creation
 - optional production required reviewers by user ID
@@ -176,4 +145,4 @@ export GH_PAT=<github_token_with_repo_admin_scope>
 ./scripts/github/verify-governance.sh
 ```
 
-Expected output: all three branches (`dev`, `canary`, `main`) report `PASS` and required checks include CodeQL (`Analyze (javascript-typescript)`), `gitleaks / Gitleaks Scan`, and `Dependency Review`.
+Expected output: both branches (`dev`, `main`) report `PASS` and required checks include CodeQL (`Analyze (javascript-typescript)`), `gitleaks / Gitleaks Scan`, and `Dependency Review`.
