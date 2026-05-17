@@ -44,6 +44,6 @@ updates:
       - dependency-name: "@hono/node-server"
         versions: ["<= 1.13.8"]
       - dependency-name: "drizzle-orm"
-        versions: ["<= 0.38.1"]
+        versions: ["<= 0.38.4"]
       - dependency-name: "@stablelib/ed25519"
         versions: ["<= 1.0.3"]
