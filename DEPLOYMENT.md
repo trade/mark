@@ -36,7 +36,7 @@
 - [ ] Slither scan clean: `cd contracts && make slither-core`
 - [ ] No uncommitted changes: `git status` (clean)
 - [ ] On correct branch:
-  - Staging: `canary` branch
+  - Staging: `dev` branch
   - Mainnet: `main` branch
 - [ ] Latest contracts built: `pnpm build:contracts`
 
@@ -54,17 +54,17 @@ For **mainnet only**:
 
 ### Phase 1: Pre-Release Validation
 
-**Target Branch**: `canary`
+**Target Branch**: `dev`
 
 **Estimated Time**: 15 minutes
 
 #### Step 1: Trigger Staging Rehearsal (Automated)
 
-When you push to `canary`, the `contracts-staging-rehearsal` workflow auto-triggers.
+When you push to `dev`, the `contracts-staging-rehearsal` workflow auto-triggers.
 
 ```bash
-# On canary branch
-git status  # Should show "On branch canary"
+# On dev branch
+git status  # Should show "On branch dev"
 git log --oneline -1  # Verify latest commit
 
 # Wait for GitHub workflow to start
@@ -186,7 +186,7 @@ make sign-evidence-manifest
 gh pr create \
   --title "Release: MARK Protocol v0.1.0" \
   --base main \
-  --head canary \
+  --head dev \
   --body "See DEPLOYMENT.md for release procedures" \
   --label "release"
 ```
@@ -735,7 +735,7 @@ After successful mainnet deployment, communicate:
 ### Command Cheat Sheet
 
 ```bash
-# Staging deployment (automated on push to canary)
+# Staging deployment (automated on push to dev)
 # No manual steps needed during staging rehearsal
 
 # Mainnet readiness check (manual dispatch)
