@@ -40,6 +40,12 @@ contract MARKPoolDeployScriptsTest is Test {
         // Deploy local PoseidonT3 (test runner bypasses EIP-170 size check)
         address poseidon = deployCode("PoseidonT3.sol:PoseidonT3");
         vm.setEnv("MARK_POOL_POSEIDON", vm.toString(poseidon));
+
+        // Deploy a default token so MARK_RYLA_TOKEN is always set before any test runs.
+        // Individual tests may override this with vm.setEnv.
+        vm.prank(deployer);
+        RYLA defaultToken = new RYLA(deployer);
+        vm.setEnv("MARK_RYLA_TOKEN", vm.toString(address(defaultToken)));
     }
 
     function testDeployMARKPoolWiresAllContracts() public {
