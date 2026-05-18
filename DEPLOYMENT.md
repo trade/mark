@@ -417,17 +417,17 @@ fallback until this is complete.
 # 1. Bind the verifier to the settlement module (prevents cross-module replay)
 cast send $GROTH16_VERIFIER_ADDRESS \
   "setSettlementModule(address)" $SETTLEMENT_MODULE_ADDRESS \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
 
 # 2. Set the MARKPoolVerifier contract
 cast send $GROTH16_VERIFIER_ADDRESS \
   "setVerifierContract(address)" $MARK_POOL_VERIFIER_ADDRESS \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
 
 # 3. Wire into settlement module
 cast send $SETTLEMENT_MODULE_ADDRESS \
   "setVerifier(address,bool)" $GROTH16_VERIFIER_ADDRESS true \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
 ```
 
 See `contracts/RUNBOOK.md` → "Groth16 Direction Rollout" for the full
@@ -520,7 +520,7 @@ MARK_RELEASE_EXECUTE=true \
    ```bash
    cast send $SETTLEMENT_ADDRESS "pause()" \
      --rpc-url $MAINNET_RPC \
-     --private-key $DEPLOYER_KEY
+     --interactive
    ```
 
 2. **Document issue**: Create GitHub issue with:
@@ -574,7 +574,7 @@ cast balance $DEPLOYER_ADDRESS --rpc-url $MAINNET_RPC
 # Fund deployer (from treasury or team account)
 cast send $DEPLOYER_ADDRESS --value 1ether \
   --rpc-url $MAINNET_RPC \
-  --private-key $FUNDING_KEY
+  --interactive
 
 # Retry deployment
 MARK_RELEASE_EXECUTE=true \
@@ -694,7 +694,8 @@ git push origin fix/production-lock-config
 
 3. **Monitor gas prices** for future deployments:
    - https://ethgasstation.info
-   - https://gasnow.org
+   - https://ultrasound.money
+   - https://www.blocknative.com/gas-estimator
 
 ### Communication
 
@@ -757,9 +758,13 @@ cd contracts && MARK_RELEASE_EXECUTE=true \
 # Health check
 cd contracts && ./script/ops/health-check.sh
 
-# Rollback (pause operations)
+# Rollback (pause operations) - use interactive or hardware-wallet signing
 cast send $SETTLEMENT_ADDRESS "pause()" \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
+
+# Optional: hardware wallet signing (recommended for emergency mainnet ops)
+cast send $SETTLEMENT_ADDRESS "pause()" \
+  --rpc-url $MAINNET_RPC --ledger
 ```
 
 ### Timeline Estimates
