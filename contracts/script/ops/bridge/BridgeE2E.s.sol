@@ -32,8 +32,9 @@ contract BridgeE2E is Script {
 
     function run() external {
         uint256 operatorKey = vm.envUint("PRIVATE_KEY");
-        uint256 attesterKey = vm.envOr("ATTESTER_KEY", operatorKey);
+        uint256 attesterKey = vm.envUint("ATTESTER_KEY");
         address operator    = vm.addr(operatorKey);
+        address attester    = vm.addr(attesterKey);
 
         RYLA ryla = RYLA(RYLA_ADDR);
         MARKSettlementModule module = MARKSettlementModule(MODULE_ADDR);
@@ -44,8 +45,9 @@ contract BridgeE2E is Script {
         console.log("RYLA balance before:", ryla.balanceOf(operator));
 
         // Preflight
+        require(operator != attester, "operator and attester must use different keys");
         require(module.hasRole(module.OPERATOR_ROLE(), operator), "operator missing OPERATOR_ROLE");
-        require(verifier.hasRole(verifier.ATTESTER_ROLE(), vm.addr(attesterKey)), "attester missing ATTESTER_ROLE");
+        require(verifier.hasRole(verifier.ATTESTER_ROLE(), attester), "attester missing ATTESTER_ROLE");
         require(bridge.destinationEnabled(DST_CHAIN_ID), "destination not enabled");
 
         // Build EIP-712 attestation matching AttestedSettlementVerifier._settlementDigest
