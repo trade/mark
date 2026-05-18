@@ -5,46 +5,46 @@ on:
     branches:
       - dev
     paths:
-      - "contracts/**"
+      - 'contracts/**'
   workflow_dispatch:
     inputs:
       rpc_url:
-        description: "Staging RPC URL (e.g. OP Sepolia)"
+        description: 'Staging RPC URL (e.g. OP Sepolia)'
         required: true
         type: string
       owner_address:
-        description: "Owner/default admin address (defaults to deployer if blank)"
+        description: 'Owner/default admin address (defaults to deployer if blank)'
         required: false
-        default: ""
+        default: ''
         type: string
       settlement_operator:
-        description: "Settlement operator address"
+        description: 'Settlement operator address'
         required: true
         type: string
       bridge_operator:
-        description: "Bridge operator address (defaults to settlement operator if blank)"
+        description: 'Bridge operator address (defaults to settlement operator if blank)'
         required: false
-        default: ""
+        default: ''
         type: string
       destination_chain_id:
-        description: "Bridge destination chain id"
+        description: 'Bridge destination chain id'
         required: false
-        default: "10"
+        default: '10'
         type: string
       attester_address:
-        description: "Optional attester address (0x0 to skip attester check)"
+        description: 'Optional attester address (0x0 to skip attester check)'
         required: false
-        default: "0x0000000000000000000000000000000000000000"
+        default: '0x0000000000000000000000000000000000000000'
         type: string
       release_artifact_path:
-        description: "Release artifact path under contracts/"
+        description: 'Release artifact path under contracts/'
         required: false
-        default: "broadcast/mark-staging-release.json"
+        default: 'broadcast/mark-staging-release.json'
         type: string
       rehearsal_artifact_path:
-        description: "Rehearsal artifact path under contracts/"
+        description: 'Rehearsal artifact path under contracts/'
         required: false
-        default: "broadcast/mark-staging-rehearsal.json"
+        default: 'broadcast/mark-staging-rehearsal.json'
         type: string
 
 jobs:
@@ -97,7 +97,7 @@ jobs:
           }
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Run staging rehearsal (release + production lock verify)
         run: make rehearse-production-lock

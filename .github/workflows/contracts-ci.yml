@@ -5,12 +5,12 @@ on:
   push:
     branches:
       - main
-      
+
       - dev
   workflow_dispatch:
     inputs:
       run_integration:
-        description: "Run integration tests against local supersim endpoints (127.0.0.1:9545/9546)"
+        description: 'Run integration tests against local supersim endpoints (127.0.0.1:9545/9546)'
         required: false
         default: false
         type: boolean
@@ -30,7 +30,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Enforce architecture boundaries
         run: make architecture-guard
@@ -54,9 +54,9 @@ jobs:
         working-directory: contracts
     env:
       RPC_URL: http://127.0.0.1:8545
-      MARK_RELEASE_EXECUTE: "false"
-      MARK_RELEASE_RUN_POSTDEPLOY: "false"
-      MARK_RELEASE_WRITE_ARTIFACT: "false"
+      MARK_RELEASE_EXECUTE: 'false'
+      MARK_RELEASE_RUN_POSTDEPLOY: 'false'
+      MARK_RELEASE_WRITE_ARTIFACT: 'false'
       MARK_GIT_COMMIT: ${{ github.sha }}
 
     steps:
@@ -66,7 +66,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Start anvil
         run: anvil --host 127.0.0.1 --port 8545 > /tmp/anvil.log 2>&1 &
@@ -98,13 +98,13 @@ jobs:
 
       - name: Run release orchestrator execute smoke (local Anvil)
         env:
-          MARK_RELEASE_EXECUTE: "true"
-          MARK_RELEASE_WRITE_ARTIFACT: "true"
+          MARK_RELEASE_EXECUTE: 'true'
+          MARK_RELEASE_WRITE_ARTIFACT: 'true'
           MARK_RELEASE_ARTIFACT_PATH: broadcast/mark-release-ci.json
-          MARK_RELEASE_STRICT_VERIFY: "true"
-          VERIFY_MARK_SETTLEMENT_PROOF_ENABLED: "false"
-          VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE: "false"
-          VERIFY_MARK_SETTLEMENT_VERIFIER: "0x0000000000000000000000000000000000000000"
+          MARK_RELEASE_STRICT_VERIFY: 'true'
+          VERIFY_MARK_SETTLEMENT_PROOF_ENABLED: 'false'
+          VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE: 'false'
+          VERIFY_MARK_SETTLEMENT_VERIFIER: '0x0000000000000000000000000000000000000000'
         run: forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL --broadcast -vv
 
       - name: Assert release artifact schema
@@ -162,7 +162,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Run production mode smoke target
         run: make smoke-production-mode
@@ -192,7 +192,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version: '20'
           package-manager-cache: false
 
       - name: Setup pnpm (corepack)
@@ -206,7 +206,7 @@ jobs:
         working-directory: .
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Start supersim
         run: pnpm dev:supersim > /tmp/supersim.log 2>&1 &

@@ -3,16 +3,16 @@ name: Contracts Env Guard
 on:
   pull_request:
     paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-env-guard.yml"
+      - 'contracts/**'
+      - '.github/workflows/contracts-env-guard.yml'
   push:
     branches:
       - main
-      
+
       - dev
     paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-env-guard.yml"
+      - 'contracts/**'
+      - '.github/workflows/contracts-env-guard.yml'
   workflow_dispatch:
 
 jobs:

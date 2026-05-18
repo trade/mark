@@ -74,7 +74,7 @@ fetch_dispatched_run_id_for_ref() {
     --limit 30 \
     --json databaseId,createdAt,event,headBranch,actor \
     --jq \
-      "map(select(.event == \"workflow_dispatch\"
+    "map(select(.event == \"workflow_dispatch\"
         and .headBranch == \"$ref\"
         and (.actor.login // \"\") == \"$actor\"
         and ((.createdAt | fromdateiso8601) >= $started_at_epoch)))
@@ -205,7 +205,7 @@ mainnet_run_id=""
 deadline_epoch=$((DISPATCH_START_EPOCH + DISPATCH_DETECT_TIMEOUT_SECONDS))
 while [[ -z "$staging_run_id" || -z "$mainnet_run_id" ]]; do
   now_epoch="$(date -u +%s)"
-  if (( now_epoch > deadline_epoch )); then
+  if ((now_epoch > deadline_epoch)); then
     echo "Timed out resolving dispatched run IDs for actor=$CURRENT_ACTOR_LOGIN ref=$GH_REF" >&2
     echo "Provide explicit run IDs manually for promotion checklist dispatch." >&2
     exit 1

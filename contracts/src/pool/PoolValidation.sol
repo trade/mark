@@ -9,11 +9,10 @@ library PoolValidation {
     uint256 internal constant SNARK_SCALAR_FIELD =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
-    function requireDestEpochAndFeeWithinCircuitRange(
-        uint256 dstChainId,
-        uint256 protocolEpoch,
-        uint256 fee
-    ) internal pure {
+    function requireDestEpochAndFeeWithinCircuitRange(uint256 dstChainId, uint256 protocolEpoch, uint256 fee)
+        internal
+        pure
+    {
         if (dstChainId > type(uint64).max) revert PoolErrors.InputExceedsCircuitRange();
         if (protocolEpoch > type(uint32).max) revert PoolErrors.EpochExceedsCircuitRange();
         if (fee > type(uint64).max) revert PoolErrors.InputExceedsCircuitRange();
@@ -52,10 +51,7 @@ library PoolValidation {
         }
     }
 
-    function requireCommitmentsValid(bytes32[2] calldata outCommitments)
-        internal
-        pure
-    {
+    function requireCommitmentsValid(bytes32[2] calldata outCommitments) internal pure {
         for (uint256 i = 0; i < outCommitments.length; i++) {
             if (outCommitments[i] == bytes32(0)) revert PoolErrors.CommitmentInvalid();
             if (uint256(outCommitments[i]) >= SNARK_SCALAR_FIELD) revert PoolErrors.InputExceedsCircuitRange();

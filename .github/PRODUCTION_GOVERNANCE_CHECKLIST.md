@@ -77,6 +77,7 @@ GitHub path: `Settings -> Environments -> New environment`
   - `MARK_MAINNET_GATE_MODE=predeploy` (default input still controls mode)
 
 Notes:
+
 - `contracts-mainnet-readiness.yml` already binds to `environment: production`.
 - The workflow already enforces `main` branch execution.
 
@@ -93,10 +94,10 @@ GitHub path: `Settings -> Rules -> Rulesets` (or tag protection in legacy settin
 2. Confirm required checks run and pass.
 3. Merge PR to `dev`.
 4. Open PR `dev -> main`; confirm staging rehearsal passed on dev.
-6. Confirm required checks are enforced on `main`.
-7. Merge into `main`.
-8. Run workflow `Contracts Mainnet Readiness` from `main`.
-9. Confirm:
+5. Confirm required checks are enforced on `main`.
+6. Merge into `main`.
+7. Run workflow `Contracts Mainnet Readiness` from `main`.
+8. Confirm:
    - workflow requests/uses `production` environment approvals
    - run succeeds
    - readiness artifact uploads
@@ -127,12 +128,12 @@ export GH_PAT=<github_token_with_repo_admin_scope>
 ```
 
 What this script applies:
+
 - `main` branch protection (PR + checks + stale review dismissal)
 - `dev` branch protection (PR + checks)
 - `production` environment creation
 - optional production required reviewers by user ID
 - optional direct-push restrictions via `*_PUSH_ALLOW_*` allowlists
-
 
 ## 9) Verify active protections after transfer
 

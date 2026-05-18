@@ -3,7 +3,7 @@ name: Governance Verify
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 4 * * 1"
+    - cron: '15 4 * * 1'
 
 jobs:
   verify-governance:

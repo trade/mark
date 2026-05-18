@@ -67,11 +67,7 @@ contract DeployMARKPool is Script {
         d.ledger = new RYLACreditLedger(cfg.tokenAddress, address(d.pool));
 
         // 4. MARKWithdrawAdapter
-        d.adapter = new MARKWithdrawAdapter(
-            address(d.accessManager),
-            address(d.ledger),
-            address(d.pool)
-        );
+        d.adapter = new MARKWithdrawAdapter(address(d.accessManager), address(d.ledger), address(d.pool));
 
         // Wire adapter into ledger (one-time call — breaks circular deploy dependency)
         d.ledger.setAdapter(address(d.adapter));

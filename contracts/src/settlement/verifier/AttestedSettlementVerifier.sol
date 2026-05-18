@@ -66,12 +66,7 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
         uint256 amount,
         bool isMint,
         bytes calldata proof
-    )
-        external
-        view
-        override
-        returns (bool)
-    {
+    ) external view override returns (bool) {
         if (intentId == bytes32(0) || settlementModule == address(0) || account == address(0) || amount == 0) {
             return false;
         }
@@ -82,7 +77,8 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
         Attestation memory att = abi.decode(proof, (Attestation));
         if (att.deadline < block.timestamp) return false;
 
-        bytes32 digest = _settlementDigest(intentId, settlementModule, account, amount, isMint, att.contextHash, att.deadline);
+        bytes32 digest =
+            _settlementDigest(intentId, settlementModule, account, amount, isMint, att.contextHash, att.deadline);
         bytes memory signature = abi.encodePacked(att.r, att.s, att.v);
         (address signer, ECDSA.RecoverError err,) = ECDSA.tryRecover(digest, signature);
         if (err != ECDSA.RecoverError.NoError || signer == address(0)) return false;

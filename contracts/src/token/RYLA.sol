@@ -12,7 +12,6 @@ import {TokenErrors} from "../errors/TokenErrors.sol";
 /// @notice Superchain-compatible standard credit token.
 /// @dev Cross-chain mint/burn is handled by SuperchainTokenBridge via SuperchainERC20.
 contract RYLA is SuperchainERC20, AccessControlDefaultAdminRules, TokenErrors {
-
     event MinterUpdated(address indexed account, bool enabled);
     event BurnerUpdated(address indexed account, bool enabled);
 

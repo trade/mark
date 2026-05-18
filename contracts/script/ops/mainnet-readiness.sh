@@ -33,7 +33,7 @@ ARTIFACT_PATH="${MARK_MAINNET_GATE_ARTIFACT_PATH:-broadcast/mark-mainnet-gate.js
 MODE="${MARK_MAINNET_GATE_MODE:-predeploy}"
 
 case "$MODE" in
-  predeploy|postdeploy|full) ;;
+  predeploy | postdeploy | full) ;;
   *)
     echo "MARK_MAINNET_GATE_MODE must be one of: predeploy, postdeploy, full" >&2
     exit 1
@@ -69,10 +69,10 @@ run_postdeploy_checks() {
 generate_and_validate_artifact() {
   echo "[5/6] Generating release artifact via dry-run orchestration..."
   MARK_RELEASE_EXECUTE=false \
-  MARK_RELEASE_WRITE_ARTIFACT=true \
-  MARK_RELEASE_ARTIFACT_PATH="$ARTIFACT_PATH" \
-  MARK_RELEASE_STRICT_VERIFY=false \
-  forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url "$RPC_URL" -q
+    MARK_RELEASE_WRITE_ARTIFACT=true \
+    MARK_RELEASE_ARTIFACT_PATH="$ARTIFACT_PATH" \
+    MARK_RELEASE_STRICT_VERIFY=false \
+    forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url "$RPC_URL" -q
 
   echo "[6/6] Validating release artifact schema..."
   jq -e '

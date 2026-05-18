@@ -10,22 +10,38 @@ import {ICreditLedger} from "../../../src/interfaces/ICreditLedger.sol";
 import {PoolErrors} from "../../../src/pool/errors/PoolErrors.sol";
 
 contract AlwaysValidVerifier is IVerifier {
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[13] calldata
-    ) external pure returns (bool) { return true; }
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
+        external
+        pure
+        returns (bool)
+    {
+        return true;
+    }
 }
 
 contract NoOpLedger is ICreditLedger {
     function credit(address, uint256) external {}
     function debit(address, uint256) external {}
-    function creditBalanceOf(address) external pure returns (uint256) { return 0; }
-    function totalCreditsMinted() external pure returns (uint256) { return 0; }
-    function totalCreditsBurned() external pure returns (uint256) { return 0; }
-    function totalCreditsOutstanding() external pure returns (uint256) { return 0; }
-    function maxCredits() external pure returns (uint256) { return type(uint256).max; }
+
+    function creditBalanceOf(address) external pure returns (uint256) {
+        return 0;
+    }
+
+    function totalCreditsMinted() external pure returns (uint256) {
+        return 0;
+    }
+
+    function totalCreditsBurned() external pure returns (uint256) {
+        return 0;
+    }
+
+    function totalCreditsOutstanding() external pure returns (uint256) {
+        return 0;
+    }
+
+    function maxCredits() external pure returns (uint256) {
+        return type(uint256).max;
+    }
 }
 
 contract MARKPoolHandler is Test {
@@ -156,11 +172,7 @@ contract MARKPoolInvariants is StdInvariant, Test {
         for (uint256 i = 0; i < spent.length; i++) {
             bytes32 recorded = handler.recordedBinding(spent[i]);
             if (recorded == bytes32(0)) continue;
-            assertEq(
-                pool.nullifierWithdrawBinding(spent[i]),
-                recorded,
-                "withdraw binding changed"
-            );
+            assertEq(pool.nullifierWithdrawBinding(spent[i]), recorded, "withdraw binding changed");
         }
     }
 

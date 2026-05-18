@@ -34,10 +34,7 @@ contract ReleaseMARK is Script {
         address bridgeOperator,
         uint256 destinationChainId,
         bool runPostDeploy
-    )
-        external
-        returns (ReleaseResult memory result)
-    {
+    ) external returns (ReleaseResult memory result) {
         PreflightMARKDeployment preflight = new PreflightMARKDeployment();
         _runStackPreflightFromValues(preflight, 0, deployer, owner, bridgeOperator, destinationChainId);
 
@@ -130,7 +127,10 @@ contract ReleaseMARK is Script {
         }
     }
 
-    function _runStackPreflight(PreflightMARKDeployment preflight, uint256 deployerKey, address deployer) internal view {
+    function _runStackPreflight(PreflightMARKDeployment preflight, uint256 deployerKey, address deployer)
+        internal
+        view
+    {
         address owner = vm.envOr("MARK_RYLA_OWNER", deployer);
         address bridgeOperator = vm.envOr("MARK_BRIDGE_OPERATOR", address(0));
         uint256 destinationChainId = vm.envOr("MARK_BRIDGE_DESTINATION_CHAIN_ID", uint256(0));
@@ -144,10 +144,7 @@ contract ReleaseMARK is Script {
         address owner,
         address bridgeOperator,
         uint256 destinationChainId
-    )
-        internal
-        view
-    {
+    ) internal view {
         PreflightMARKDeployment.Config memory cfg;
         cfg.mode = MODE_STACK;
         cfg.deployerKey = deployerKey;
@@ -163,10 +160,7 @@ contract ReleaseMARK is Script {
         uint256 deployerKey,
         address deployer,
         address tokenAddress
-    )
-        internal
-        view
-    {
+    ) internal view {
         PreflightMARKDeployment.Config memory cfg;
         cfg.mode = MODE_SETTLEMENT;
         cfg.deployerKey = deployerKey;
@@ -189,10 +183,7 @@ contract ReleaseMARK is Script {
         address tokenAddress,
         address adapterAddress,
         address moduleAddress
-    )
-        internal
-        view
-    {
+    ) internal view {
         PreflightMARKDeployment.Config memory cfg;
         cfg.mode = MODE_POSTDEPLOY;
         cfg.deployerKey = deployerKey;
@@ -215,10 +206,7 @@ contract ReleaseMARK is Script {
         address tokenAddress,
         address adapterAddress,
         address moduleAddress
-    )
-        internal
-        view
-    {
+    ) internal view {
         bool strictVerify = vm.envOr("MARK_RELEASE_STRICT_VERIFY", true);
         VerifyMARKDeployment.ExpectedConfig memory cfg;
         cfg.tokenAddress = tokenAddress;
@@ -260,7 +248,9 @@ contract ReleaseMARK is Script {
         vm.serializeAddress(root, "adapter", result.adapter);
         vm.serializeAddress(root, "module", result.module);
         vm.serializeAddress(root, "verifier", result.verifier);
-        vm.serializeAddress(root, "expectedOwner", vm.envOr("VERIFY_MARK_RYLA_OWNER", vm.envOr("MARK_RYLA_OWNER", address(0))));
+        vm.serializeAddress(
+            root, "expectedOwner", vm.envOr("VERIFY_MARK_RYLA_OWNER", vm.envOr("MARK_RYLA_OWNER", address(0)))
+        );
         vm.serializeAddress(root, "expectedBridgeOperator", vm.envOr("VERIFY_MARK_BRIDGE_OPERATOR", address(0)));
         vm.serializeUint(root, "expectedBridgeDestinationChain", vm.envOr("VERIFY_MARK_BRIDGE_DEST_CHAIN", uint256(0)));
         vm.serializeUint(root, "expectedBridgeMaxPerTx", vm.envOr("VERIFY_MARK_BRIDGE_MAX_PER_TX", uint256(0)));
