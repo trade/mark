@@ -144,7 +144,15 @@ ensure_environment() {
     return
   fi
 
-  if [[ "${http_code}" == "422" ]] && grep -q "billing plan supports the required reviewers protection rule" "${tmp_body}"; then
+  if [[ "${http_code}" == "422" ]] && jq -er '
+    [
+      (.message // ""),
+      (.errors[]?.message // ""),
+      (.errors[]?.code // "")
+    ]
+    | join(" ")
+    | test("billing[[:space:]]+plan.*required[[:space:]]+reviewers.*protection[[:space:]]+rule"; "i")
+  ' "${tmp_body}" >/dev/null 2>&1; then
     echo "    ! skipped: required reviewers rule not available on current billing plan"
     rm -f "${tmp_body}"
     return
