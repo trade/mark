@@ -28,7 +28,6 @@
 - [ ] Private keys loaded (via GitHub Secrets, not committed)
 - [ ] RPC endpoints accessible (test: `curl <RPC_URL>`)
 - [ ] Sufficient balance in deployer account (≥ 0.5 ETH for gas)
-- [ ] super-cli installed: `super-cli --version`
 
 ### Code Readiness
 
@@ -413,6 +412,13 @@ After deploying `Groth16SettlementVerifier`, two post-deploy calls are required
 before ZK-based settlement is active. `AttestedSettlementVerifier` remains the
 fallback until this is complete.
 
+Required environment variables for this step:
+- `MAINNET_RPC`
+- `GROTH16_VERIFIER_ADDRESS`
+- `SETTLEMENT_MODULE_ADDRESS`
+- `MARK_POOL_VERIFIER_ADDRESS` (source this from the deployed `MARKPoolVerifier`
+  address in your deployment output/artifacts for the target network)
+
 ```bash
 # 1. Bind the verifier to the settlement module (prevents cross-module replay)
 cast send $GROTH16_VERIFIER_ADDRESS \
@@ -463,6 +469,14 @@ ethgas-tracker  # or: https://ethgasstation.info
 set -a
 source config/profiles/mainnet.env
 set +a
+
+# Required environment variables (set in config/profiles/mainnet.env
+# or exported from deployment outputs before running this script):
+: "${MAINNET_RPC:?Missing MAINNET_RPC}"
+: "${RYLA_ADDRESS:?Missing RYLA_ADDRESS}"
+: "${SETTLEMENT_ADDRESS:?Missing SETTLEMENT_ADDRESS}"
+: "${BRIDGE_ADDRESS:?Missing BRIDGE_ADDRESS}"
+: "${VERIFIER_ADDRESS:?Missing VERIFIER_ADDRESS}"
 
 echo "🏥 MARK Protocol Mainnet Health Check"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
