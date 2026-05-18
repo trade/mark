@@ -1,0 +1,70 @@
+name: Bridge E2E Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      rpc_url:
+        description: "Source chain RPC URL (leave blank for MARK_STAGING_RPC_URL)"
+        required: false
+        default: ""
+        type: string
+      dst_chain_id:
+        description: "Destination chain ID"
+        required: false
+        default: "11155420"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-e2e:
+    name: Bridge E2E Test
+    runs-on: ubuntu-latest
+    environment: staging
+    defaults:
+      run:
+        working-directory: contracts
+    env:
+      RPC_URL: ${{ inputs.rpc_url != '' && inputs.rpc_url || vars.MARK_STAGING_RPC_URL }}
+
+    steps:
+      - name: Enforce dev or main branch
+        working-directory: .
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "dev" ] && [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "Bridge E2E must run from dev or main. Current: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+      - name: Validate inputs
+        working-directory: .
+        run: |
+          set -euo pipefail
+          if [ -z "$RPC_URL" ]; then
+            echo "RPC_URL required (use rpc_url input or set MARK_STAGING_RPC_URL variable)" >&2
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Ensure secret is present
+        working-directory: .
+        env:
+          PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
+        run: |
+          test -n "${PRIVATE_KEY}" || { echo "MARK_STAGING_DEPLOYER_PRIVATE_KEY required" >&2; exit 1; }
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+
+      - name: Run Bridge E2E (dry-run)
+        run: forge script script/ops/bridge/BridgeE2E.s.sol --rpc-url "$RPC_URL" -vv
+
+      - name: Run Bridge E2E (broadcast)
+        env:
+          PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
+        run: forge script script/ops/bridge/BridgeE2E.s.sol --rpc-url "$RPC_URL" --broadcast --slow -vv
