@@ -413,6 +413,13 @@ After deploying `Groth16SettlementVerifier`, two post-deploy calls are required
 before ZK-based settlement is active. `AttestedSettlementVerifier` remains the
 fallback until this is complete.
 
+Required environment variables for this step:
+- `MAINNET_RPC`
+- `GROTH16_VERIFIER_ADDRESS`
+- `SETTLEMENT_MODULE_ADDRESS`
+- `MARK_POOL_VERIFIER_ADDRESS` (source this from the deployed `MARKPoolVerifier`
+  address in your deployment output/artifacts for the target network)
+
 ```bash
 # 1. Bind the verifier to the settlement module (prevents cross-module replay)
 cast send $GROTH16_VERIFIER_ADDRESS \
