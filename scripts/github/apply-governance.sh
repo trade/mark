@@ -199,7 +199,7 @@ MAIN_CHECKS_JSON='[
   "Validate Release Evidence"
 ]'
 
-MAINTAINERS_RESTRICTIONS_JSON='{"users":[],"teams":["maintainers"],"apps":[]}'
+MAINTAINERS_RESTRICTIONS_JSON="${MAINTAINERS_RESTRICTIONS_JSON:-{"users":[],"teams":["maintainers"],"apps":[]}}"
 
 if [[ "$MAINTAINERS_RESTRICTIONS_JSON" == "null" ]]; then
   echo "  - note: push restrictions not set"
