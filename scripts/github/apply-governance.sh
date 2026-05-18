@@ -188,10 +188,6 @@ MAIN_CHECKS_JSON='[
 
 MAINTAINERS_RESTRICTIONS_JSON='{"users":[],"teams":["maintainers"],"apps":[]}'
 
-if [[ "$MAINTAINERS_RESTRICTIONS_JSON" == "null" ]]; then
-  echo "  - note: push restrictions not set"
-fi
-
 # main: strict, restricted to trade/maintainers team
 apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 
