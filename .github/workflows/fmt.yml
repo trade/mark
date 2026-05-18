@@ -50,4 +50,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Check TypeScript formatting
-        run: pnpm format:check -- --ignore-path .prettierignore "src/**/*.{ts,tsx}" "*.{ts,js,json}"
+        run: pnpm format:check
