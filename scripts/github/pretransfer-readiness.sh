@@ -7,7 +7,10 @@ set -euo pipefail
 # Optional:
 #   GH_REPO=owner/repo (inferred from origin)
 
-require_cmd() { command -v "$1" >/dev/null 2>&1 || { echo "$1 is required" >&2; exit 1; }; }
+require_cmd() { command -v "$1" >/dev/null 2>&1 || {
+  echo "$1 is required" >&2
+  exit 1
+}; }
 require_cmd curl
 require_cmd jq
 require_cmd git
@@ -21,10 +24,12 @@ infer_repo_from_remote() {
   local remote
   remote="$(git remote get-url origin)"
   if [[ "$remote" =~ ^git@github.com:([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"; return
+    echo "${BASH_REMATCH[1]}"
+    return
   fi
   if [[ "$remote" =~ ^https://github.com/([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"; return
+    echo "${BASH_REMATCH[1]}"
+    return
   fi
   echo "Could not infer GH_REPO from origin: $remote" >&2
   exit 1

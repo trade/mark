@@ -29,3 +29,20 @@ jobs:
         uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38  # v2.0.0
         with:
           scandir: "scripts contracts/script"
+
+  shfmt:
+    name: Shell Format (shfmt)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install shfmt
+        run: |
+          curl -sSL https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64 \
+            -o /usr/local/bin/shfmt && chmod +x /usr/local/bin/shfmt
+          shfmt --version
+
+      - name: Check shell formatting
+        run: |
+          shfmt -d -i 2 -ci scripts/ contracts/script/

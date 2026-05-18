@@ -8,7 +8,10 @@ set -euo pipefail
 #   GH_REPO=owner/repo (inferred from origin if omitted)
 
 require_cmd() {
-  command -v "$1" >/dev/null 2>&1 || { echo "$1 is required" >&2; exit 1; }
+  command -v "$1" >/dev/null 2>&1 || {
+    echo "$1 is required" >&2
+    exit 1
+  }
 }
 
 require_cmd curl
@@ -24,10 +27,12 @@ infer_repo_from_remote() {
   local remote
   remote="$(git remote get-url origin)"
   if [[ "$remote" =~ ^git@github.com:([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"; return
+    echo "${BASH_REMATCH[1]}"
+    return
   fi
   if [[ "$remote" =~ ^https://github.com/([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"; return
+    echo "${BASH_REMATCH[1]}"
+    return
   fi
   echo "Could not infer GH_REPO from origin: $remote" >&2
   exit 1
@@ -136,8 +141,8 @@ check_branch() {
 }
 
 # All branches use 0 required approvals — sole maintainer cannot approve own PRs.
-check_branch dev    false 0 "${require_checks_dev[@]}"
+check_branch dev false 0 "${require_checks_dev[@]}"
 check_branch canary false 0 "${require_checks_dev[@]}"
-check_branch main   true  0 "${require_checks_main[@]}"
+check_branch main true 0 "${require_checks_main[@]}"
 
 echo "[verify] governance baseline active for ${GH_REPO}"

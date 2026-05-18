@@ -14,7 +14,7 @@ fi
 echo "[release-gate-container] building image: ${IMAGE_TAG}"
 docker build \
   --cache-from "type=gha" \
-  --cache-to   "type=gha,mode=max" \
+  --cache-to "type=gha,mode=max" \
   -t "${IMAGE_TAG}" \
   -f "${DOCKERFILE_PATH}" \
   "${REPO_DIR}"

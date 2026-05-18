@@ -45,8 +45,8 @@ if [[ "$MODE" == "remote" ]]; then
 
   echo "[release-gate] step 2/3: mainnet-readiness (dry checks)"
   MARK_MAINNET_GATE_MODE="${MARK_MAINNET_GATE_MODE:-predeploy}" \
-  MARK_MAINNET_GATE_ARTIFACT_PATH="${MARK_MAINNET_GATE_ARTIFACT_PATH:-$OUT_DIR/mainnet-gate-$STAMP.json}" \
-  ./script/ops/mainnet-readiness.sh
+    MARK_MAINNET_GATE_ARTIFACT_PATH="${MARK_MAINNET_GATE_ARTIFACT_PATH:-$OUT_DIR/mainnet-gate-$STAMP.json}" \
+    ./script/ops/mainnet-readiness.sh
   READINESS_STATUS="passed"
 
   RELEASE_VERIFY_ARTIFACT_PATH="${MARK_RELEASE_VERIFY_ARTIFACT_PATH:-${MARK_RELEASE_ARTIFACT_PATH:-}}"
@@ -68,11 +68,11 @@ if [[ "$MODE" == "remote" ]]; then
 
     MANIFEST_PATH="$VERIFY_MANIFEST_PATH" ./script/ops/verify-evidence-manifest.sh
     MANIFEST_PATH="$VERIFY_MANIFEST_PATH" \
-    SIGNATURE_PATH="$VERIFY_SIGNATURE_PATH" \
-    SIGNATURE_META_PATH="$VERIFY_SIGNATURE_META_PATH" \
-    VERIFY_PUBLIC_KEY_FILE="${VERIFY_PUBLIC_KEY_FILE:-}" \
-    VERIFY_PUBLIC_KEY_PEM="${VERIFY_PUBLIC_KEY_PEM:-}" \
-    ./script/ops/verify-evidence-signature.sh
+      SIGNATURE_PATH="$VERIFY_SIGNATURE_PATH" \
+      SIGNATURE_META_PATH="$VERIFY_SIGNATURE_META_PATH" \
+      VERIFY_PUBLIC_KEY_FILE="${VERIFY_PUBLIC_KEY_FILE:-}" \
+      VERIFY_PUBLIC_KEY_PEM="${VERIFY_PUBLIC_KEY_PEM:-}" \
+      ./script/ops/verify-evidence-signature.sh
 
     if ! jq -e --arg path "$RELEASE_VERIFY_ARTIFACT_PATH" '.artifacts[] | select(.id == "release" and .path == $path)' "$VERIFY_MANIFEST_PATH" >/dev/null; then
       echo "release-gate: release artifact path is not anchored in manifest (id=release, path=$RELEASE_VERIFY_ARTIFACT_PATH)" >&2
@@ -85,7 +85,7 @@ if [[ "$MODE" == "remote" ]]; then
 
   echo "[release-gate] step 4/4: strict deployment verification"
   MARK_RELEASE_VERIFY_ARTIFACT_PATH="$RELEASE_VERIFY_ARTIFACT_PATH" \
-  ./script/ci/verify-from-artifact.sh
+    ./script/ci/verify-from-artifact.sh
   VERIFY_STATUS="passed"
 fi
 
@@ -109,7 +109,7 @@ jq -n \
       signedManifestVerify: $manifestVerify,
       strictDeploymentVerify: $verify
     }
-  }' > "$ARTIFACT_PATH"
+  }' >"$ARTIFACT_PATH"
 
 echo "[release-gate] PASSED"
 echo "[release-gate] artifact: $ARTIFACT_PATH"
