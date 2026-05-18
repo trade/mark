@@ -50,7 +50,8 @@ contract BridgeE2E is Script {
 
         // Build EIP-712 attestation matching AttestedSettlementVerifier._settlementDigest
         bytes32 intentId    = keccak256(abi.encodePacked("bridge-e2e", block.timestamp, operator));
-        uint256 deadline    = block.timestamp + 1 hours;
+        uint256 deadlineWindow = vm.envOr("DEADLINE_SECONDS", uint256(1 hours));
+        uint256 deadline    = block.timestamp + deadlineWindow;
         bytes32 contextHash = bytes32(0); // opaque attester-controlled value
 
         bytes32 structHash = keccak256(abi.encode(
