@@ -375,6 +375,7 @@ contract MARKPoolTest is Test {
         vm.stopPrank();
         assertFalse(pool.proofTypeEnabled(pool.PROOF_TYPE_TRANSFER()));
     }
+
     function testConstructorRevertsOnZeroPoseidon() public {
         AccessManager am = new AccessManager(admin);
         vm.expectRevert(PoolErrors.InvalidPoseidon.selector);
