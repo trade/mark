@@ -694,7 +694,8 @@ git push origin fix/production-lock-config
 
 3. **Monitor gas prices** for future deployments:
    - https://ethgasstation.info
-   - https://gasnow.org
+   - https://ultrasound.money
+   - https://www.blocknative.com/gas-estimator
 
 ### Communication
 
