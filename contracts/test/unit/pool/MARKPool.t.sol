@@ -278,6 +278,7 @@ contract MARKPoolTest is Test {
 
     function testBridgeOutRevertsWhenCallerNotEntrypoint() public {
         address entrypoint = makeAddr("entrypoint");
+        // Install minimal runtime bytecode so the entrypoint address is treated as a deployed contract in this test.
         vm.etch(entrypoint, hex"00");
 
         vm.startPrank(admin);
