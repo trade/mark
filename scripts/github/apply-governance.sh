@@ -114,10 +114,16 @@ apply_branch_protection() {
     return
   fi
 
-  if [[ "${http_code}" == "403" ]] && grep -q "Upgrade to GitHub Pro" "${tmp_body}"; then
-    echo "    ! skipped: branch protection requires GitHub Pro/Team on private repos"
-    rm -f "${tmp_body}"
-    return
+  if [[ "${http_code}" == "403" ]]; then
+    local gh_error_text
+    gh_error_text="$(
+      jq -r '([.message] + ((.errors // []) | map(.message // ""))) | join(" ")' "${tmp_body}" 2>/dev/null || true
+    )"
+    if [[ "${gh_error_text}" =~ [Pp]ro|[Tt]eam|[Pp]rivate\ repos|[Pp]lan ]]; then
+      echo "    ! skipped: branch protection requires GitHub Pro/Team on private repos"
+      rm -f "${tmp_body}"
+      return
+    fi
   fi
 
   echo "    ! failed (${http_code}) while protecting ${branch}:"
@@ -144,7 +150,15 @@ ensure_environment() {
     return
   fi
 
-  if [[ "${http_code}" == "422" ]] && grep -q "billing plan supports the required reviewers protection rule" "${tmp_body}"; then
+  if [[ "${http_code}" == "422" ]] && jq -er '
+    [
+      (.message // ""),
+      (.errors[]?.message // ""),
+      (.errors[]?.code // "")
+    ]
+    | join(" ")
+    | test("billing[[:space:]]+plan.*required[[:space:]]+reviewers.*protection[[:space:]]+rule"; "i")
+  ' "${tmp_body}" >/dev/null 2>&1; then
     echo "    ! skipped: required reviewers rule not available on current billing plan"
     rm -f "${tmp_body}"
     return
@@ -186,7 +200,10 @@ MAIN_CHECKS_JSON='[
   "Validate Release Evidence"
 ]'
 
-MAINTAINERS_RESTRICTIONS_JSON='{"users":[],"teams":["maintainers"],"apps":[]}'
+MAINTAINERS_TEAM_SLUG="maintainers"
+MAINTAINERS_RESTRICTIONS_JSON="$(
+  jq -cn --arg team "${owner}/${MAINTAINERS_TEAM_SLUG}" '{users: [], teams: [$team], apps: []}'
+)"
 
 # main: strict, restricted to trade/maintainers team
 apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
