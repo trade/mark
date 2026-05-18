@@ -186,7 +186,10 @@ MAIN_CHECKS_JSON='[
   "Validate Release Evidence"
 ]'
 
-MAINTAINERS_RESTRICTIONS_JSON='{"users":[],"teams":["maintainers"],"apps":[]}'
+MAINTAINERS_TEAM_SLUG="maintainers"
+MAINTAINERS_RESTRICTIONS_JSON="$(
+  jq -cn --arg team "${owner}/${MAINTAINERS_TEAM_SLUG}" '{users: [], teams: [$team], apps: []}'
+)"
 
 # main: strict, restricted to trade/maintainers team
 apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
