@@ -114,10 +114,16 @@ apply_branch_protection() {
     return
   fi
 
-  if [[ "${http_code}" == "403" ]] && grep -q "Upgrade to GitHub Pro" "${tmp_body}"; then
-    echo "    ! skipped: branch protection requires GitHub Pro/Team on private repos"
-    rm -f "${tmp_body}"
-    return
+  if [[ "${http_code}" == "403" ]]; then
+    local gh_error_text
+    gh_error_text="$(
+      jq -r '([.message] + ((.errors // []) | map(.message // ""))) | join(" ")' "${tmp_body}" 2>/dev/null || true
+    )"
+    if [[ "${gh_error_text}" =~ [Pp]ro|[Tt]eam|[Pp]rivate\ repos|[Pp]lan ]]; then
+      echo "    ! skipped: branch protection requires GitHub Pro/Team on private repos"
+      rm -f "${tmp_body}"
+      return
+    fi
   fi
 
   echo "    ! failed (${http_code}) while protecting ${branch}:"
