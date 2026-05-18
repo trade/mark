@@ -464,6 +464,14 @@ set -a
 source config/profiles/mainnet.env
 set +a
 
+# Required environment variables (set in config/profiles/mainnet.env
+# or exported from deployment outputs before running this script):
+: "${MAINNET_RPC:?Missing MAINNET_RPC}"
+: "${RYLA_ADDRESS:?Missing RYLA_ADDRESS}"
+: "${SETTLEMENT_ADDRESS:?Missing SETTLEMENT_ADDRESS}"
+: "${BRIDGE_ADDRESS:?Missing BRIDGE_ADDRESS}"
+: "${VERIFIER_ADDRESS:?Missing VERIFIER_ADDRESS}"
+
 echo "🏥 MARK Protocol Mainnet Health Check"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
