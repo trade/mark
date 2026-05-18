@@ -757,9 +757,13 @@ cd contracts && MARK_RELEASE_EXECUTE=true \
 # Health check
 cd contracts && ./script/ops/health-check.sh
 
-# Rollback (pause operations)
+# Rollback (pause operations) - use interactive or hardware-wallet signing
 cast send $SETTLEMENT_ADDRESS "pause()" \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
+
+# Optional: hardware wallet signing (recommended for emergency mainnet ops)
+cast send $SETTLEMENT_ADDRESS "pause()" \
+  --rpc-url $MAINNET_RPC --ledger
 ```
 
 ### Timeline Estimates
