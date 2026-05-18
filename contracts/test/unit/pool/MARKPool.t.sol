@@ -54,7 +54,7 @@ contract MARKPoolTest is Test {
 
     uint256[2] internal A;
     uint256[2][2] internal B;
-    uint256[2] internal C_PROOF;
+    uint256[2] internal C;
 
     function setUp() public {
         mockOk = new MockVerifier(true);
