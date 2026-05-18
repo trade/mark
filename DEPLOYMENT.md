@@ -574,7 +574,7 @@ cast balance $DEPLOYER_ADDRESS --rpc-url $MAINNET_RPC
 # Fund deployer (from treasury or team account)
 cast send $DEPLOYER_ADDRESS --value 1ether \
   --rpc-url $MAINNET_RPC \
-  --private-key $FUNDING_KEY
+  --interactive
 
 # Retry deployment
 MARK_RELEASE_EXECUTE=true \
