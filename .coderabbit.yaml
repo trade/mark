@@ -13,12 +13,13 @@ reviews:
     drafts: false
   path_filters:
     - "!**/*.md"
-    - "!**/*.yaml"
-    - "!**/*.yml"
     - "!**/*.json"
     - "!**/*.toml"
     - "!**/.nvmrc"
     - "!**/pnpm-lock.yaml"
+    - "!**/*.yaml"
+    - "!**/*.yml"
+    - ".github/workflows/**"
   path_instructions:
     - path: "contracts/src/**/*.sol"
       instructions: |
