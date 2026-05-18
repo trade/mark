@@ -39,9 +39,7 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         address caller
     );
 
-    constructor(address initialAuthority, address ledgerAddress, address poolAddress)
-        AccessManaged(initialAuthority)
-    {
+    constructor(address initialAuthority, address ledgerAddress, address poolAddress) AccessManaged(initialAuthority) {
         if (ledgerAddress == address(0)) revert InvalidAssetLedger();
         if (poolAddress == address(0)) revert InvalidProofPool();
         if (ledgerAddress.code.length == 0) revert AssetLedgerMustBeContract();

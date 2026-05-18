@@ -65,4 +65,3 @@ jobs:
           fi
 
           echo "Release PR checklist validation passed."
-

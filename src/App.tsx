@@ -5,7 +5,8 @@ const CONTRACTS = [
   {
     name: 'RYLA Credits',
     symbol: 'RYLA',
-    description: 'Superchain-compatible credit token. Mintable and burnable only by the settlement module.',
+    description:
+      'Superchain-compatible credit token. Mintable and burnable only by the settlement module.',
   },
   {
     name: 'MARKSettlementModule',
@@ -27,7 +28,10 @@ const CONTRACTS = [
 const LINKS = [
   { label: 'GitHub', href: 'https://github.com/trade/mark' },
   { label: 'Security Policy', href: 'https://github.com/trade/mark/security/policy' },
-  { label: 'Report a Vulnerability', href: 'https://github.com/trade/mark/security/advisories/new' },
+  {
+    label: 'Report a Vulnerability',
+    href: 'https://github.com/trade/mark/security/advisories/new',
+  },
 ];
 
 function App() {

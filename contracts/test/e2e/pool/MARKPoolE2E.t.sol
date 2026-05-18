@@ -12,12 +12,13 @@ import {IVerifier} from "../../../src/interfaces/IVerifier.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract AlwaysValidVerifier is IVerifier {
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[13] calldata
-    ) external pure returns (bool) { return true; }
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
+        external
+        pure
+        returns (bool)
+    {
+        return true;
+    }
 }
 
 /// @notice End-to-end test for the full pool withdrawal flow:
@@ -123,16 +124,13 @@ contract MARKPoolE2ETest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0),
-            creditOwner, recipient, MINT_AMOUNT,
-            A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C_PROOF
         );
 
         assertTrue(pool.isNullifierUsedGlobal(N0));
         assertTrue(pool.isNullifierUsedGlobal(N1));
         assertEq(
-            pool.nullifierWithdrawBinding(N0),
-            pool.computeWithdrawBindingHash(creditOwner, recipient, MINT_AMOUNT)
+            pool.nullifierWithdrawBinding(N0), pool.computeWithdrawBindingHash(creditOwner, recipient, MINT_AMOUNT)
         );
 
         // Step 4: Fund adapter with ETH to pay recipient
@@ -142,9 +140,8 @@ contract MARKPoolE2ETest is Test {
         uint256 nonce = adapter.withdrawNonce(creditOwner);
         uint256 deadline = block.timestamp + 1 hours;
 
-        bytes32 intentHash = adapter.computeWithdrawIntentHash(
-            creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce, deadline
-        );
+        bytes32 intentHash =
+            adapter.computeWithdrawIntentHash(creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce, deadline);
         bytes32 digest = MessageHashUtils.toEthSignedMessageHash(intentHash);
 
         (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(ownerPk, digest);
@@ -155,11 +152,7 @@ contract MARKPoolE2ETest is Test {
         // Step 6: Execute withdrawal — burns RYLA, sends ETH to recipient
         uint256 recipientEthBefore = recipient.balance;
 
-        adapter.withdrawWithSig(
-            creditOwner, recipient, MINT_AMOUNT,
-            nullifiers, nonce, deadline,
-            ownerSig, intentSig
-        );
+        adapter.withdrawWithSig(creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce, deadline, ownerSig, intentSig);
 
         // Verify RYLA burned
         assertEq(token.balanceOf(creditOwner), 0);
@@ -185,42 +178,46 @@ contract MARKPoolE2ETest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0),
-            creditOwner, recipient, MINT_AMOUNT,
-            A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C_PROOF
         );
 
         vm.deal(address(adapter), MINT_AMOUNT * 2);
 
         uint256 nonce = adapter.withdrawNonce(creditOwner);
         uint256 deadline = block.timestamp + 1 hours;
-        bytes32 intentHash = adapter.computeWithdrawIntentHash(
-            creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce, deadline
-        );
+        bytes32 intentHash =
+            adapter.computeWithdrawIntentHash(creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce, deadline);
         bytes32 digest = MessageHashUtils.toEthSignedMessageHash(intentHash);
         (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(ownerPk, digest);
         (uint8 v2, bytes32 r2, bytes32 s2) = vm.sign(intentSignerPk, digest);
 
         adapter.withdrawWithSig(
-            creditOwner, recipient, MINT_AMOUNT,
-            nullifiers, nonce, deadline,
+            creditOwner,
+            recipient,
+            MINT_AMOUNT,
+            nullifiers,
+            nonce,
+            deadline,
             abi.encodePacked(r1, s1, v1),
             abi.encodePacked(r2, s2, v2)
         );
 
         // Second attempt with same nullifiers must revert with NullifierAlreadyClaimed
         uint256 nonce2 = adapter.withdrawNonce(creditOwner);
-        bytes32 intentHash2 = adapter.computeWithdrawIntentHash(
-            creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce2, deadline
-        );
+        bytes32 intentHash2 =
+            adapter.computeWithdrawIntentHash(creditOwner, recipient, MINT_AMOUNT, nullifiers, nonce2, deadline);
         bytes32 digest2 = MessageHashUtils.toEthSignedMessageHash(intentHash2);
         (uint8 v3, bytes32 r3, bytes32 s3) = vm.sign(ownerPk, digest2);
         (uint8 v4, bytes32 r4, bytes32 s4) = vm.sign(intentSignerPk, digest2);
 
         vm.expectRevert();
         adapter.withdrawWithSig(
-            creditOwner, recipient, MINT_AMOUNT,
-            nullifiers, nonce2, deadline,
+            creditOwner,
+            recipient,
+            MINT_AMOUNT,
+            nullifiers,
+            nonce2,
+            deadline,
             abi.encodePacked(r3, s3, v3),
             abi.encodePacked(r4, s4, v4)
         );
@@ -240,9 +237,7 @@ contract MARKPoolE2ETest is Test {
 
         // Bind to `recipient`
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0),
-            creditOwner, recipient, MINT_AMOUNT,
-            A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C_PROOF
         );
 
         vm.deal(address(adapter), MINT_AMOUNT);
@@ -250,17 +245,20 @@ contract MARKPoolE2ETest is Test {
         address wrongRecipient = makeAddr("wrong");
         uint256 nonce = adapter.withdrawNonce(creditOwner);
         uint256 deadline = block.timestamp + 1 hours;
-        bytes32 intentHash = adapter.computeWithdrawIntentHash(
-            creditOwner, wrongRecipient, MINT_AMOUNT, nullifiers, nonce, deadline
-        );
+        bytes32 intentHash =
+            adapter.computeWithdrawIntentHash(creditOwner, wrongRecipient, MINT_AMOUNT, nullifiers, nonce, deadline);
         bytes32 digest = MessageHashUtils.toEthSignedMessageHash(intentHash);
         (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(ownerPk, digest);
         (uint8 v2, bytes32 r2, bytes32 s2) = vm.sign(intentSignerPk, digest);
 
         vm.expectRevert();
         adapter.withdrawWithSig(
-            creditOwner, wrongRecipient, MINT_AMOUNT,
-            nullifiers, nonce, deadline,
+            creditOwner,
+            wrongRecipient,
+            MINT_AMOUNT,
+            nullifiers,
+            nonce,
+            deadline,
             abi.encodePacked(r1, s1, v1),
             abi.encodePacked(r2, s2, v2)
         );

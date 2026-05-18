@@ -88,11 +88,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     event ProtocolEpochSet(uint256 previousProtocolEpoch, uint256 newProtocolEpoch);
     event NoteSpent(bytes32 indexed nullifier);
     event WithdrawBindingRecorded(
-        bytes32 indexed nullifier,
-        bytes32 indexed bindingHash,
-        address indexed owner,
-        address recipient,
-        uint256 amount
+        bytes32 indexed nullifier, bytes32 indexed bindingHash, address indexed owner, address recipient, uint256 amount
     );
     event NoteCreated(bytes32 indexed commitment);
     event FeePaid(address indexed relayer, uint256 fee);
@@ -107,15 +103,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         uint256 fee,
         address relayer
     );
-    event BridgeIn(
-        uint256 indexed srcChainId,
-        bytes32 indexed commitment0,
-        bytes32 indexed commitment1
-    );
+    event BridgeIn(uint256 indexed srcChainId, bytes32 indexed commitment0, bytes32 indexed commitment1);
 
-    constructor(address initialAuthority, address _verifier, address _poseidon)
-        AccessManaged(initialAuthority)
-    {
+    constructor(address initialAuthority, address _verifier, address _poseidon) AccessManaged(initialAuthority) {
         if (_verifier == address(0)) revert InvalidVerifier();
         if (_verifier.code.length == 0) revert VerifierMustBeContract();
         if (_poseidon == address(0)) revert InvalidPoseidon();
@@ -325,7 +315,20 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         uint256[2][2] calldata bSnarkjs,
         uint256[2] calldata c
     ) external nonReentrant whenNotPaused whenWithdrawalsNotPaused {
-        _verifyAndConsume(merkleRoot, block.chainid, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, a, bSnarkjs, c);
+        _verifyAndConsume(
+            merkleRoot,
+            block.chainid,
+            nullifiers,
+            outCommitments,
+            fee,
+            relayer,
+            address(0),
+            address(0),
+            0,
+            a,
+            bSnarkjs,
+            c
+        );
         _insertCommitmentsValidated(outCommitments);
         _applyFee(fee, relayer);
     }
@@ -348,7 +351,20 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         uint256[2] calldata c
     ) external nonReentrant whenNotPaused whenWithdrawalsNotPaused {
         if (withdrawAmount == 0) revert InvalidWithdrawAmount();
-        _verifyAndConsume(merkleRoot, block.chainid, nullifiers, outCommitments, fee, relayer, withdrawOwner, withdrawRecipient, withdrawAmount, a, bSnarkjs, c);
+        _verifyAndConsume(
+            merkleRoot,
+            block.chainid,
+            nullifiers,
+            outCommitments,
+            fee,
+            relayer,
+            withdrawOwner,
+            withdrawRecipient,
+            withdrawAmount,
+            a,
+            bSnarkjs,
+            c
+        );
         _insertCommitmentsValidated(outCommitments);
         _applyFee(fee, relayer);
         _recordWithdrawBinding(nullifiers, withdrawOwner, withdrawRecipient, withdrawAmount);
@@ -373,7 +389,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (msg.sender != configuredEntrypoint) revert UnauthorizedBridgeOutCaller();
         if (dstChainId == 0) revert InvalidDestination();
         if (dstChainId == block.chainid) revert DestinationIsSource();
-        _verifyAndConsume(merkleRoot, dstChainId, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, a, bSnarkjs, c);
+        _verifyAndConsume(
+            merkleRoot, dstChainId, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, a, bSnarkjs, c
+        );
         _applyFee(fee, relayer);
         emit BridgeOut(dstChainId, outCommitments[0], outCommitments[1], fee, relayer);
     }
@@ -424,7 +442,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         });
 
         PoolValidation.requireDestEpochAndFeeWithinCircuitRange(ctx.dstChainId, ctx.protocolEpoch, ctx.fee);
-        PoolValidation.requireWithdrawBindingWithinCircuitRange(ctx.withdrawOwner, ctx.withdrawRecipient, ctx.withdrawAmount);
+        PoolValidation.requireWithdrawBindingWithinCircuitRange(
+            ctx.withdrawOwner, ctx.withdrawRecipient, ctx.withdrawAmount
+        );
         PoolValidation.requireRootWithinCircuitRange(ctx.merkleRoot);
         if (!proofTypeEnabled[PROOF_TYPE_TRANSFER]) revert ProofTypeDisabled();
         if (!knownRoots[ctx.merkleRoot]) revert UnknownRoot();
@@ -446,7 +466,6 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         }
     }
 
-
     function _insertCommitmentsValidated(bytes32[2] calldata outCommitments) internal {
         uint256 tail = rootQueueTail;
         for (uint256 i = 0; i < outCommitments.length; i++) {
@@ -463,7 +482,6 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             rootQueueTail = tail;
         }
     }
-
 
     function _applyFee(uint256 fee, address relayer) internal {
         if (fee == 0) return;
@@ -497,9 +515,17 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         bytes32[2] calldata outCommitments
     ) internal view returns (uint256[13] memory publicInputs) {
         return PoolPublicInputs.build(
-            nullifiers, outCommitments, ctx.merkleRoot, block.chainid, ctx.dstChainId,
-            ctx.protocolEpoch, ctx.fee, ctx.relayer,
-            ctx.withdrawOwner, ctx.withdrawRecipient, ctx.withdrawAmount
+            nullifiers,
+            outCommitments,
+            ctx.merkleRoot,
+            block.chainid,
+            ctx.dstChainId,
+            ctx.protocolEpoch,
+            ctx.fee,
+            ctx.relayer,
+            ctx.withdrawOwner,
+            ctx.withdrawRecipient,
+            ctx.withdrawAmount
         );
     }
 
@@ -511,12 +537,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         return keccak256(abi.encode(WITHDRAW_BINDING_DOMAIN, address(this), block.chainid, owner, recipient, amount));
     }
 
-    function _recordWithdrawBinding(
-        bytes32[2] calldata nullifiers,
-        address owner,
-        address recipient,
-        uint256 amount
-    ) internal {
+    function _recordWithdrawBinding(bytes32[2] calldata nullifiers, address owner, address recipient, uint256 amount)
+        internal
+    {
         bytes32 bindingHash = computeWithdrawBindingHash(owner, recipient, amount);
         for (uint256 i = 0; i < nullifiers.length; i++) {
             if (nullifierWithdrawBinding[nullifiers[i]] != bytes32(0)) revert WithdrawBindingExists();
@@ -524,6 +547,4 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             emit WithdrawBindingRecorded(nullifiers[i], bindingHash, owner, recipient, amount);
         }
     }
-
-
 }

@@ -11,12 +11,11 @@ import {DeployMARKStack} from "../../script/deploy/bridge/DeployMARKStack.s.sol"
 import {DeployMARKSettlementModule} from "../../script/deploy/settlement/DeployMARKSettlementModule.s.sol";
 
 contract MockScriptGroth16Verifier is IGroth16Verifier {
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[13] calldata
-    ) external pure returns (bool) {
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
+        external
+        pure
+        returns (bool)
+    {
         return true;
     }
 }

@@ -54,15 +54,17 @@ contract ReleasePool is Script {
         if (!execute) {
             console.log("MARK_POOL_RELEASE_EXECUTE=false. Dry-run complete (no transactions broadcast).");
             if (writeArtifact) {
-                _writeArtifact(ReleaseResult({
-                    execute: false,
-                    deployer: deployer,
-                    token: tokenAddress,
-                    accessManager: address(0),
-                    pool: address(0),
-                    ledger: address(0),
-                    adapter: address(0)
-                }));
+                _writeArtifact(
+                    ReleaseResult({
+                        execute: false,
+                        deployer: deployer,
+                        token: tokenAddress,
+                        accessManager: address(0),
+                        pool: address(0),
+                        ledger: address(0),
+                        adapter: address(0)
+                    })
+                );
             }
             return;
         }
@@ -131,10 +133,8 @@ contract ReleasePool is Script {
     }
 
     function _writeArtifact(ReleaseResult memory result) internal {
-        string memory path = vm.envOr(
-            "MARK_POOL_RELEASE_ARTIFACT_PATH",
-            string("broadcast/mark-pool-release-latest.json")
-        );
+        string memory path =
+            vm.envOr("MARK_POOL_RELEASE_ARTIFACT_PATH", string("broadcast/mark-pool-release-latest.json"));
         string memory root = "pool-release";
         _ensureParentDir(path);
 
@@ -159,11 +159,14 @@ contract ReleasePool is Script {
         bytes memory raw = bytes(path);
         uint256 split = type(uint256).max;
         for (uint256 i = raw.length; i > 0; i--) {
-            if (raw[i - 1] == "/") { split = i - 1; break; }
+            if (raw[i - 1] == "/") split = i - 1;
+            break;
         }
         if (split == type(uint256).max || split == 0) return;
         bytes memory parent = new bytes(split);
-        for (uint256 j = 0; j < split; j++) { parent[j] = raw[j]; }
+        for (uint256 j = 0; j < split; j++) {
+            parent[j] = raw[j];
+        }
         vm.createDir(string(parent), true);
     }
 }

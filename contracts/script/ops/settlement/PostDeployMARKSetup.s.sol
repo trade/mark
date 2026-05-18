@@ -108,12 +108,10 @@ contract PostDeployMARKSetup is Script {
         bool needsAdapterConfig =
             cfg.adapterAddress != address(0) && (cfg.bridgeOperator != address(0) || cfg.destinationChainId != 0);
         bool needsModuleConfig = cfg.moduleAddress != address(0)
-            && (
-                cfg.settlementOperator != address(0)
-                    || cfg.verifierAddress != address(0)
-                    || cfg.proofEnabled
-                    || cfg.settlementProductionMode
-            );
+            && (cfg.settlementOperator != address(0)
+                || cfg.verifierAddress != address(0)
+                || cfg.proofEnabled
+                || cfg.settlementProductionMode);
         bool needsVerifierConfig = cfg.verifierAddress != address(0) && cfg.settlementAttester != address(0);
 
         if (cfg.verifierAddress != address(0) && cfg.moduleAddress == address(0)) {
@@ -161,11 +159,7 @@ contract PostDeployMARKSetup is Script {
                 ctr.module.setVerifier(cfg.verifierAddress, cfg.proofEnabled);
             }
             if (cfg.verifierAddress != address(0)) {
-                _tryConfigureGroth16Verifier(
-                    cfg.verifierAddress,
-                    cfg.moduleAddress,
-                    cfg.groth16DirectionEnforcement
-                );
+                _tryConfigureGroth16Verifier(cfg.verifierAddress, cfg.moduleAddress, cfg.groth16DirectionEnforcement);
             }
             if (cfg.settlementProductionMode) {
                 ctr.module.activateProductionMode();
@@ -179,17 +173,27 @@ contract PostDeployMARKSetup is Script {
 
     function _assertConfig(Config memory cfg, Contracts memory ctr) internal view {
         if (cfg.moduleAddress != address(0)) {
-            _assertTrue(ctr.token.hasRole(ctr.token.MINTER_ROLE(), cfg.moduleAddress), "Token missing module minter role");
-            _assertTrue(ctr.token.hasRole(ctr.token.BURNER_ROLE(), cfg.moduleAddress), "Token missing module burner role");
+            _assertTrue(
+                ctr.token.hasRole(ctr.token.MINTER_ROLE(), cfg.moduleAddress), "Token missing module minter role"
+            );
+            _assertTrue(
+                ctr.token.hasRole(ctr.token.BURNER_ROLE(), cfg.moduleAddress), "Token missing module burner role"
+            );
         }
         if (cfg.adapterAddress != address(0) && cfg.bridgeOperator != address(0)) {
-            _assertTrue(ctr.adapter.hasRole(ctr.adapter.OPERATOR_ROLE(), cfg.bridgeOperator), "Adapter missing requested operator role");
+            _assertTrue(
+                ctr.adapter.hasRole(ctr.adapter.OPERATOR_ROLE(), cfg.bridgeOperator),
+                "Adapter missing requested operator role"
+            );
         }
         if (cfg.adapterAddress != address(0) && cfg.destinationChainId != 0) {
             _assertTrue(ctr.adapter.destinationEnabled(cfg.destinationChainId), "Adapter destination not enabled");
         }
         if (cfg.moduleAddress != address(0) && cfg.settlementOperator != address(0)) {
-            _assertTrue(ctr.module.hasRole(ctr.module.OPERATOR_ROLE(), cfg.settlementOperator), "Module missing requested operator role");
+            _assertTrue(
+                ctr.module.hasRole(ctr.module.OPERATOR_ROLE(), cfg.settlementOperator),
+                "Module missing requested operator role"
+            );
         }
         if (cfg.moduleAddress != address(0) && (cfg.verifierAddress != address(0) || cfg.proofEnabled)) {
             _assertEq(address(ctr.module.verifier()), cfg.verifierAddress, "Module verifier mismatch");
@@ -199,7 +203,10 @@ contract PostDeployMARKSetup is Script {
             _assertTrue(ctr.module.productionMode(), "Module production mode not enabled");
         }
         if (cfg.verifierAddress != address(0) && cfg.settlementAttester != address(0)) {
-            _assertTrue(ctr.verifier.hasRole(ctr.verifier.ATTESTER_ROLE(), cfg.settlementAttester), "Verifier missing requested attester role");
+            _assertTrue(
+                ctr.verifier.hasRole(ctr.verifier.ATTESTER_ROLE(), cfg.settlementAttester),
+                "Verifier missing requested attester role"
+            );
         }
     }
 
@@ -222,24 +229,20 @@ contract PostDeployMARKSetup is Script {
         if (!condition) revert(err);
     }
 
-    function _tryConfigureGroth16Verifier(
-        address verifierAddress,
-        address moduleAddress,
-        bool directionEnforcement
-    ) internal {
+    function _tryConfigureGroth16Verifier(address verifierAddress, address moduleAddress, bool directionEnforcement)
+        internal
+    {
         (bool hasSetModule,) =
             verifierAddress.staticcall(abi.encodeWithSelector(bytes4(keccak256("settlementModule()"))));
         if (!hasSetModule) return;
 
-        (bool okSetModule,) =
-            verifierAddress.call(abi.encodeWithSelector(bytes4(keccak256("setSettlementModule(address)")), moduleAddress));
+        (bool okSetModule,) = verifierAddress.call(
+            abi.encodeWithSelector(bytes4(keccak256("setSettlementModule(address)")), moduleAddress)
+        );
         require(okSetModule, "Groth16 setSettlementModule failed");
 
         (bool okSetDirection,) = verifierAddress.call(
-            abi.encodeWithSelector(
-                bytes4(keccak256("setDirectionEnforcementEnabled(bool)")),
-                directionEnforcement
-            )
+            abi.encodeWithSelector(bytes4(keccak256("setDirectionEnforcementEnabled(bool)")), directionEnforcement)
         );
         require(okSetDirection, "Groth16 setDirectionEnforcementEnabled failed");
     }

@@ -126,4 +126,3 @@ jobs:
             } else {
               core.info("Release evidence validation passed.");
             }
-

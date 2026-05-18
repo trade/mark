@@ -62,14 +62,17 @@ contract VerifyMARKDeployment is Script {
             );
 
             if (cfg.expectedOwner != address(0)) {
-                _assertTrue(adapter.hasRole(DEFAULT_ADMIN_ROLE, cfg.expectedOwner), "Adapter admin missing expected owner");
+                _assertTrue(
+                    adapter.hasRole(DEFAULT_ADMIN_ROLE, cfg.expectedOwner), "Adapter admin missing expected owner"
+                );
             }
             _assertEq(
                 uint256(adapter.defaultAdminDelay()), uint256(EXPECTED_ADMIN_DELAY), "Adapter admin delay mismatch"
             );
             if (cfg.expectedBridgeOperator != address(0)) {
                 _assertTrue(
-                    adapter.hasRole(adapter.OPERATOR_ROLE(), cfg.expectedBridgeOperator), "Adapter missing expected operator"
+                    adapter.hasRole(adapter.OPERATOR_ROLE(), cfg.expectedBridgeOperator),
+                    "Adapter missing expected operator"
                 );
             }
             if (cfg.expectedDestinationChain != 0) {
@@ -94,11 +97,11 @@ contract VerifyMARKDeployment is Script {
             _assertTrue(token.hasRole(token.BURNER_ROLE(), cfg.moduleAddress), "Token missing module burner role");
 
             if (cfg.expectedOwner != address(0)) {
-                _assertTrue(module.hasRole(DEFAULT_ADMIN_ROLE, cfg.expectedOwner), "Module admin missing expected owner");
+                _assertTrue(
+                    module.hasRole(DEFAULT_ADMIN_ROLE, cfg.expectedOwner), "Module admin missing expected owner"
+                );
             }
-            _assertEq(
-                uint256(module.defaultAdminDelay()), uint256(EXPECTED_ADMIN_DELAY), "Module admin delay mismatch"
-            );
+            _assertEq(uint256(module.defaultAdminDelay()), uint256(EXPECTED_ADMIN_DELAY), "Module admin delay mismatch");
             if (cfg.expectedSettlementOperator != address(0)) {
                 _assertTrue(
                     module.hasRole(module.OPERATOR_ROLE(), cfg.expectedSettlementOperator),
@@ -125,10 +128,13 @@ contract VerifyMARKDeployment is Script {
                 uint256(verifier.defaultAdminDelay()), uint256(EXPECTED_ADMIN_DELAY), "Verifier admin delay mismatch"
             );
             if (cfg.expectedOwner != address(0)) {
-                _assertTrue(verifier.hasRole(DEFAULT_ADMIN_ROLE, cfg.expectedOwner), "Verifier admin missing expected owner");
+                _assertTrue(
+                    verifier.hasRole(DEFAULT_ADMIN_ROLE, cfg.expectedOwner), "Verifier admin missing expected owner"
+                );
             }
             _assertTrue(
-                verifier.hasRole(verifier.ATTESTER_ROLE(), cfg.expectedAttester), "Verifier missing expected attester role"
+                verifier.hasRole(verifier.ATTESTER_ROLE(), cfg.expectedAttester),
+                "Verifier missing expected attester role"
             );
             console.log("Verified verifier attester role:", cfg.expectedVerifier);
         }
@@ -175,7 +181,6 @@ contract VerifyMARKDeployment is Script {
             revert(err);
         }
     }
-
 
     function _assertTrue(bool condition, string memory err) internal pure {
         if (!condition) {

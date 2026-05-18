@@ -153,11 +153,7 @@ contract MARKBridgeAdapterTest is Test {
         assertEq(token.allowance(address(adapter), SUPERCHAIN_BRIDGE), 0);
     }
 
-    function testFuzz_BridgeLimitsRespectCapsAndDayReset(
-        uint96 firstRaw,
-        uint96 secondRaw,
-        uint96 thirdRaw
-    ) public {
+    function testFuzz_BridgeLimitsRespectCapsAndDayReset(uint96 firstRaw, uint96 secondRaw, uint96 thirdRaw) public {
         vm.prank(owner);
         adapter.setBridgeLimits(100 ether, 150 ether);
 

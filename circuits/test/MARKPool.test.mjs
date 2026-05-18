@@ -1,11 +1,11 @@
 // Witness tests for MARKPool circuit.
 // Run: node test/MARKPool.test.mjs
 
-import { buildPoseidon } from "circomlibjs";
-import { readFileSync } from "fs";
-import { createRequire } from "module";
-import { fileURLToPath } from "url";
-import path from "path";
+import { buildPoseidon } from 'circomlibjs';
+import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import path from 'path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -26,8 +26,10 @@ function buildZeroTree(depth) {
   return zeros;
 }
 
-const wasmPath = path.join(__dirname, "../build/MARKPool_js/MARKPool.wasm");
-const WitnessCalculator = require(path.join(__dirname, "../build/MARKPool_js/witness_calculator.js"));
+const wasmPath = path.join(__dirname, '../build/MARKPool_js/MARKPool.wasm');
+const WitnessCalculator = require(
+  path.join(__dirname, '../build/MARKPool_js/witness_calculator.js')
+);
 const wasm = readFileSync(wasmPath);
 const wc = await WitnessCalculator(wasm);
 
@@ -50,7 +52,11 @@ async function expectFail(label, input) {
     // Only treat constraint/assertion failures as expected. Rethrow anything else
     // (malformed input, missing signal, internal error) so regressions surface.
     const msg = (e?.message ?? '').toLowerCase();
-    if (msg.includes('assert failed') || msg.includes('constraint') || msg.includes('error in template')) {
+    if (
+      msg.includes('assert failed') ||
+      msg.includes('constraint') ||
+      msg.includes('error in template')
+    ) {
       console.log(`  PASS: ${label}`);
     } else {
       throw e;
@@ -85,8 +91,12 @@ function makeOutCommitment(amount, secret, blinding, dstChainId) {
 // Base valid inputs: 2-in 2-out transact, no withdrawal
 const in0 = makeNote(500n, 111n, 222n);
 const in1 = makeNote(500n, 333n, 444n);
-const out0Secret = 555n; const out0Blinding = 666n; const out0Amount = 400n;
-const out1Secret = 777n; const out1Blinding = 888n; const out1Amount = 100n;
+const out0Secret = 555n;
+const out0Blinding = 666n;
+const out0Amount = 400n;
+const out1Secret = 777n;
+const out1Blinding = 888n;
+const out1Amount = 100n;
 const fee = 500n; // 500 = 500 (in0+in1=1000, out0+out1=500, fee=500, withdraw=0)
 
 // After inserting in1 at index 1, the root changes — for simplicity use a single-leaf tree
@@ -103,7 +113,10 @@ function buildTwoLeafRoot(leaf0, leaf1, depth) {
   return {
     root,
     path0: { elements: [leaf1, ...zeros.slice(1, depth)], indices: Array(depth).fill(0n) },
-    path1: { elements: [leaf0, ...zeros.slice(1, depth)], indices: [1n, ...Array(depth - 1).fill(0n)] },
+    path1: {
+      elements: [leaf0, ...zeros.slice(1, depth)],
+      indices: [1n, ...Array(depth - 1).fill(0n)],
+    },
   };
 }
 
@@ -137,18 +150,18 @@ const validBase = {
   withdrawAmount: 0n,
 };
 
-console.log("MARKPool circuit tests");
+console.log('MARKPool circuit tests');
 
 // Happy path
-await expectPass("valid 2-in 2-out transact", validBase);
+await expectPass('valid 2-in 2-out transact', validBase);
 
 // Balance equation
-await expectFail("fee too low (balance broken)", { ...validBase, fee: fee - 1n });
-await expectFail("fee too high (balance broken)", { ...validBase, fee: fee + 1n });
+await expectFail('fee too low (balance broken)', { ...validBase, fee: fee - 1n });
+await expectFail('fee too high (balance broken)', { ...validBase, fee: fee + 1n });
 
 // Withdrawal binding
-const withdrawOwner = BigInt("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
-const withdrawRecipient = BigInt("0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
+const withdrawOwner = BigInt('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
+const withdrawRecipient = BigInt('0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
 const withdrawAmount = 200n;
 const feeWithWithdraw = 300n; // in0+in1=1000, out0+out1=500, fee=300, withdraw=200
 const validWithWithdraw = {
@@ -158,16 +171,16 @@ const validWithWithdraw = {
   withdrawRecipient,
   withdrawAmount,
 };
-await expectPass("valid transact with withdraw binding", validWithWithdraw);
-await expectFail("withdraw amount non-zero but owner zero", {
+await expectPass('valid transact with withdraw binding', validWithWithdraw);
+await expectFail('withdraw amount non-zero but owner zero', {
   ...validWithWithdraw,
   withdrawOwner: 0n,
 });
-await expectFail("withdraw amount non-zero but recipient zero", {
+await expectFail('withdraw amount non-zero but recipient zero', {
   ...validWithWithdraw,
   withdrawRecipient: 0n,
 });
-await expectFail("withdraw amount zero but owner non-zero", {
+await expectFail('withdraw amount zero but owner non-zero', {
   ...validBase,
   withdrawOwner,
   withdrawRecipient: 0n,
@@ -175,30 +188,30 @@ await expectFail("withdraw amount zero but owner non-zero", {
 });
 
 // Nullifier constraints
-await expectFail("wrong nullifier (tampered)", {
+await expectFail('wrong nullifier (tampered)', {
   ...validBase,
   nullifier: [nullifier0 + 1n, nullifier1],
 });
-await expectFail("duplicate nullifiers", {
+await expectFail('duplicate nullifiers', {
   ...validBase,
   nullifier: [nullifier0, nullifier0],
 });
 
 // Merkle root
-await expectFail("wrong merkle root", { ...validBase, merkleRoot: merkleRoot + 1n });
-await expectFail("zero merkle root", { ...validBase, merkleRoot: 0n });
+await expectFail('wrong merkle root', { ...validBase, merkleRoot: merkleRoot + 1n });
+await expectFail('zero merkle root', { ...validBase, merkleRoot: 0n });
 
 // Input amount constraints
-await expectFail("zero input amount", {
+await expectFail('zero input amount', {
   ...validBase,
   inAmount: [0n, in1.amount],
   fee: in1.amount,
 });
 
 // Output commitment
-await expectFail("wrong output commitment", {
+await expectFail('wrong output commitment', {
   ...validBase,
   outCommitment: [outC0 + 1n, outC1],
 });
 
-console.log("\nAll tests passed.");
+console.log('\nAll tests passed.');

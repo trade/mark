@@ -12,8 +12,5 @@ interface IUTXOSettlementVerifier {
         uint256 amount,
         bool isMint,
         bytes calldata proof
-    )
-        external
-        view
-        returns (bool);
+    ) external view returns (bool);
 }

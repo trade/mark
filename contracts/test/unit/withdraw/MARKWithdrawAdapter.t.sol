@@ -12,45 +12,25 @@ import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManage
 /// @dev computeWithdrawBindingHash must match Pool.computeWithdrawBindingHash exactly,
 ///      including the domain separator, address(this), and block.chainid.
 contract MockPool {
-    bytes32 public constant WITHDRAW_BINDING_DOMAIN =
-        keccak256("MARKPool.WithdrawBinding.v1");
+    bytes32 public constant WITHDRAW_BINDING_DOMAIN = keccak256("MARKPool.WithdrawBinding.v1");
 
     mapping(bytes32 => bytes32) public nullifierWithdrawBinding;
     mapping(bytes32 => bool) public nullifierUsed;
 
-    function setWithdrawBinding(
-        bytes32 nullifier,
-        address owner,
-        address recipient,
-        uint256 amount
-    ) external {
-        nullifierWithdrawBinding[nullifier] =
-            computeWithdrawBindingHash(owner, recipient, amount);
+    function setWithdrawBinding(bytes32 nullifier, address owner, address recipient, uint256 amount) external {
+        nullifierWithdrawBinding[nullifier] = computeWithdrawBindingHash(owner, recipient, amount);
         nullifierUsed[nullifier] = true;
     }
 
-    function computeWithdrawBindingHash(
-        address owner,
-        address recipient,
-        uint256 amount
-    ) public view returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                WITHDRAW_BINDING_DOMAIN,
-                address(this),
-                block.chainid,
-                owner,
-                recipient,
-                amount
-            )
-        );
+    function computeWithdrawBindingHash(address owner, address recipient, uint256 amount)
+        public
+        view
+        returns (bytes32)
+    {
+        return keccak256(abi.encode(WITHDRAW_BINDING_DOMAIN, address(this), block.chainid, owner, recipient, amount));
     }
 
-    function isNullifierUsedGlobal(bytes32 nullifier)
-        external
-        view
-        returns (bool)
-    {
+    function isNullifierUsedGlobal(bytes32 nullifier) external view returns (bool) {
         return nullifierUsed[nullifier];
     }
 }
@@ -84,11 +64,7 @@ contract MARKWithdrawAdapterTest is Test {
         pool = new MockPool();
         ledger = new RYLACreditLedger(address(token), address(pool));
 
-        adapter = new MARKWithdrawAdapter(
-            address(accessManager),
-            address(ledger),
-            address(pool)
-        );
+        adapter = new MARKWithdrawAdapter(address(accessManager), address(ledger), address(pool));
         ledger.setAdapter(address(adapter));
 
         vm.startPrank(admin);
@@ -115,77 +91,37 @@ contract MARKWithdrawAdapterTest is Test {
     }
 
     function testComputeWithdrawIntentHash() public view {
-        bytes32[2] memory nullifiers = [
-            keccak256("nullifier1"),
-            keccak256("nullifier2")
-        ];
+        bytes32[2] memory nullifiers = [keccak256("nullifier1"), keccak256("nullifier2")];
 
-        bytes32 intentHash = adapter.computeWithdrawIntentHash(
-            user,
-            recipient,
-            1 ether,
-            nullifiers,
-            0,
-            block.timestamp + 1 hours
-        );
+        bytes32 intentHash =
+            adapter.computeWithdrawIntentHash(user, recipient, 1 ether, nullifiers, 0, block.timestamp + 1 hours);
 
         assertTrue(intentHash != bytes32(0));
     }
 
     function testComputeWithdrawIntentDigest() public view {
-        bytes32[2] memory nullifiers = [
-            keccak256("nullifier1"),
-            keccak256("nullifier2")
-        ];
+        bytes32[2] memory nullifiers = [keccak256("nullifier1"), keccak256("nullifier2")];
 
-        bytes32 digest = adapter.computeWithdrawIntentDigest(
-            user,
-            recipient,
-            1 ether,
-            nullifiers,
-            0,
-            block.timestamp + 1 hours
-        );
+        bytes32 digest =
+            adapter.computeWithdrawIntentDigest(user, recipient, 1 ether, nullifiers, 0, block.timestamp + 1 hours);
 
         assertTrue(digest != bytes32(0));
     }
 
-    function testWithdrawWithSigHappyPathIncrementsNonceAndClaimsNullifiers()
-        public
-    {
-        bytes32[2] memory nullifiers = [
-            keccak256("n-happy-1"),
-            keccak256("n-happy-2")
-        ];
+    function testWithdrawWithSigHappyPathIncrementsNonceAndClaimsNullifiers() public {
+        bytes32[2] memory nullifiers = [keccak256("n-happy-1"), keccak256("n-happy-2")];
         uint256 amount = 2 ether;
         uint256 nonce = adapter.withdrawNonce(user);
         uint256 deadline = block.timestamp + 30 minutes;
 
         _configureBindingAndMint(user, recipient, amount, nullifiers);
-        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            userPrivateKey,
-            intentSignerPrivateKey
-        );
+        (bytes memory ownerSig, bytes memory intentSig) =
+            _signWithdraw(user, recipient, amount, nullifiers, nonce, deadline, userPrivateKey, intentSignerPrivateKey);
 
         uint256 recipientBefore = recipient.balance;
         uint256 userTokenBefore = token.balanceOf(user);
 
-        adapter.withdrawWithSig(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            ownerSig,
-            intentSig
-        );
+        adapter.withdrawWithSig(user, recipient, amount, nullifiers, nonce, deadline, ownerSig, intentSig);
 
         assertEq(adapter.withdrawNonce(user), nonce + 1);
         assertTrue(adapter.claimedNullifiers(nullifiers[0]));
@@ -195,174 +131,81 @@ contract MARKWithdrawAdapterTest is Test {
     }
 
     function testWithdrawWithSigRevertsForInsufficientLiquidity() public {
-        MARKWithdrawAdapter emptyAdapter = new MARKWithdrawAdapter(
-            address(accessManager),
-            address(ledger),
-            address(pool)
-        );
+        MARKWithdrawAdapter emptyAdapter =
+            new MARKWithdrawAdapter(address(accessManager), address(ledger), address(pool));
 
-        bytes32[2] memory nullifiers = [
-            keccak256("n-empty-1"),
-            keccak256("n-empty-2")
-        ];
+        bytes32[2] memory nullifiers = [keccak256("n-empty-1"), keccak256("n-empty-2")];
         uint256 amount = 1 ether;
         uint256 nonce = 0;
         uint256 deadline = block.timestamp + 30 minutes;
 
         _configureBindingAndMint(user, recipient, amount, nullifiers);
 
-        bytes32 intentHash = emptyAdapter.computeWithdrawIntentHash(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline
-        );
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash)
-        );
+        bytes32 intentHash =
+            emptyAdapter.computeWithdrawIntentHash(user, recipient, amount, nullifiers, nonce, deadline);
+        bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash));
 
         (uint8 ov, bytes32 or_, bytes32 os) = vm.sign(userPrivateKey, digest);
-        (uint8 iv, bytes32 ir, bytes32 is_) = vm.sign(
-            intentSignerPrivateKey,
-            digest
-        );
+        (uint8 iv, bytes32 ir, bytes32 is_) = vm.sign(intentSignerPrivateKey, digest);
 
         bytes memory ownerSig = abi.encodePacked(or_, os, ov);
         bytes memory intentSig = abi.encodePacked(ir, is_, iv);
 
         vm.expectRevert(MARKWithdrawErrors.InsufficientLiquidity.selector);
-        emptyAdapter.withdrawWithSig(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            ownerSig,
-            intentSig
-        );
+        emptyAdapter.withdrawWithSig(user, recipient, amount, nullifiers, nonce, deadline, ownerSig, intentSig);
     }
 
     function testWithdrawWithSigRevertsOnReplayByNonce() public {
-        bytes32[2] memory nullifiers = [
-            keccak256("n-replay-1"),
-            keccak256("n-replay-2")
-        ];
+        bytes32[2] memory nullifiers = [keccak256("n-replay-1"), keccak256("n-replay-2")];
         uint256 amount = 1 ether;
         uint256 nonce = adapter.withdrawNonce(user);
         uint256 deadline = block.timestamp + 30 minutes;
 
         _configureBindingAndMint(user, recipient, amount, nullifiers);
-        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            userPrivateKey,
-            intentSignerPrivateKey
-        );
+        (bytes memory ownerSig, bytes memory intentSig) =
+            _signWithdraw(user, recipient, amount, nullifiers, nonce, deadline, userPrivateKey, intentSignerPrivateKey);
 
-        adapter.withdrawWithSig(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            ownerSig,
-            intentSig
-        );
+        adapter.withdrawWithSig(user, recipient, amount, nullifiers, nonce, deadline, ownerSig, intentSig);
 
         vm.expectRevert(MARKWithdrawErrors.NonceMismatch.selector);
-        adapter.withdrawWithSig(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            ownerSig,
-            intentSig
-        );
+        adapter.withdrawWithSig(user, recipient, amount, nullifiers, nonce, deadline, ownerSig, intentSig);
     }
 
     function testWithdrawWithSigRevertsOnBindingMismatch() public {
-        bytes32[2] memory nullifiers = [
-            keccak256("n-bind-1"),
-            keccak256("n-bind-2")
-        ];
+        bytes32[2] memory nullifiers = [keccak256("n-bind-1"), keccak256("n-bind-2")];
         uint256 amount = 1 ether;
         uint256 nonce = adapter.withdrawNonce(user);
         uint256 deadline = block.timestamp + 30 minutes;
 
         _configureBindingAndMint(user, recipient, amount, nullifiers);
-        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            userPrivateKey,
-            intentSignerPrivateKey
-        );
+        (bytes memory ownerSig, bytes memory intentSig) =
+            _signWithdraw(user, recipient, amount, nullifiers, nonce, deadline, userPrivateKey, intentSignerPrivateKey);
 
         vm.expectRevert(MARKWithdrawErrors.WithdrawBindingMismatch.selector);
         adapter.withdrawWithSig(
-            user,
-            makeAddr("other-recipient"),
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            ownerSig,
-            intentSig
+            user, makeAddr("other-recipient"), amount, nullifiers, nonce, deadline, ownerSig, intentSig
         );
     }
 
     function testWithdrawWithSigRevertsOnUnauthorizedIntentSigner() public {
-        bytes32[2] memory nullifiers = [
-            keccak256("n-auth-1"),
-            keccak256("n-auth-2")
-        ];
+        bytes32[2] memory nullifiers = [keccak256("n-auth-1"), keccak256("n-auth-2")];
         uint256 amount = 1 ether;
         uint256 nonce = adapter.withdrawNonce(user);
         uint256 deadline = block.timestamp + 30 minutes;
 
         _configureBindingAndMint(user, recipient, amount, nullifiers);
-        (bytes memory ownerSig, bytes memory intentSig) = _signWithdraw(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            userPrivateKey,
-            0xDEAD
-        );
+        (bytes memory ownerSig, bytes memory intentSig) =
+            _signWithdraw(user, recipient, amount, nullifiers, nonce, deadline, userPrivateKey, 0xDEAD);
 
         vm.expectRevert(MARKWithdrawErrors.UnauthorizedIntentSigner.selector);
-        adapter.withdrawWithSig(
-            user,
-            recipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline,
-            ownerSig,
-            intentSig
-        );
+        adapter.withdrawWithSig(user, recipient, amount, nullifiers, nonce, deadline, ownerSig, intentSig);
     }
 
     function testAdapterReceivesNativeTokens() public {
         uint256 balanceBefore = address(adapter).balance;
 
         vm.deal(address(this), 1 ether);
-        (bool ok, ) = address(adapter).call{value: 1 ether}("");
+        (bool ok,) = address(adapter).call{value: 1 ether}("");
 
         assertTrue(ok);
         assertEq(address(adapter).balance, balanceBefore + 1 ether);
@@ -428,16 +271,9 @@ contract MARKWithdrawAdapterTest is Test {
         uint256 intentPk
     ) internal view returns (bytes memory ownerSig, bytes memory intentSig) {
         bytes32 intentHash = adapter.computeWithdrawIntentHash(
-            owner,
-            withdrawRecipient,
-            amount,
-            nullifiers,
-            nonce,
-            deadline
+            owner, withdrawRecipient, amount, nullifiers, nonce, deadline
         );
-        bytes32 digest = keccak256(
-            abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash)
-        );
+        bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash));
 
         (uint8 ov, bytes32 or_, bytes32 os) = vm.sign(ownerPk, digest);
         (uint8 iv, bytes32 ir, bytes32 is_) = vm.sign(intentPk, digest);
@@ -445,18 +281,11 @@ contract MARKWithdrawAdapterTest is Test {
         ownerSig = abi.encodePacked(or_, os, ov);
         intentSig = abi.encodePacked(ir, is_, iv);
     }
+
     function testWithdrawWithSigRevertsForZeroRecipient() public {
         vm.expectRevert(MARKWithdrawErrors.InvalidRecipient.selector);
         adapter.withdrawWithSig(
-            user,
-            address(0),
-            1 ether,
-            [keccak256("n1"), keccak256("n2")],
-            0,
-            block.timestamp + 1,
-            bytes(""),
-            bytes("")
+            user, address(0), 1 ether, [keccak256("n1"), keccak256("n2")], 0, block.timestamp + 1, bytes(""), bytes("")
         );
     }
-
 }

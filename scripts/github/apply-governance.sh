@@ -208,7 +208,6 @@ MAINTAINERS_RESTRICTIONS_JSON="$(
 # main: strict, restricted to trade/maintainers team
 apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 
-
 # dev: integration track, restricted to trade/maintainers team
 apply_branch_protection "dev" "0" "$DEV_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
 

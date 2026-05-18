@@ -57,11 +57,7 @@ contract DeployMARKSettlementModule is Script {
             }
             module.setVerifier(cfg.verifierAddress, cfg.proofEnabled);
             if (cfg.verifierAddress != address(0)) {
-                _tryConfigureGroth16Verifier(
-                    cfg.verifierAddress,
-                    address(module),
-                    cfg.groth16DirectionEnforcement
-                );
+                _tryConfigureGroth16Verifier(cfg.verifierAddress, address(module), cfg.groth16DirectionEnforcement);
             }
         }
 
@@ -95,25 +91,21 @@ contract DeployMARKSettlementModule is Script {
         cfg.groth16DirectionEnforcement = vm.envOr("MARK_SETTLEMENT_GROTH16_DIRECTION_ENFORCEMENT", false);
     }
 
-    function _tryConfigureGroth16Verifier(
-        address verifierAddress,
-        address moduleAddress,
-        bool directionEnforcement
-    ) internal {
+    function _tryConfigureGroth16Verifier(address verifierAddress, address moduleAddress, bool directionEnforcement)
+        internal
+    {
         (bool hasSetModule,) =
             verifierAddress.staticcall(abi.encodeWithSelector(bytes4(keccak256("settlementModule()"))));
         if (!hasSetModule) return;
 
         // Must succeed for Groth16 verifier contracts during controlled deployment.
-        (bool okSetModule,) =
-            verifierAddress.call(abi.encodeWithSelector(bytes4(keccak256("setSettlementModule(address)")), moduleAddress));
+        (bool okSetModule,) = verifierAddress.call(
+            abi.encodeWithSelector(bytes4(keccak256("setSettlementModule(address)")), moduleAddress)
+        );
         require(okSetModule, "Groth16 setSettlementModule failed");
 
         (bool okSetDirection,) = verifierAddress.call(
-            abi.encodeWithSelector(
-                bytes4(keccak256("setDirectionEnforcementEnabled(bool)")),
-                directionEnforcement
-            )
+            abi.encodeWithSelector(bytes4(keccak256("setDirectionEnforcementEnabled(bool)")), directionEnforcement)
         );
         require(okSetDirection, "Groth16 setDirectionEnforcementEnabled failed");
     }

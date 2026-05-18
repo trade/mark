@@ -9,7 +9,7 @@ inputs:
   pnpm-version:
     description: pnpm version to activate via corepack
     required: false
-    default: "9.0.2"
+    default: '9.0.2'
 
 runs:
   using: composite

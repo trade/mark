@@ -7,13 +7,18 @@ import {IGroth16Verifier} from "../../../src/settlement/interfaces/IGroth16Verif
 
 contract MockGroth16Verifier is IGroth16Verifier {
     bool private _result;
-    constructor(bool result) { _result = result; }
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[13] calldata
-    ) external view returns (bool) { return _result; }
+
+    constructor(bool result) {
+        _result = result;
+    }
+
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
+        external
+        view
+        returns (bool)
+    {
+        return _result;
+    }
 }
 
 contract MockSettlementModule {}
@@ -48,12 +53,11 @@ contract Groth16SettlementVerifierTest is Test {
         return _buildProofWithDirection(intentId, account, amount, 0);
     }
 
-    function _buildProofWithDirection(
-        bytes32 intentId,
-        address account,
-        uint256 amount,
-        uint256 direction
-    ) internal view returns (bytes memory) {
+    function _buildProofWithDirection(bytes32 intentId, address account, uint256 amount, uint256 direction)
+        internal
+        view
+        returns (bytes memory)
+    {
         uint256[2] memory a;
         uint256[2][2] memory b;
         uint256[2] memory c;
@@ -223,19 +227,15 @@ contract Groth16SettlementVerifierTest is Test {
         bytes memory burnProofWithOne = _buildProofWithDirection(INTENT, user, AMOUNT, 1);
         assertFalse(verifier.verifySettlement(INTENT, module, user, AMOUNT, false, burnProofWithOne));
     }
+
     function testVerifySettlementReturnsFalseForMalformedProof() public view {
         // Malformed proof (wrong length) must return false, not revert.
-        bool result = verifier.verifySettlement(
-            INTENT, address(module), user, AMOUNT, true, bytes("malformed")
-        );
+        bool result = verifier.verifySettlement(INTENT, address(module), user, AMOUNT, true, bytes("malformed"));
         assertFalse(result);
     }
 
     function testVerifySettlementReturnsFalseForEmptyProof() public view {
-        bool result = verifier.verifySettlement(
-            INTENT, address(module), user, AMOUNT, true, bytes("")
-        );
+        bool result = verifier.verifySettlement(INTENT, address(module), user, AMOUNT, true, bytes(""));
         assertFalse(result);
     }
-
 }

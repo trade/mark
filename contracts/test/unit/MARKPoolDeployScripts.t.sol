@@ -15,7 +15,9 @@ contract MockVerifier is IVerifier {
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         uint256[13] calldata input
-    ) external pure returns (bool) { return true; }
+    ) external pure returns (bool) {
+        return true;
+    }
 }
 
 contract MARKPoolDeployScriptsTest is Test {
