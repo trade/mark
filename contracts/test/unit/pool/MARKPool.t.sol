@@ -25,7 +25,11 @@ contract MockLedger is ICreditLedger {
     uint256 public burned;
 
     function credit(address to, uint256 amount) external { balances[to] += amount; minted += amount; }
-    function debit(address from, uint256 amount) external { balances[from] -= amount; burned += amount; }
+    function debit(address from, uint256 amount) external {
+        require(balances[from] >= amount, "MockLedger: insufficient balance");
+        balances[from] -= amount;
+        burned += amount;
+    }
     function creditBalanceOf(address account) external view returns (uint256) { return balances[account]; }
     function totalCreditsMinted() external view returns (uint256) { return minted; }
     function totalCreditsBurned() external view returns (uint256) { return burned; }
@@ -372,19 +376,15 @@ contract MARKPoolTest is Test {
         assertFalse(pool.proofTypeEnabled(pool.PROOF_TYPE_TRANSFER()));
     }
     function testConstructorRevertsOnZeroPoseidon() public {
-        vm.startPrank(admin);
         AccessManager am = new AccessManager(admin);
         vm.expectRevert(PoolErrors.InvalidPoseidon.selector);
         new MARKPool(address(am), address(mockOk), address(0));
-        vm.stopPrank();
     }
 
     function testConstructorRevertsOnEOAPoseidon() public {
-        vm.startPrank(admin);
         AccessManager am = new AccessManager(admin);
         vm.expectRevert(PoolErrors.PoseidonMustBeContract.selector);
         new MARKPool(address(am), address(mockOk), makeAddr("eoa"));
-        vm.stopPrank();
     }
 
 }
