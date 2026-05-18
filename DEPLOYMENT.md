@@ -28,7 +28,6 @@
 - [ ] Private keys loaded (via GitHub Secrets, not committed)
 - [ ] RPC endpoints accessible (test: `curl <RPC_URL>`)
 - [ ] Sufficient balance in deployer account (≥ 0.5 ETH for gas)
-- [ ] super-cli installed: `super-cli --version`
 
 ### Code Readiness
 
