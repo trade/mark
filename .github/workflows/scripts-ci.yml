@@ -3,18 +3,18 @@ name: Scripts CI
 on:
   pull_request:
     paths:
-      - "scripts/**/*.sh"
-      - "contracts/script/**/*.sh"
-      - ".github/workflows/scripts-ci.yml"
+      - 'scripts/**/*.sh'
+      - 'contracts/script/**/*.sh'
+      - '.github/workflows/scripts-ci.yml'
   push:
     branches:
       - main
-      
+
       - dev
     paths:
-      - "scripts/**/*.sh"
-      - "contracts/script/**/*.sh"
-      - ".github/workflows/scripts-ci.yml"
+      - 'scripts/**/*.sh'
+      - 'contracts/script/**/*.sh'
+      - '.github/workflows/scripts-ci.yml'
   workflow_dispatch:
 
 jobs:
@@ -26,9 +26,9 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run shellcheck
-        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38  # v2.0.0
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # v2.0.0
         with:
-          scandir: "scripts contracts/script"
+          scandir: 'scripts contracts/script'
 
   shfmt:
     name: Shell Format (shfmt)

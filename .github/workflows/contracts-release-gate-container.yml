@@ -5,9 +5,9 @@ on:
   workflow_dispatch:
     inputs:
       gate_mode:
-        description: "MARK_RELEASE_GATE_MODE: local or remote"
+        description: 'MARK_RELEASE_GATE_MODE: local or remote'
         required: false
-        default: "local"
+        default: 'local'
         type: choice
         options:
           - local
@@ -15,11 +15,11 @@ on:
   push:
     branches:
       - main
-      
+
       - dev
     paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-release-gate-container.yml"
+      - 'contracts/**'
+      - '.github/workflows/contracts-release-gate-container.yml'
 
 jobs:
   release-gate-container:

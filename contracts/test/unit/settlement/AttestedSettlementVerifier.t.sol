@@ -63,7 +63,8 @@ contract AttestedSettlementVerifierTest is Test {
 
     function testVerifySettlementReturnsFalseForZeroIntentId() public view {
         uint256 deadline = block.timestamp + 1 hours;
-        bytes memory proof = _buildProof(bytes32(0), settlementModule, user, 1 ether, true, CONTEXT, deadline, attesterPk);
+        bytes memory proof =
+            _buildProof(bytes32(0), settlementModule, user, 1 ether, true, CONTEXT, deadline, attesterPk);
         assertFalse(verifier.verifySettlement(bytes32(0), settlementModule, user, 1 ether, true, proof));
     }
 
@@ -75,7 +76,8 @@ contract AttestedSettlementVerifierTest is Test {
 
     function testVerifySettlementReturnsFalseForZeroAccount() public view {
         uint256 deadline = block.timestamp + 1 hours;
-        bytes memory proof = _buildProof(INTENT, settlementModule, address(0), 1 ether, true, CONTEXT, deadline, attesterPk);
+        bytes memory proof =
+            _buildProof(INTENT, settlementModule, address(0), 1 ether, true, CONTEXT, deadline, attesterPk);
         assertFalse(verifier.verifySettlement(INTENT, settlementModule, address(0), 1 ether, true, proof));
     }
 
@@ -102,7 +104,9 @@ contract AttestedSettlementVerifierTest is Test {
         uint256 deadline,
         uint256 signerPk
     ) internal view returns (bytes memory proof) {
-        bytes32 digest = verifier.settlementDigest(intentId, moduleAddress, account, amount, isMint, contextHash, deadline);
+        bytes32 digest = verifier.settlementDigest(
+            intentId, moduleAddress, account, amount, isMint, contextHash, deadline
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
         proof = abi.encode(deadline, contextHash, v, r, s);
     }

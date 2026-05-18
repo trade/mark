@@ -22,18 +22,18 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 ///        forge script script/ops/bridge/BridgeE2E.s.sol \
 ///          --rpc-url https://sepolia.optimism.io --broadcast -vv
 contract BridgeE2E is Script {
-    address constant RYLA_ADDR     = 0xa27360e124B94449249D1E919d3363BfF1c10c02;
-    address constant MODULE_ADDR   = 0xB1CD6e5B88EF5979AE5306A11302Aa2F19c6Ad59;
-    address constant BRIDGE_ADDR   = 0x5F3823739E510981A821aC5E99235e36f65cBc71;
+    address constant RYLA_ADDR = 0xa27360e124B94449249D1E919d3363BfF1c10c02;
+    address constant MODULE_ADDR = 0xB1CD6e5B88EF5979AE5306A11302Aa2F19c6Ad59;
+    address constant BRIDGE_ADDR = 0x5F3823739E510981A821aC5E99235e36f65cBc71;
     address constant VERIFIER_ADDR = 0xECBd3bEf80fd4c05DBEdE45464A1d264E0884260;
 
-    uint256 constant DST_CHAIN_ID  = 11155420;
+    uint256 constant DST_CHAIN_ID = 11155420;
     uint256 constant BRIDGE_AMOUNT = 1e18; // 1 RYLA
 
     function run() external {
         uint256 operatorKey = vm.envUint("PRIVATE_KEY");
         uint256 attesterKey = vm.envOr("ATTESTER_KEY", operatorKey);
-        address operator    = vm.addr(operatorKey);
+        address operator = vm.addr(operatorKey);
 
         RYLA ryla = RYLA(RYLA_ADDR);
         MARKSettlementModule module = MARKSettlementModule(MODULE_ADDR);
@@ -49,28 +49,36 @@ contract BridgeE2E is Script {
         require(bridge.destinationEnabled(DST_CHAIN_ID), "destination not enabled");
 
         // Build EIP-712 attestation matching AttestedSettlementVerifier._settlementDigest
-        bytes32 intentId    = keccak256(abi.encodePacked("bridge-e2e", block.timestamp, operator));
-        uint256 deadline    = block.timestamp + 1 hours;
+        bytes32 intentId = keccak256(abi.encodePacked("bridge-e2e", block.timestamp, operator));
+        uint256 deadline = block.timestamp + 1 hours;
         bytes32 contextHash = bytes32(0); // opaque attester-controlled value
 
-        bytes32 structHash = keccak256(abi.encode(
-            verifier.SETTLEMENT_ATTESTATION_TYPEHASH(),
-            intentId,
-            VERIFIER_ADDR,   // address(this) in the verifier
-            MODULE_ADDR,
-            operator,
-            BRIDGE_AMOUNT,
-            true,            // isMint
-            contextHash,
-            deadline
-        ));
+        bytes32 structHash = keccak256(
+            abi.encode(
+                verifier.SETTLEMENT_ATTESTATION_TYPEHASH(),
+                intentId,
+                VERIFIER_ADDR, // address(this) in the verifier
+                MODULE_ADDR,
+                operator,
+                BRIDGE_AMOUNT,
+                true, // isMint
+                contextHash,
+                deadline
+            )
+        );
 
         // Reconstruct domain separator from eip712Domain()
-        (,string memory name, string memory version, uint256 chainId, address verifyingContract,,) = verifier.eip712Domain();
-        bytes32 domainSep = keccak256(abi.encode(
-            keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
-            keccak256(bytes(name)), keccak256(bytes(version)), chainId, verifyingContract
-        ));
+        (, string memory name, string memory version, uint256 chainId, address verifyingContract,,) =
+            verifier.eip712Domain();
+        bytes32 domainSep = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes(name)),
+                keccak256(bytes(version)),
+                chainId,
+                verifyingContract
+            )
+        );
         bytes32 digest = MessageHashUtils.toTypedDataHash(domainSep, structHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(attesterKey, digest);
 

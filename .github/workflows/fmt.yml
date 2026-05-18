@@ -3,11 +3,11 @@ name: Format Check
 on:
   pull_request:
     paths:
-      - "contracts/src/**"
-      - "contracts/test/**"
-      - "contracts/script/**"
-      - "src/**"
-      - ".github/workflows/fmt.yml"
+      - 'contracts/src/**'
+      - 'contracts/test/**'
+      - 'contracts/script/**'
+      - 'src/**'
+      - '.github/workflows/fmt.yml'
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Check Solidity formatting
         run: forge fmt --check
@@ -43,11 +43,11 @@ jobs:
       - name: Setup Node + pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
-          node-version: "22"
-          pnpm-version: "9.0.2"
+          node-version: '22'
+          pnpm-version: '9.0.2'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Check TypeScript formatting
-        run: pnpm format:check
+        run: pnpm format:check -- --ignore-path .prettierignore "src/**/*.{ts,tsx}" "*.{ts,js,json}"

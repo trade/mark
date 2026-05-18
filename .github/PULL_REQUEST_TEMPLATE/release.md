@@ -24,6 +24,7 @@ Use this template only for production candidate merges.
 - [ ] Verify output reviewed (role/config expectations)
 
 Evidence links/values:
+
 - Mainnet readiness run URL:
 - Readiness artifact SHA256:
 

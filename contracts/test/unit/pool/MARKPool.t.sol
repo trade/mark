@@ -10,13 +10,18 @@ import {ICreditLedger} from "../../../src/interfaces/ICreditLedger.sol";
 
 contract MockVerifier is IVerifier {
     bool private _result;
-    constructor(bool result) { _result = result; }
-    function verifyProof(
-        uint256[2] calldata,
-        uint256[2][2] calldata,
-        uint256[2] calldata,
-        uint256[13] calldata
-    ) external view returns (bool) { return _result; }
+
+    constructor(bool result) {
+        _result = result;
+    }
+
+    function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
+        external
+        view
+        returns (bool)
+    {
+        return _result;
+    }
 }
 
 contract MockLedger is ICreditLedger {
@@ -24,17 +29,36 @@ contract MockLedger is ICreditLedger {
     uint256 public minted;
     uint256 public burned;
 
-    function credit(address to, uint256 amount) external { balances[to] += amount; minted += amount; }
+    function credit(address to, uint256 amount) external {
+        balances[to] += amount;
+        minted += amount;
+    }
+
     function debit(address from, uint256 amount) external {
         require(balances[from] >= amount, "MockLedger: insufficient balance");
         balances[from] -= amount;
         burned += amount;
     }
-    function creditBalanceOf(address account) external view returns (uint256) { return balances[account]; }
-    function totalCreditsMinted() external view returns (uint256) { return minted; }
-    function totalCreditsBurned() external view returns (uint256) { return burned; }
-    function totalCreditsOutstanding() external view returns (uint256) { return minted - burned; }
-    function maxCredits() external pure returns (uint256) { return type(uint256).max; }
+
+    function creditBalanceOf(address account) external view returns (uint256) {
+        return balances[account];
+    }
+
+    function totalCreditsMinted() external view returns (uint256) {
+        return minted;
+    }
+
+    function totalCreditsBurned() external view returns (uint256) {
+        return burned;
+    }
+
+    function totalCreditsOutstanding() external view returns (uint256) {
+        return minted - burned;
+    }
+
+    function maxCredits() external pure returns (uint256) {
+        return type(uint256).max;
+    }
 }
 
 contract MARKPoolTest is Test {
@@ -334,7 +358,9 @@ contract MARKPoolTest is Test {
         bytes32[2] memory nullifiers = [N0, N1];
         bytes32[2] memory commitments = [C0, C1];
 
-        pool.transactWithWithdrawBinding(root, nullifiers, commitments, 0, address(0), owner, recipient, amount, A, B, C_PROOF);
+        pool.transactWithWithdrawBinding(
+            root, nullifiers, commitments, 0, address(0), owner, recipient, amount, A, B, C_PROOF
+        );
 
         bytes32 expectedBinding = pool.computeWithdrawBindingHash(owner, recipient, amount);
         assertEq(pool.nullifierWithdrawBinding(N0), expectedBinding);
@@ -347,7 +373,9 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.InvalidWithdrawAmount.selector);
-        pool.transactWithWithdrawBinding(root, nullifiers, commitments, 0, address(0), makeAddr("o"), makeAddr("r"), 0, A, B, C_PROOF);
+        pool.transactWithWithdrawBinding(
+            root, nullifiers, commitments, 0, address(0), makeAddr("o"), makeAddr("r"), 0, A, B, C_PROOF
+        );
     }
 
     // --- admin config ---
@@ -389,5 +417,4 @@ contract MARKPoolTest is Test {
         vm.expectRevert(PoolErrors.PoseidonMustBeContract.selector);
         new MARKPool(address(am), address(mockOk), makeAddr("eoa"));
     }
-
 }

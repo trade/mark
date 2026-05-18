@@ -3,52 +3,52 @@ name: Contracts Evidence Manifest
 on:
   pull_request:
     paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-evidence-manifest.yml"
+      - 'contracts/**'
+      - '.github/workflows/contracts-evidence-manifest.yml'
   push:
     branches:
       - main
-      
+
       - dev
     paths:
-      - "contracts/**"
-      - ".github/workflows/contracts-evidence-manifest.yml"
+      - 'contracts/**'
+      - '.github/workflows/contracts-evidence-manifest.yml'
   workflow_dispatch:
     inputs:
       release_artifact_path:
-        description: "Path to release artifact under contracts/"
+        description: 'Path to release artifact under contracts/'
         required: false
-        default: "broadcast/mark-release-prodmode-ci.json"
+        default: 'broadcast/mark-release-prodmode-ci.json'
         type: string
       production_lock_artifact_path:
-        description: "Path to production-lock verify artifact under contracts/"
+        description: 'Path to production-lock verify artifact under contracts/'
         required: false
-        default: "broadcast/mark-production-lock-verify.json"
+        default: 'broadcast/mark-production-lock-verify.json'
         type: string
       staging_rehearsal_artifact_path:
-        description: "Path to staging rehearsal artifact under contracts/"
+        description: 'Path to staging rehearsal artifact under contracts/'
         required: false
-        default: "broadcast/mark-staging-rehearsal.json"
+        default: 'broadcast/mark-staging-rehearsal.json'
         type: string
       promotion_checklist_path:
-        description: "Path to promotion checklist artifact under contracts/"
+        description: 'Path to promotion checklist artifact under contracts/'
         required: false
-        default: "broadcast/mark-promotion-checklist.json"
+        default: 'broadcast/mark-promotion-checklist.json'
         type: string
       manifest_path:
-        description: "Output manifest path under contracts/"
+        description: 'Output manifest path under contracts/'
         required: false
-        default: "broadcast/mark-evidence-manifest.json"
+        default: 'broadcast/mark-evidence-manifest.json'
         type: string
       signature_path:
-        description: "Output detached signature path under contracts/"
+        description: 'Output detached signature path under contracts/'
         required: false
-        default: "broadcast/mark-evidence-manifest.sig"
+        default: 'broadcast/mark-evidence-manifest.sig'
         type: string
       signature_meta_path:
-        description: "Output signature metadata path under contracts/"
+        description: 'Output signature metadata path under contracts/'
         required: false
-        default: "broadcast/mark-evidence-signature.json"
+        default: 'broadcast/mark-evidence-signature.json'
         type: string
 
 jobs:

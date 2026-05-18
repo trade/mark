@@ -54,9 +54,7 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
     address public settlementModule;
     bool public directionEnforcementEnabled;
 
-    constructor(address initialAdmin)
-        AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin)
-    {
+    constructor(address initialAdmin) AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin) {
         if (initialAdmin == address(0)) revert ZeroAddress();
     }
 
@@ -109,12 +107,8 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
         // Expected: uint256[2](64) + uint256[2][2](128) + uint256[2](64) + uint256[13](416) = 672 bytes.
         if (proof.length != 672) return false;
 
-        (
-            uint256[2] memory a,
-            uint256[2][2] memory b,
-            uint256[2] memory c,
-            uint256[13] memory signals
-        ) = abi.decode(proof, (uint256[2], uint256[2][2], uint256[2], uint256[13]));
+        (uint256[2] memory a, uint256[2][2] memory b, uint256[2] memory c, uint256[13] memory signals) =
+            abi.decode(proof, (uint256[2], uint256[2][2], uint256[2], uint256[13]));
 
         // Verify public signals match settlement parameters.
         if (signals[0] != uint256(intentId)) return false;

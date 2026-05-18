@@ -18,8 +18,12 @@ console.log('Step 1: Powers of Tau (pot15)...');
 await powersOfTau.newAccumulator('bn128', 15, 'build/pot15_0000.ptau');
 
 console.log('Step 2: Contribute to Powers of Tau...');
-await powersOfTau.contribute('build/pot15_0000.ptau', 'build/pot15_final.ptau',
-  'MARK Protocol', entropy1);
+await powersOfTau.contribute(
+  'build/pot15_0000.ptau',
+  'build/pot15_final.ptau',
+  'MARK Protocol',
+  entropy1
+);
 
 console.log('Step 3: Prepare phase 2...');
 await powersOfTau.preparePhase2('build/pot15_final.ptau', 'build/pot15_phase2.ptau');
@@ -34,8 +38,12 @@ console.log('Step 4: Phase 2 setup...');
 await zKey.newZKey('build/MARKPool.r1cs', 'build/pot15_phase2.ptau', 'build/markpool_0000.zkey');
 
 console.log('Step 5: Contribute to zkey...');
-await zKey.contribute('build/markpool_0000.zkey', 'build/markpool_final.zkey',
-  'MARK Protocol MARKPool', entropy2);
+await zKey.contribute(
+  'build/markpool_0000.zkey',
+  'build/markpool_final.zkey',
+  'MARK Protocol MARKPool',
+  entropy2
+);
 
 console.log('Step 6: Export verification key...');
 const vKey = await zKey.exportVerificationKey('build/markpool_final.zkey');
@@ -46,7 +54,11 @@ const templatePath = fileURLToPath(
   new URL('node_modules/snarkjs/templates/verifier_groth16.sol.ejs', import.meta.url)
 );
 const solidityTemplate = readFileSync(templatePath, 'utf8');
-const verifier = await zKey.exportSolidityVerifier('build/markpool_final.zkey', { groth16: solidityTemplate });
+const verifier = await zKey.exportSolidityVerifier('build/markpool_final.zkey', {
+  groth16: solidityTemplate,
+});
 writeFileSync('build/MARKPoolVerifier.sol', verifier);
 
-console.log('Done. Copy build/MARKPoolVerifier.sol to contracts/src/pool/verifier/MARKPoolVerifier.sol');
+console.log(
+  'Done. Copy build/MARKPoolVerifier.sol to contracts/src/pool/verifier/MARKPoolVerifier.sol'
+);

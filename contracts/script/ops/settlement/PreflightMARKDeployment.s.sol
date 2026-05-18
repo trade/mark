@@ -126,7 +126,8 @@ contract PreflightMARKDeployment is Script {
             _assertContract(cfg.verifierAddress);
         }
 
-        bool requestedModuleConfig = cfg.settlementOperator != address(0) || cfg.verifierAddress != address(0) || cfg.proofEnabled;
+        bool requestedModuleConfig =
+            cfg.settlementOperator != address(0) || cfg.verifierAddress != address(0) || cfg.proofEnabled;
         if (requestedModuleConfig && cfg.owner != cfg.deployer) {
             revert MissingModuleAdminForRequestedConfig();
         }
@@ -168,10 +169,8 @@ contract PreflightMARKDeployment is Script {
 
         bool needsTokenSetup = true; // setup always grants module mint/burn roles
         bool needsAdapterSetup = cfg.bridgeOperator != address(0) || cfg.destinationChainId != 0;
-        bool needsModuleSetup = cfg.settlementOperator != address(0)
-            || cfg.verifierAddress != address(0)
-            || cfg.proofEnabled
-            || cfg.settlementProductionMode;
+        bool needsModuleSetup = cfg.settlementOperator != address(0) || cfg.verifierAddress != address(0)
+            || cfg.proofEnabled || cfg.settlementProductionMode;
         bool needsVerifierSetup = cfg.verifierAddress != address(0) && cfg.settlementAttester != address(0);
 
         if (needsTokenSetup && !token.hasRole(DEFAULT_ADMIN_ROLE, cfg.deployer)) {

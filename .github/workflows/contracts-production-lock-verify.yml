@@ -4,33 +4,33 @@ on:
   workflow_dispatch:
     inputs:
       rpc_url:
-        description: "Target RPC URL for read-only verification"
+        description: 'Target RPC URL for read-only verification'
         required: true
         type: string
       token_address:
-        description: "Deployed RYLA token address"
+        description: 'Deployed RYLA token address'
         required: true
         type: string
       module_address:
-        description: "Deployed MARK settlement module address"
+        description: 'Deployed MARK settlement module address'
         required: true
         type: string
       verifier_address:
-        description: "Deployed settlement verifier address"
+        description: 'Deployed settlement verifier address'
         required: true
         type: string
       owner_address:
-        description: "Expected default admin owner address"
+        description: 'Expected default admin owner address'
         required: true
         type: string
       settlement_operator:
-        description: "Expected settlement operator address"
+        description: 'Expected settlement operator address'
         required: true
         type: string
       attester_address:
-        description: "Optional expected attester address (0x0 to skip)"
+        description: 'Optional expected attester address (0x0 to skip)'
         required: false
-        default: "0x0000000000000000000000000000000000000000"
+        default: '0x0000000000000000000000000000000000000000'
         type: string
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Run production lock verification
         run: make verify-production-lock

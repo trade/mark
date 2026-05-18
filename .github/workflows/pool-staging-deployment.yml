@@ -4,29 +4,29 @@ on:
   workflow_dispatch:
     inputs:
       rpc_url:
-        description: "Target RPC URL (leave blank to use MARK_STAGING_RPC_URL repository variable)"
+        description: 'Target RPC URL (leave blank to use MARK_STAGING_RPC_URL repository variable)'
         required: false
-        default: ""
+        default: ''
         type: string
       ryla_token:
-        description: "Deployed RYLA token address"
+        description: 'Deployed RYLA token address'
         required: false
-        default: "0xa27360e124B94449249D1E919d3363BfF1c10c02"
+        default: '0xa27360e124B94449249D1E919d3363BfF1c10c02'
         type: string
       pool_poseidon:
-        description: "PoseidonT3 contract address (default: Semaphore)"
+        description: 'PoseidonT3 contract address (default: Semaphore)'
         required: false
-        default: "0xB43122Ecb241DD50062641f089876679fd06599a"
+        default: '0xB43122Ecb241DD50062641f089876679fd06599a'
         type: string
       pool_intent_signer:
-        description: "Intent signer address (0x0 to skip)"
+        description: 'Intent signer address (0x0 to skip)'
         required: false
-        default: "0x0000000000000000000000000000000000000000"
+        default: '0x0000000000000000000000000000000000000000'
         type: string
       artifact_path:
-        description: "Artifact output path under contracts/"
+        description: 'Artifact output path under contracts/'
         required: false
-        default: "broadcast/mark-pool-staging.json"
+        default: 'broadcast/mark-pool-staging.json'
         type: string
 
 permissions:
@@ -45,8 +45,8 @@ jobs:
       MARK_RYLA_TOKEN: ${{ inputs.ryla_token }}
       MARK_POOL_POSEIDON: ${{ inputs.pool_poseidon }}
       MARK_POOL_INTENT_SIGNER: ${{ inputs.pool_intent_signer }}
-      MARK_POOL_RELEASE_EXECUTE: "true"
-      MARK_POOL_RELEASE_WRITE_ARTIFACT: "true"
+      MARK_POOL_RELEASE_EXECUTE: 'true'
+      MARK_POOL_RELEASE_WRITE_ARTIFACT: 'true'
       MARK_POOL_RELEASE_ARTIFACT_PATH: ${{ inputs.artifact_path }}
       MARK_GIT_COMMIT: ${{ github.sha }}
 
@@ -97,9 +97,8 @@ jobs:
             exit 1;
           }
 
-
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Deploy MARKPoolVerifier
         env:

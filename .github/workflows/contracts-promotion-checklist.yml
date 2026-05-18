@@ -4,29 +4,29 @@ on:
   workflow_dispatch:
     inputs:
       staging_run_id:
-        description: "Optional override for staging rehearsal run id"
+        description: 'Optional override for staging rehearsal run id'
         required: false
-        default: ""
+        default: ''
         type: string
       mainnet_run_id:
-        description: "Optional override for mainnet readiness run id"
+        description: 'Optional override for mainnet readiness run id'
         required: false
-        default: ""
+        default: ''
         type: string
       checklist_path:
-        description: "Checklist JSON path under contracts/"
+        description: 'Checklist JSON path under contracts/'
         required: false
-        default: "broadcast/mark-promotion-checklist.json"
+        default: 'broadcast/mark-promotion-checklist.json'
         type: string
       checklist_markdown_path:
-        description: "Checklist markdown path under contracts/"
+        description: 'Checklist markdown path under contracts/'
         required: false
-        default: "broadcast/mark-promotion-checklist.md"
+        default: 'broadcast/mark-promotion-checklist.md'
         type: string
       freshness_hours:
-        description: "Max allowed age (hours) for staging/mainnet evidence runs"
+        description: 'Max allowed age (hours) for staging/mainnet evidence runs'
         required: false
-        default: "72"
+        default: '72'
         type: string
 
 permissions:
@@ -48,8 +48,8 @@ jobs:
       PROMOTION_CHECKLIST_PATH: ${{ inputs.checklist_path }}
       PROMOTION_CHECKLIST_MARKDOWN_PATH: ${{ inputs.checklist_markdown_path }}
       FRESHNESS_HOURS: ${{ inputs.freshness_hours }}
-      STRICT_PROMOTION_CHECKS: "true"
-      GENERATED_BY: "github-actions"
+      STRICT_PROMOTION_CHECKS: 'true'
+      GENERATED_BY: 'github-actions'
 
     steps:
       - name: Enforce main branch for promotion checklist

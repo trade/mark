@@ -11,7 +11,7 @@ on:
       pnpm_version:
         description: pnpm version used by corepack
         required: false
-        default: "9.0.2"
+        default: '9.0.2'
         type: string
 
 jobs:

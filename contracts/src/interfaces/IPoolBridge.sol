@@ -15,6 +15,5 @@ interface IPoolBridge {
         uint256[2] calldata c
     ) external;
 
-    function bridgeIn(uint256 srcChainId, bytes32[2] calldata outCommitments)
-        external;
+    function bridgeIn(uint256 srcChainId, bytes32[2] calldata outCommitments) external;
 }

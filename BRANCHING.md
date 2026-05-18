@@ -8,12 +8,14 @@ This repository uses a two-track branch model:
 ## Branch Roles
 
 ### `dev`
+
 - Default target for feature branches and iterative changes.
 - Automatically triggers staging rehearsal deployment (OP Sepolia) on push.
 - Must stay buildable and testable at all times.
 - Code merged here is considered testnet-ready.
 
 ### `main`
+
 - Contains only reviewed, mainnet-ready code.
 - Used for mainnet deployment preparation and release tags.
 - Must pass full contract checks and staging rehearsal before merge.
@@ -96,6 +98,7 @@ Use this matrix as the merge baseline.
 Apply these repository settings:
 
 1. Protect `main`
+
 - Require pull request before merge.
 - Require status checks:
   - `Analyze (javascript-typescript)`
@@ -114,6 +117,7 @@ Apply these repository settings:
 - Restrict direct push.
 
 2. Protect `dev`
+
 - Require pull request before merge (or allow maintainers direct push if desired).
 - Require status checks:
   - `Analyze (javascript-typescript)`
@@ -127,9 +131,11 @@ Apply these repository settings:
   - `frontend-checks / Frontend Checks (Node 22)`
 
 Notes:
+
 - Do not add `Validate Governance Policy Consistency` as a global required branch-protection check because it is intentionally path-filtered; require it only on governance-touching PRs.
 
 3. Protect tags
+
 - Release tags (`v*`) are protected by the `tag-protection` ruleset: creation is restricted to maintainers, deletion and force-update are blocked for all actors.
 
 ## Merge Flow

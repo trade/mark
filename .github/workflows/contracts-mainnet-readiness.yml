@@ -4,22 +4,22 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Gate mode: predeploy | postdeploy | full"
+        description: 'Gate mode: predeploy | postdeploy | full'
         required: false
-        default: "predeploy"
+        default: 'predeploy'
         type: choice
         options:
           - predeploy
           - postdeploy
           - full
       rpc_url:
-        description: "Target RPC URL for readiness checks"
+        description: 'Target RPC URL for readiness checks'
         required: true
         type: string
       artifact_path:
-        description: "Artifact output path (relative to contracts/)"
+        description: 'Artifact output path (relative to contracts/)'
         required: false
-        default: "broadcast/mark-mainnet-gate-ci.json"
+        default: 'broadcast/mark-mainnet-gate-ci.json'
         type: string
 
 jobs:
@@ -58,13 +58,13 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: '3.11'
 
       - name: Install Slither
         run: pip install slither-analyzer==0.11.5
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d  # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Run mainnet readiness gate
         working-directory: contracts
