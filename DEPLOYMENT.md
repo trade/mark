@@ -520,7 +520,7 @@ MARK_RELEASE_EXECUTE=true \
    ```bash
    cast send $SETTLEMENT_ADDRESS "pause()" \
      --rpc-url $MAINNET_RPC \
-     --private-key $DEPLOYER_KEY
+     --interactive
    ```
 
 2. **Document issue**: Create GitHub issue with:
