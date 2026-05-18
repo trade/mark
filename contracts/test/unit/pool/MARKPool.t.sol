@@ -84,7 +84,9 @@ contract MARKPoolTest is Test {
         selectors[13] = pool.setAssetLedger.selector;
         accessManager.setTargetFunctionRole(address(pool), selectors, 1);
         accessManager.grantRole(1, admin, 0);
-        vm.warp(block.timestamp + 1); // ensure role grant is active
+        // AccessManager role grants become effective after the current timestamp boundary;
+        // advance by 1 second so the granted role is active before invoking restricted functions.
+        vm.warp(block.timestamp + 1);
         pool.setAssetLedger(address(ledger));
         vm.stopPrank();
     }
