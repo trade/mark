@@ -436,7 +436,7 @@ cast send $SETTLEMENT_MODULE_ADDRESS \
   --rpc-url $MAINNET_RPC --interactive
 ```
 
-See `contracts/RUNBOOK.md` → "Groth16 Direction Rollout" for the full
+See `contracts/RUNBOOK.md` → "Groth16 Deployment Rollout" for the full
 migration sequence before enabling production mode.
 
 ---
