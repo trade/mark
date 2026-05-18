@@ -170,19 +170,6 @@ DEV_CHECKS_JSON='[
   "Detect Secrets Drift",
   "Release Gate Container"
 ]'
-CANARY_CHECKS_JSON='[
-  "Analyze (javascript-typescript)",
-  "Dependency Review",
-  "Contracts Unit + Invariant",
-  "Contracts Release Check (Dry-Run + Execute Smoke)",
-  "Contracts Production Mode Smoke",
-  "gitleaks / Gitleaks Scan",
-  "slither-core / Slither Core Contracts",
-  "frontend-checks / Frontend Checks (Node 20)",
-  "frontend-checks / Frontend Checks (Node 22)",
-  "Detect Secrets Drift",
-  "Release Gate Container"
-]'
 MAIN_CHECKS_JSON='[
   "Analyze (javascript-typescript)",
   "Dependency Review",
