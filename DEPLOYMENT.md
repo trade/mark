@@ -417,17 +417,17 @@ fallback until this is complete.
 # 1. Bind the verifier to the settlement module (prevents cross-module replay)
 cast send $GROTH16_VERIFIER_ADDRESS \
   "setSettlementModule(address)" $SETTLEMENT_MODULE_ADDRESS \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
 
 # 2. Set the MARKPoolVerifier contract
 cast send $GROTH16_VERIFIER_ADDRESS \
   "setVerifierContract(address)" $MARK_POOL_VERIFIER_ADDRESS \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
 
 # 3. Wire into settlement module
 cast send $SETTLEMENT_MODULE_ADDRESS \
   "setVerifier(address,bool)" $GROTH16_VERIFIER_ADDRESS true \
-  --rpc-url $MAINNET_RPC --private-key $DEPLOYER_KEY
+  --rpc-url $MAINNET_RPC --interactive
 ```
 
 See `contracts/RUNBOOK.md` → "Groth16 Direction Rollout" for the full
