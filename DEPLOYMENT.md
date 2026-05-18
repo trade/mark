@@ -416,8 +416,14 @@ Required environment variables for this step:
 - `MAINNET_RPC`
 - `GROTH16_VERIFIER_ADDRESS`
 - `SETTLEMENT_MODULE_ADDRESS`
-- `MARK_POOL_VERIFIER_ADDRESS` (source this from the deployed `MARKPoolVerifier`
-  address in your deployment output/artifacts for the target network)
+- `MARK_POOL_VERIFIER_ADDRESS` (read this from the deployment manifest for the
+  target network at `deployments/mainnet.json` (mainnet) or
+  `deployments/op-sepolia.json` (staging), JSON key:
+  `.contracts.MARKPoolVerifier.address`)
+  - Example (mainnet):
+    `export MARK_POOL_VERIFIER_ADDRESS=$(jq -r '.contracts.MARKPoolVerifier.address' deployments/mainnet.json)`
+  - Example (staging):
+    `export MARK_POOL_VERIFIER_ADDRESS=$(jq -r '.contracts.MARKPoolVerifier.address' deployments/op-sepolia.json)`
 
 ```bash
 # 1. Bind the verifier to the settlement module (prevents cross-module replay)
