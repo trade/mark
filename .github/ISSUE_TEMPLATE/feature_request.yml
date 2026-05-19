@@ -1,0 +1,43 @@
+name: Feature Request
+description: Suggest a feature for MARK Protocol
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for suggesting a feature!
+  
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve?
+      placeholder: "I'm frustrated when..."
+    validations:
+      required: true
+  
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you solve this?
+    validations:
+      required: true
+  
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other solutions did you consider?
+  
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Smart Contracts
+        - Frontend
+        - CI/CD
+        - Documentation
+        - Other
+    validations:
+      required: true
