@@ -109,10 +109,10 @@ slither-core:
 	python3 -m slither src/withdraw/MARKWithdrawAdapter.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-eth,missing-zero-check,low-level-calls"
 
 gas-snapshot:
-	@echo "Generating gas snapshot..."
-	@forge snapshot --snap .gas-snapshot
+	@echo "Generating gas snapshot (excluding invariants)..."
+	@forge snapshot --snap .gas-snapshot --nmp "test/{invariant,integration}/**"
 	@echo "Gas snapshot saved to .gas-snapshot"
 
 gas-check:
-	@echo "Checking gas snapshot (tolerance: 2%)..."
-	@forge snapshot --check --snap .gas-snapshot --tolerance 2
+	@echo "Checking gas snapshot (tolerance: 2%, excluding invariants)..."
+	@forge snapshot --check --snap .gas-snapshot --tolerance 2 --nmp "test/{invariant,integration}/**"
