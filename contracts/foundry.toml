@@ -6,13 +6,16 @@ script = "script"
 cache_path = "cache"
 broadcast = "broadcast"
 libs = ["lib"]
-no_match_path = "test/integration/**,test/invariant/**"
+no_match_path = "test/integration/**"
 fs_permissions = [{ access = "read-write", path = "./broadcast" }]
 via_ir = true
 remappings = [
   "@interop-lib/=lib/interop-lib/src/",
   "@openzeppelin/=lib/createx/lib/openzeppelin-contracts/"
 ]
+
+[profile.default.invariant]
+runs = 256
 
 [profile.invariant]
 src = "src"
