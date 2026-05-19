@@ -12,14 +12,13 @@ reviews:
     enabled: true
     drafts: false
   path_filters:
-    - '!**/*.md'
-    - '!**/*.json'
-    - '!**/*.toml'
     - '!**/.nvmrc'
     - '!**/pnpm-lock.yaml'
-    - '!**/*.yaml'
-    - '!**/*.yml'
     - '.github/workflows/**'
+    - '**/*.md'
+    - '**/*.yml'
+    - '**/*.yaml'
+    - '**/*.toml'
   path_instructions:
     - path: 'contracts/src/**/*.sol'
       instructions: |
@@ -34,6 +33,18 @@ reviews:
       instructions: |
         Focus only on: secret exposure, injection vulnerabilities, and
         missing branch enforcement. Skip style suggestions.
+    - path: '**/*.md'
+      instructions: |
+        Focus on: broken links, incorrect commands, version mismatches,
+        and structural issues (e.g., changelog format). Skip style suggestions.
+    - path: '**/*.toml'
+      instructions: |
+        Focus on: invalid syntax, incorrect glob patterns, and configuration
+        errors that would break builds. Skip style suggestions.
+    - path: '**/*.yml'
+      instructions: |
+        Focus on: syntax errors, invalid job dependencies, and security issues.
+        Skip style suggestions.
 
 chat:
   auto_reply: true
