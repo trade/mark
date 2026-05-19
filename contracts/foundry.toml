@@ -8,6 +8,7 @@ broadcast = "broadcast"
 libs = ["lib"]
 no_match_path = "test/integration/**"
 fs_permissions = [{ access = "read-write", path = "./broadcast" }]
+evm_version = "paris"
 via_ir = true
 remappings = [
   "@interop-lib/=lib/interop-lib/src/",
@@ -26,6 +27,7 @@ cache_path = "cache"
 broadcast = "broadcast"
 libs = ["lib"]
 no_match_path = "test/never/**"
+evm_version = "paris"
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
