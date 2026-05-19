@@ -6,12 +6,50 @@ Code is a rule. No DAO, no drama. Don't Trust, Verify.
 
 Settlement rules are enforced on-chain. Whether operators run it as a centralised service or a decentralised network is their choice — the contracts don't care.
 
-## Getting Started
+## Quick Start (5 minutes)
+
+### Prerequisites Check
+
+```bash
+node --version  # Should be v20 or v22
+pnpm --version  # Should be 9.0.2+
+forge --version # Should be latest
+```
+
+If missing:
+- **Node.js**: Install from [nodejs.org](https://nodejs.org) or use `nvm install 20`
+- **pnpm**: Run `corepack enable && corepack prepare`
+- **Foundry**: Run `curl -L https://foundry.paradigm.xyz | bash && foundryup`
+
+### One-Command Setup
+
+```bash
+git clone https://github.com/trade/mark.git
+cd mark
+pnpm i && pnpm dev
+```
+
+Visit http://localhost:5173 - you should see the MARK dashboard.
+
+### What Just Happened?
+
+- ✅ Local Superchain started (1 L1 + 2 L2 chains)
+- ✅ Contracts deployed to local network
+- ✅ Frontend running at http://localhost:5173
+
+### Next Steps
+
+- Read [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines
+- Check [CHANGELOG.md](./CHANGELOG.md) for release history
+- See [contracts/README.md](./contracts/README.md) for contract details
+
+## Detailed Setup
 
 ### Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- Node.js + pnpm
+- Node.js 20 or 22 (see `.nvmrc`)
+- pnpm 9.0.2+ (managed via corepack)
 
 ### 1. Clone the repository
 
