@@ -39,7 +39,7 @@ Visit http://localhost:5173 - you should see the MARK dashboard.
 
 ### Next Steps
 
-- Read [CONTRIBUTING.md](./CONTRIBUTING.md) for development guidelines
+- Read [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) for development guidelines
 - Check [CHANGELOG.md](./CHANGELOG.md) for release history
 - See [contracts/README.md](./contracts/README.md) for contract details
 
@@ -48,7 +48,7 @@ Visit http://localhost:5173 - you should see the MARK dashboard.
 ### Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- Node.js 20 or 22 (see `.nvmrc`)
+- Node.js 20 or 22 (managed via mise - see `.mise.toml`)
 - pnpm 9.0.2+ (managed via corepack)
 
 ### 1. Clone the repository
@@ -78,7 +78,7 @@ This will:
 
 ## Branching Policy
 
-Full policy is documented in [BRANCHING.md](./BRANCHING.md).
+Full policy is documented in [docs/BRANCHING.md](./docs/BRANCHING.md).
 
 - `dev` — active integration and testnet (OP Sepolia auto-deploys on push)
 - `main` — mainnet-ready only
