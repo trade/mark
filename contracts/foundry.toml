@@ -6,7 +6,7 @@ script = "script"
 cache_path = "cache"
 broadcast = "broadcast"
 libs = ["lib"]
-no_match_path = "test/integration/**"
+no_match_path = "test/integration/**,test/invariant/**"
 fs_permissions = [{ access = "read-write", path = "./broadcast" }]
 via_ir = true
 remappings = [
@@ -14,7 +14,23 @@ remappings = [
   "@openzeppelin/=lib/createx/lib/openzeppelin-contracts/"
 ]
 
-[profile.default.invariant]
+[profile.invariant]
+src = "src"
+out = "out"
+test = "test"
+script = "script"
+cache_path = "cache"
+broadcast = "broadcast"
+libs = ["lib"]
+match_path = "test/invariant/**"
+fs_permissions = [{ access = "read-write", path = "./broadcast" }]
+via_ir = true
+remappings = [
+  "@interop-lib/=lib/interop-lib/src/",
+  "@openzeppelin/=lib/createx/lib/openzeppelin-contracts/"
+]
+
+[profile.invariant.invariant]
 runs = 256
 
 [profile.integration]
