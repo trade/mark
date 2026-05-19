@@ -18,7 +18,7 @@ forge --version # Should be latest
 
 If missing:
 - **Node.js**: Install from [nodejs.org](https://nodejs.org) or use `nvm install 20`
-- **pnpm**: Run `corepack enable && corepack prepare`
+- **pnpm**: Run `corepack enable && corepack prepare pnpm@9.0.2 --activate`
 - **Foundry**: Run `curl -L https://foundry.paradigm.xyz | bash && foundryup`
 
 ### One-Command Setup
