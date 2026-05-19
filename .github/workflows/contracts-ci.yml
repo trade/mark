@@ -52,6 +52,8 @@ jobs:
     defaults:
       run:
         working-directory: contracts
+    env:
+      FOUNDRY_PROFILE: ${{ matrix.profile }}
 
     steps:
       - name: Checkout
@@ -63,7 +65,7 @@ jobs:
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
       - name: Run test suite (${{ matrix.profile }})
-        run: forge test --profile ${{ matrix.profile }} -vv
+        run: forge test -vv
 
   contracts-production-lock:
     name: Contracts Production Lock Tests
