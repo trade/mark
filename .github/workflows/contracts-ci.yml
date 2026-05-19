@@ -44,6 +44,9 @@ jobs:
       - name: Run production lock invariants
         run: make test-production-lock
 
+      - name: Check gas snapshot
+        run: make gas-check
+
   contracts-release-check:
     name: Contracts Release Check (Dry-Run + Execute Smoke)
     runs-on: ubuntu-latest
