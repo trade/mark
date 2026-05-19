@@ -1,4 +1,4 @@
-.PHONY: ci-local ci-fast ci-full test-core test-invariants release-gate release-gate-container architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature slither-install slither-core
+.PHONY: ci-local ci-fast ci-full test-core test-invariants release-gate release-gate-container architecture-guard layering-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature slither-install slither-core gas-snapshot gas-check
 
 # Fast local loop: guards + unit/e2e tests (excludes invariants and integration profile tests).
 ci-fast: architecture-guard layering-guard test-core
@@ -107,3 +107,12 @@ slither-core:
 	python3 -m slither src/pool/MARKPool.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,reentrancy-benign,incorrect-return,assembly"; \
 	python3 -m slither src/pool/RYLACreditLedger.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-erc20"; \
 	python3 -m slither src/withdraw/MARKWithdrawAdapter.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-eth,missing-zero-check,low-level-calls"
+
+gas-snapshot:
+	@echo "Generating gas snapshot..."
+	@forge snapshot --snap .gas-snapshot
+	@echo "Gas snapshot saved to .gas-snapshot"
+
+gas-check:
+	@echo "Checking gas snapshot..."
+	@forge snapshot --check --snap .gas-snapshot
