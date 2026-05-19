@@ -8,9 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Gas snapshot tracking for contract tests (147 measurements, excludes invariants)
+- 5-minute quick start guide in README
+- CodeRabbit reviews for documentation and config files (.md, .yml, .toml)
 - Comprehensive CI/CD with Slither, CodeQL, and secrets scanning
 - Evidence-based release workflow with signed manifests
 - Multi-chain deployment via super-cli
+
+### Changed
+- Migrated to mise for Node version management (removed .nvmrc)
+- Removed pnpm-workspace.yaml (single-package project)
+- Updated 16 frontend dependencies (minor/patch versions)
+
+### Fixed
+- Gas snapshot now excludes non-deterministic invariant tests for stable CI
 
 ## [0.1.0] - 2026-05-19
 
