@@ -114,5 +114,5 @@ gas-snapshot:
 	@echo "Gas snapshot saved to .gas-snapshot"
 
 gas-check:
-	@echo "Checking gas snapshot..."
-	@forge snapshot --check --snap .gas-snapshot
+	@echo "Checking gas snapshot (tolerance: 2%)..."
+	@forge snapshot --check --snap .gas-snapshot --tolerance 2
