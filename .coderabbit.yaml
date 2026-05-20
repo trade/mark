@@ -5,15 +5,24 @@ early_access: false
 reviews:
   profile: 'chill'
   request_changes_workflow: false
-  high_level_summary: true
+  high_level_summary: false
   review_status: true
   collapse_walkthrough: true
   auto_review:
     enabled: true
     drafts: false
+    ignore_title_keywords:
+      - 'WIP'
+      - 'DO NOT REVIEW'
+      - 'style'
+      - 'chore'
   path_filters:
     - '!**/.nvmrc'
     - '!**/pnpm-lock.yaml'
+    - '!**/package-lock.json'
+    - '!**/pnpm-lock.yaml'
+    - 'contracts/src/**/*.sol'
+    - 'contracts/script/**/*.sol'
     - '.github/workflows/**'
     - '**/*.md'
     - '**/*.yml'
