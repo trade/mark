@@ -4,6 +4,7 @@ Thank you for your interest in contributing to MARK Protocol! This guide will wa
 
 ## Table of Contents
 
+- [Security Policy](#security-policy)
 - [Getting Started](#getting-started)
 - [Development Workflow](#development-workflow)
 - [Code Standards](#code-standards)
@@ -11,6 +12,62 @@ Thank you for your interest in contributing to MARK Protocol! This guide will wa
 - [Submitting a PR](#submitting-a-pr)
 - [Release Process](#release-process)
 - [Troubleshooting](#troubleshooting)
+
+---
+
+## Security Policy
+
+### For New Contributors
+
+**We do not accept unsolicited PRs with executable code from new contributors.**
+
+This policy protects the project and community from potential security risks.
+
+### Contribution Process
+
+1. **Open an issue first**
+   - Describe the feature or bug fix
+   - Wait for maintainer feedback
+   - Get approval before writing code
+
+2. **Start with documentation**
+   - First-time contributors: documentation PRs only
+   - Build trust before submitting code
+
+3. **Run CI locally before submitting**
+   - All contributors must verify their changes pass CI
+   - Run full test suite: `pnpm review` (includes CodeRabbit, lint, typecheck, contracts)
+   - Provide CI verification in PR description
+
+4. **Verify your identity (for code contributions)**
+   - Sign commits with GPG key
+   - Add public key to GitHub profile
+   - Link to verified email and social profiles
+   - Maintainers may request additional verification
+
+5. **Follow the review process**
+   - Fill out PR template completely
+   - Address all CI checks
+   - Respond to review feedback
+
+### What We Don't Accept
+
+- ❌ Unsolicited code PRs from new contributors
+- ❌ PRs with incomplete templates
+- ❌ Code handling private keys without prior approval
+- ❌ Large PRs (>500 lines) without discussion
+- ❌ PRs without linked issues
+
+### Security-Sensitive Changes
+
+These require extra scrutiny:
+- Smart contract changes
+- Deployment scripts
+- CI/CD workflows
+- Dependency updates
+- Code handling secrets/keys
+
+**Report security issues**: See [SECURITY.md](../SECURITY.md)
 
 ---
 
