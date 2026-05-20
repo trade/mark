@@ -12,7 +12,8 @@ evm_version = "paris"
 via_ir = true
 remappings = [
   "@interop-lib/=lib/interop-lib/src/",
-  "@openzeppelin/=lib/createx/lib/openzeppelin-contracts/"
+  "@openzeppelin/=lib/openzeppelin-contracts/",
+  "forge-std/=lib/forge-std/src/"
 ]
 
 [profile.default.invariant]

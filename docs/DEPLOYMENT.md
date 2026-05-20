@@ -98,7 +98,7 @@ Contracts Staging Rehearsal Workflow
 
 **Check deployment on OP Sepolia**:
 ```bash
-# Verify contract on OP Sepolia explorer
+# Verify contracts on OP Sepolia explorer
 # https://sepolia-optimism.etherscan.io
 
 # Expected contracts:
@@ -106,6 +106,36 @@ Contracts Staging Rehearsal Workflow
 # - MARKBridgeAdapter
 # - MARKSettlementModule
 # - AttestedSettlementVerifier
+```
+
+**Verify contracts with Sourcify (recommended)**:
+```bash
+# Sourcify provides decentralized contract verification
+# https://sourcify.dev
+
+# Verify via Sourcify API
+curl -X POST "https://sourcify.dev/server/verify" \
+  -F "address=0x<CONTRACT_ADDRESS>" \
+  -F "chain=11155420" \
+  -F "files=@contracts/out/<Contract>.sol/<Contract>.json"
+
+# Or use Sourcify UI:
+# 1. Go to https://sourcify.dev/#/verifier
+# 2. Select "OP Sepolia" (chain ID: 11155420)
+# 3. Upload contract metadata and source files
+# 4. Verify full match
+
+# Benefits:
+# - Decentralized verification (IPFS storage)
+# - Full metadata matching
+# - Multi-chain support
+# - No API key required
+```
+
+**Alternative: Etherscan verification**:
+```bash
+# Etherscan is also supported as secondary verification
+# https://sepolia-optimism.etherscan.io/verifyContract
 ```
 
 #### Step 3: Run Manual Validation (Optional)
@@ -455,7 +485,7 @@ Monitor these metrics in real-time:
 cast call 0x<MARK_ADDRESS> "name()" --rpc-url $MAINNET_RPC
 
 # Monitor gas prices
-ethgas-tracker  # or: https://ethgasstation.info
+cast gas-price --rpc-url $RPC  # or: https://etherscan.io/gastracker
 ```
 
 ### Post-Deployment Health Checks
@@ -707,7 +737,7 @@ git push origin fix/production-lock-config
    ```
 
 3. **Monitor gas prices** for future deployments:
-   - https://ethgasstation.info
+   - https://etherscan.io/gastracker
    - https://ultrasound.money
    - https://www.blocknative.com/gas-estimator
 

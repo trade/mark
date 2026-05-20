@@ -2,149 +2,36 @@
 
 Privacy-first settlement infrastructure leveraging zero-knowledge technologies for secure, private, and scalable transactions. Built for EVM-compatible blockchains, with native support for the Optimism Superchain.
 
-Code is a rule. No DAO, no drama. Don't Trust, Verify.
+**Code is a rule.** Settlement rules are enforced on-chain. Whether operators run it as a centralized service or a decentralized network is their choice — the contracts don't care.
 
-Settlement rules are enforced on-chain. Whether operators run it as a centralised service or a decentralised network is their choice — the contracts don't care.
-
-## Quick Start (5 minutes)
-
-### Prerequisites Check
+## Quick Start
 
 ```bash
-node --version  # Should be v20 or v22
-pnpm --version  # Should be 9.0.2+
-forge --version # Should be latest
-```
-
-If missing:
-- **Node.js**: Install from [nodejs.org](https://nodejs.org) or use `nvm install 20`
-- **pnpm**: Run `corepack enable && corepack prepare pnpm@9.0.2 --activate`
-- **Foundry**: Run `curl -L https://foundry.paradigm.xyz | bash && foundryup`
-
-### One-Command Setup
-
-```bash
+# Prerequisites: Node.js 20/22, pnpm 9.0.2+, Foundry
 git clone https://github.com/trade/mark.git
 cd mark
 pnpm i && pnpm dev
 ```
 
-Visit http://localhost:5173 - you should see the MARK dashboard.
+Visit http://localhost:5173 to see the MARK dashboard running on a local Superchain (1 L1 + 2 L2 chains).
 
-### What Just Happened?
+**Missing prerequisites?** See [Getting Started](./docs/CONTRIBUTING.md#getting-started) for installation instructions.
 
-- ✅ Local Superchain started (1 L1 + 2 L2 chains)
-- ✅ Contracts deployed to local network
-- ✅ Frontend running at http://localhost:5173
+## Documentation
 
-### Next Steps
+### Core Documentation
+- **[Getting Started](./docs/CONTRIBUTING.md)** — Development setup, code standards, and contribution guidelines
+- **[Architecture](./docs/ARCHITECTURE.md)** — System design, domain rules, and contract interactions
+- **[Deployment](./docs/DEPLOYMENT.md)** — Step-by-step deployment to testnet and mainnet
+- **[Branching Strategy](./docs/BRANCHING.md)** — Git workflow, release process, and CI/CD
+- **[Troubleshooting](./docs/TROUBLESHOOTING.md)** — Common issues and solutions
 
-- Read [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) for development guidelines
-- Check [CHANGELOG.md](./CHANGELOG.md) for release history
-- See [contracts/README.md](./contracts/README.md) for contract details
-
-## Detailed Setup
-
-### Prerequisites
-
-- [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- Node.js 20 or 22 (managed via mise - see `.mise.toml`)
-- pnpm 9.0.2+ (managed via corepack)
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/trade/mark.git
-cd mark
-```
-
-### 2. Install dependencies
-
-```bash
-pnpm i
-```
-
-### 3. Start development
-
-```bash
-pnpm dev
-```
-
-This will:
-
-- Start a local Superchain network (1 L1 + 2 L2 chains) via [supersim](https://github.com/ethereum-optimism/supersim)
-- Launch the frontend at http://localhost:5173
-- Deploy contracts to the local network
-
-## Branching Policy
-
-Full policy is documented in [docs/BRANCHING.md](./docs/BRANCHING.md).
-
-- `dev` — active integration and testnet (OP Sepolia auto-deploys on push)
-- `main` — mainnet-ready only
-- Release promotion path: `dev -> main`
-- Production readiness workflow is gated to `main`
-
-## Deploying Contracts
-
-MARK uses `super-cli` (`sup`) for contract deployment across the Superchain.
-
-### Interactive mode
-
-```bash
-pnpm sup
-```
-
-### Non-interactive mode
-
-```bash
-pnpm sup deploy create2 --chains supersiml2a,supersiml2b --salt ethers phoenix --forge-artifact-path contracts/out/<Contract>.sol/<Contract>.json --network supersim --private-key <private-key>
-```
-
-### Prepare mode (print command without running)
-
-```bash
-pnpm sup --prepare
-```
-
-### Build before deploying
-
-```bash
-pnpm build:contracts
-```
-
-## Overview
-
-### Contracts
-
-- **RYLA Credits** (`RYLA`) — Superchain-compatible credit token. Mintable and burnable only by the settlement module.
-- **MARKSettlementModule** — Operator-gated settlement boundary with replay protection and optional ZK proof verification.
-- **MARKBridgeAdapter** — Operator-gated bridge adapter routing RYLA cross-chain via SuperchainTokenBridge with rate limits.
-- **AttestedSettlementVerifier** — EIP-712 signature-based verifier for settlement intents.
-- **MARKPool** — ZK UTXO pool. Nullifier registry backed by a Merkle tree. Accepts deposits via ZK proof and records withdraw bindings.
-- **MARKPoolVerifier** — Groth16 verifier generated from the MARKPool circuit. Validates 13-signal ZK proofs on-chain.
-- **RYLACreditLedger** — Credit ledger bridging the pool to RYLA mint/burn. Mints RYLA for relayer fees; burns RYLA on withdrawal.
-- **MARKWithdrawAdapter** — EIP-191 signature-based withdrawal adapter. Verifies withdraw bindings and sends ETH to recipients.
-
-### Tools
-
-- **[supersim](https://github.com/ethereum-optimism/supersim)** — local Superchain test environment with pre-deployed contracts
-- **[sup (super-cli)](https://github.com/ethereum-optimism/super-cli)** — multi-chain deployment with sponsored transactions
-- **foundry** — smart contract development framework
-- **wagmi / viem** — TypeScript libraries for the EVM
-- **vite / tailwind / shadcn** — frontend tooling and UI components
-
-### Directory Structure
-
-```
-mark/
-├── contracts/          # Smart contract code (Foundry)
-├── src/                # Frontend code (vite, tailwind, shadcn, wagmi, viem)
-├── public/             # Static assets
-├── supersim-logs/      # Local supersim logs
-├── package.json        # Project dependencies and scripts
-└── mprocs.yaml         # Multi-process dev runner
-```
+### Additional Resources
+- **[CHANGELOG](./CHANGELOG.md)** — Release history and version notes
+- **[Contracts README](./contracts/README.md)** — Smart contract details and testing
+- **[Threat Model](./docs/THREAT_MODEL.md)** — Security assumptions and role compromise impact
+- **[Known Issues](./docs/KNOWN_ISSUES.md)** — Accepted design decisions and limitations
+- **[CONTRIBUTORS](./CONTRIBUTORS.md)** — Contributor recognition
 
 ## Deployed Contracts
 
@@ -161,22 +48,31 @@ mark/
 | RYLACreditLedger | [`0x68F3D477FBb82b5cF835F31015532275E5d6fc5B`](https://sepolia-optimism.etherscan.io/address/0x68F3D477FBb82b5cF835F31015532275E5d6fc5B) |
 | MARKWithdrawAdapter | [`0xC5fD2Aef37606D34d1DC978AEbB8521980E72328`](https://sepolia-optimism.etherscan.io/address/0xC5fD2Aef37606D34d1DC978AEbB8521980E72328) |
 
-Staging rehearsal: [run 25979311184](https://github.com/trade/mark/actions/runs/25979311184) — production lock verified.
-Pool deployment: [run 25994552682](https://github.com/trade/mark/actions/runs/25994552682) — pool stack deployed.
+**Verification:**
+- Staging rehearsal: [run 25979311184](https://github.com/trade/mark/actions/runs/25979311184)
+- Pool deployment: [run 25994552682](https://github.com/trade/mark/actions/runs/25994552682)
 
-## Debugging
+## Key Features
 
-- Full interoperability error signatures: [abi-signatures.md](https://github.com/ethereum-optimism/ecosystem/blob/main/packages/viem/docs/abi-signatures.md)
-- Common errors:
-  - `TargetCallFailed()`: `0xeda86850`
-  - `MessageAlreadyRelayed`: `0x9ca9480b`
-  - `Unauthorized()`: `0x82b42900`
+- **RYLA Token** — Superchain-compatible ERC-7802 credit token with role-gated mint/burn
+- **Settlement Module** — Operator-gated settlement with replay protection and ZK proof verification
+- **Bridge Adapter** — Cross-chain RYLA transfers via SuperchainTokenBridge with rate limits
+- **ZK UTXO Pool** — Privacy-preserving pool with Groth16 proof verification and nullifier registry
+- **Withdrawal System** — EIP-191 signature-based withdrawals with dual-signature security
 
-## Resources
+See [contracts/README.md](./contracts/README.md) for detailed contract documentation.
 
-- Interop guides: https://docs.optimism.io/app-developers/tutorials/interop
-- Superchain Dev Console: https://console.optimism.io/
+## External Resources
+
+- **Optimism Interop Guides**: https://docs.optimism.io/app-developers/tutorials/interop
+- **Superchain Dev Console**: https://console.optimism.io/
+- **Supersim (Local Testnet)**: https://github.com/ethereum-optimism/supersim
+- **Super CLI (Deployment)**: https://github.com/ethereum-optimism/super-cli
+
+## Security
+
+Report vulnerabilities via [GitHub Security Advisories](https://github.com/trade/mark/security/advisories/new). See [SECURITY.md](./SECURITY.md) for details.
 
 ## License
 
-Files are licensed under the [MIT license](./LICENSE).
+Licensed under the [MIT License](./LICENSE).
