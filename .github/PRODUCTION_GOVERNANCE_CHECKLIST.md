@@ -135,7 +135,7 @@ What this script applies:
 - optional production required reviewers by user ID
 - optional direct-push restrictions via `*_PUSH_ALLOW_*` allowlists
 
-## 9) Verify active protections after transfer
+## 9) Verify active protections
 
 Run the verification script with a repo-admin token:
 
