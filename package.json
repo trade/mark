@@ -17,6 +17,7 @@
     "contracts:rehearse-staging": "cd contracts && make rehearse-production-lock",
     "contracts:evidence-manifest": "cd contracts && make generate-evidence-manifest",
     "typecheck": "tsc --noEmit",
+    "typecheck:examples": "tsc -p examples/tsconfig.json",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
     "format": "prettier --write .",
