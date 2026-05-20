@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/trade/mark/discussions
+    about: Ask questions, share ideas, or discuss the protocol
+  - name: 📖 Documentation
+    url: https://github.com/trade/mark/blob/dev/docs/CONTRIBUTING.md
+    about: Read our contribution guidelines before submitting
+  - name: 🔒 Security Advisory
+    url: https://github.com/trade/mark/security/advisories/new
+    about: Report security vulnerabilities privately
