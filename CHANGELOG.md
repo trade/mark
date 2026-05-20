@@ -14,14 +14,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive CI/CD with Slither, CodeQL, and secrets scanning
 - Evidence-based release workflow with signed manifests
 - Multi-chain deployment via super-cli
+- docs/INDEX.md (central documentation index)
 
 ### Changed
 - Migrated to mise for Node version management (removed .nvmrc)
 - Removed pnpm-workspace.yaml (single-package project)
 - Updated 16 frontend dependencies (minor/patch versions)
+- Streamlined README.md (57% reduction, navigation hub)
+- Updated docs/DEPLOYMENT.md (Sourcify verification, gas tracker fixes)
 
 ### Fixed
 - Gas snapshot now excludes non-deterministic invariant tests for stable CI
+- Dead links in documentation (6 links fixed)
+- Typos (British → US English spelling)
 
 ## [0.1.0] - 2026-05-19
 
