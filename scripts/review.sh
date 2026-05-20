@@ -14,7 +14,7 @@ echo ""
 
 # CodeRabbit review
 if ! $QUICK_MODE; then
-  if ! command -v coderabbit &> /dev/null; then
+  if ! command -v coderabbit &>/dev/null; then
     echo "⚠️  CodeRabbit CLI not found. Install: https://docs.coderabbit.ai/cli"
     echo "    Skipping CodeRabbit review..."
     echo ""
