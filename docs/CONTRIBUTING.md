@@ -34,7 +34,18 @@ This policy protects the project and community from potential security risks.
    - First-time contributors: documentation PRs only
    - Build trust before submitting code
 
-3. **Follow the review process**
+3. **Run CI locally before submitting**
+   - All contributors must verify their changes pass CI
+   - Run full test suite: `pnpm review` (includes CodeRabbit, lint, typecheck, contracts)
+   - Provide CI verification in PR description
+
+4. **Verify your identity (for code contributions)**
+   - Sign commits with GPG key
+   - Add public key to GitHub profile
+   - Link to verified email and social profiles
+   - Maintainers may request additional verification
+
+5. **Follow the review process**
    - Fill out PR template completely
    - Address all CI checks
    - Respond to review feedback

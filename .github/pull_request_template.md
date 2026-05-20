@@ -11,10 +11,20 @@ Describe the change and why it is needed.
 
 ## Verification
 
+- [ ] `pnpm review` passes locally (or `pnpm review:quick` for quick checks)
 - [ ] `forge build` passes locally
 - [ ] `forge test` passes locally
 - [ ] If contracts changed: slither scan reviewed
 - [ ] No secrets/private keys added
+- [ ] Commits signed with GPG key (for code contributions)
+
+**CI Output** (paste relevant output):
+```
+# Example:
+# ✅ typecheck (2.01 seconds)
+# ✅ lint (4.12 seconds)
+# ✅ forge test: 159 tests passed
+```
 
 ## Risk Review
 
