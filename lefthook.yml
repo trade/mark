@@ -5,3 +5,12 @@ pre-commit:
       run: pnpm -s typecheck
     lint:
       run: pnpm -s lint
+
+pre-push:
+  commands:
+    coderabbit:
+      run: |
+        if [ "${SKIP_CODERABBIT:-}" != "1" ]; then
+          echo "🤖 Running CodeRabbit review (set SKIP_CODERABBIT=1 to skip)..."
+          coderabbit review --plain || true
+        fi
