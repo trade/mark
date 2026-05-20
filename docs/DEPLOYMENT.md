@@ -485,7 +485,7 @@ Monitor these metrics in real-time:
 cast call 0x<MARK_ADDRESS> "name()" --rpc-url $MAINNET_RPC
 
 # Monitor gas prices
-cast gas-price --rpc-url $RPC  # or: https://etherscan.io/gastracker
+cast gas-price --rpc-url $MAINNET_RPC  # or: https://etherscan.io/gastracker
 ```
 
 ### Post-Deployment Health Checks
