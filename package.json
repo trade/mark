@@ -23,7 +23,9 @@
     "format:check": "prettier --check .",
     "preview": "vite preview",
     "shadcn:add": "pnpm dlx shadcn@canary add",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "review": "./scripts/review.sh",
+    "review:quick": "./scripts/review.sh --quick"
   },
   "dependencies": {
     "@eth-optimism/viem": "^0.4.15",
