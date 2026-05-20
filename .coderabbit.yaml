@@ -14,6 +14,9 @@ reviews:
     ignore_title_keywords:
       - 'WIP'
       - 'DO NOT REVIEW'
+    ignore_authors:
+      - 'dependabot[bot]'
+      - 'github-actions[bot]'
   path_filters:
     - '!**/.nvmrc'
     - '!**/pnpm-lock.yaml'
