@@ -40,7 +40,9 @@ jobs:
       - name: Install shfmt
         run: |
           curl -sSL https://github.com/mvdan/sh/releases/download/v3.10.0/shfmt_v3.10.0_linux_amd64 \
-            -o /usr/local/bin/shfmt && chmod +x /usr/local/bin/shfmt
+            -o /tmp/shfmt
+          echo '1f57a384d59542f8fac5f503da1f3ea44242f46dff969569e80b524d64b71dbc  /tmp/shfmt' | sha256sum -c -
+          install -m 755 /tmp/shfmt /usr/local/bin/shfmt
           shfmt --version
 
       - name: Check shell formatting
