@@ -51,12 +51,12 @@ SKIP_CODERABBIT=1 git push
 git push --no-verify
 ```
 
-### Pre-Commit Hook (Always Runs)
+### Pre-Commit Hook (Runs by Default)
 
 - TypeScript type checking
 - ESLint linting
 
-**Cannot be skipped** (ensures code quality).
+**Can be skipped** with `git commit --no-verify`
 
 ## CodeRabbit Usage
 

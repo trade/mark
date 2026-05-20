@@ -14,9 +14,15 @@ echo ""
 
 # CodeRabbit review
 if ! $QUICK_MODE; then
-  echo "📊 CodeRabbit analysis..."
-  coderabbit review --plain || echo "⚠️  CodeRabbit found issues (see above)"
-  echo ""
+  if ! command -v coderabbit &> /dev/null; then
+    echo "⚠️  CodeRabbit CLI not found. Install: https://docs.coderabbit.ai/cli"
+    echo "    Skipping CodeRabbit review..."
+    echo ""
+  else
+    echo "📊 CodeRabbit analysis..."
+    coderabbit review --plain || echo "⚠️  CodeRabbit found issues (see above)"
+    echo ""
+  fi
 fi
 
 # Linting
@@ -29,11 +35,10 @@ echo "🔍 Type checking..."
 pnpm -s typecheck
 echo ""
 
-# Contract checks (if changed)
-if git diff --name-only HEAD | grep -q "contracts/"; then
+# Contract checks (if changed since origin/dev)
+if git diff --name-only origin/dev...HEAD contracts/ 2>/dev/null | grep -q .; then
   echo "⚙️  Contract checks..."
-  cd contracts && make ci-fast
-  cd ..
+  (cd contracts && make ci-fast)
   echo ""
 fi
 
