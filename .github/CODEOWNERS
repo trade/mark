@@ -18,8 +18,8 @@
 /.github/workflows/** @trade/maintainers
 /.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @trade/maintainers
 /.github/CODEOWNERS @trade/maintainers
-/BRANCHING.md @trade/maintainers
-/CONTRIBUTING.md @trade/maintainers
+/docs/BRANCHING.md @trade/maintainers
+/docs/CONTRIBUTING.md @trade/maintainers
 
 # Frontend
 
@@ -35,11 +35,10 @@
 /eslint.config.js @trade/maintainers
 /.prettierrc.json @trade/maintainers
 /mprocs.yaml @trade/maintainers
-/remappings.txt @trade/maintainers
 
 # Documentation
 
 /README.md @trade/maintainers
-/DEPLOYMENT.md @trade/maintainers
-/TROUBLESHOOTING.md @trade/maintainers
+/docs/DEPLOYMENT.md @trade/maintainers
+/docs/TROUBLESHOOTING.md @trade/maintainers
 /LICENSE @trade/maintainers
