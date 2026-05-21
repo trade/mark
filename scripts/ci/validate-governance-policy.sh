@@ -10,7 +10,7 @@ import re
 import sys
 
 apply_governance = Path("scripts/github/apply-governance.sh").read_text()
-branching = Path("BRANCHING.md").read_text()
+branching = Path("docs/BRANCHING.md").read_text()
 checklist = Path(".github/PRODUCTION_GOVERNANCE_CHECKLIST.md").read_text()
 
 
