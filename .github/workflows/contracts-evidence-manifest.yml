@@ -50,6 +50,9 @@ on:
         default: 'broadcast/mark-evidence-signature.json'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   manifest-self-test:
     name: Manifest Tooling Self-Test

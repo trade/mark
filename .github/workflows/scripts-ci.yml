@@ -16,6 +16,9 @@ on:
       - '.github/workflows/scripts-ci.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   shellcheck:
     name: Shellcheck Scripts
