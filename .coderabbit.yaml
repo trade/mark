@@ -7,6 +7,8 @@ reviews:
   request_changes_workflow: true
   high_level_summary: true
   review_status: true
+  review_details: true
+  fail_commit_status: true
   collapse_walkthrough: true
   auto_review:
     enabled: true
@@ -18,24 +20,31 @@ reviews:
       - 'dependabot[bot]'
       - 'github-actions[bot]'
   path_filters:
-    - '!**/.nvmrc'
-    - '!**/pnpm-lock.yaml'
-    - '!**/package-lock.json'
     - 'contracts/src/**/*.sol'
     - 'contracts/script/**/*.sol'
     - 'contracts/test/**/*.sol'
     - 'circuits/**/*.circom'
+    - 'src/**/*.ts'
+    - 'src/**/*.tsx'
     - '.github/workflows/**'
     - '**/*.md'
     - '**/*.yml'
     - '**/*.yaml'
     - '**/*.toml'
+    - '!**/.nvmrc'
+    - '!**/pnpm-lock.yaml'
+    - '!**/package-lock.json'
   path_instructions:
     - path: 'contracts/src/**/*.sol'
       instructions: |
         Focus only on: security vulnerabilities, reentrancy, CEI violations,
         access control issues, integer overflow/underflow, and incorrect error handling.
         Skip style, naming, and minor readability suggestions.
+    - path: 'contracts/script/**/*.sol'
+      instructions: |
+        Focus only on: missing broadcast guards, hardcoded addresses or private keys,
+        missing environment variable validation, and incorrect deployment ordering.
+        Skip style suggestions.
     - path: 'contracts/test/**/*.sol'
       instructions: |
         Focus only on: missing test cases for security-critical paths, incorrect
@@ -45,6 +54,16 @@ reviews:
       instructions: |
         Focus only on: constraint soundness, missing range checks, and
         signal assignment correctness. Skip style suggestions.
+    - path: 'src/**/*.ts'
+      instructions: |
+        Focus only on: incorrect ABI usage, misconfigured chain or transport settings,
+        unsafe type assertions, and missing error handling on contract calls.
+        Skip style suggestions.
+    - path: 'src/**/*.tsx'
+      instructions: |
+        Focus only on: incorrect ABI usage, misconfigured chain or transport settings,
+        unsafe type assertions, and missing error handling on contract calls.
+        Skip style suggestions.
     - path: '.github/workflows/**'
       instructions: |
         Focus only on: secret exposure, injection vulnerabilities, unpinned action
