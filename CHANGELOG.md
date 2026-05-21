@@ -10,23 +10,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Gas snapshot tracking for contract tests (147 measurements, excludes invariants)
 - 5-minute quick start guide in README
-- CodeRabbit reviews for documentation and config files (.md, .yml, .toml)
 - Comprehensive CI/CD with Slither, CodeQL, and secrets scanning
 - Evidence-based release workflow with signed manifests
 - Multi-chain deployment via super-cli
 - docs/INDEX.md (central documentation index)
+- `docs-ci` workflow: internal link checker runs on every PR touching markdown files
+- `labels.yml` config and sync workflow (EndBug/label-sync) — labels as code, 15 labels defined
+- GitHub issue templates: bug report, feature request, config (blank issues disabled)
+- `circuits/` added as separate Dependabot npm ecosystem entry
+- KI-9: documented circuits transitive dependency vulnerabilities with resolution path
 
 ### Changed
 - Migrated to mise for Node version management (removed .nvmrc)
 - Removed pnpm-workspace.yaml (single-package project)
-- Updated 16 frontend dependencies (minor/patch versions)
+- Updated frontend dependencies (minor/patch versions)
 - Streamlined README.md (57% reduction, navigation hub)
 - Updated docs/DEPLOYMENT.md (Sourcify verification, gas tracker fixes)
+- All GitHub Actions pinned to commit SHAs across 22 workflow files (supply chain hardening)
+- Added least-privilege `permissions` blocks to 14 workflow files (OpenSSF Token-Permissions)
+- CodeRabbit GitHub bot auto-review disabled — local CLI pre-push hook is the enforcement point
+- `staging.env` RPC URL replaced with `MARK_STAGING_RPC_URL` env var (CWE-798)
+- CODEOWNERS paths corrected to `docs/` prefix; removed non-existent `remappings.txt` entry
+- `setup-foundry` and `setup-node-pnpm` composite actions pinned to commit SHAs
+- `governance-policy-guard` path filter corrected to `docs/BRANCHING.md`
+- `dependency-review` redundant top-level permissions block removed
+- `contracts-ci` unit and integration jobs given `timeout-minutes: 20`
+- `circom` binary download now verified with SHA256 checksum
+- Release PR template header corrected: `canary -> main` → `dev -> main`
+- `Internal Link Check` added to required status checks on `dev` branch
 
 ### Fixed
 - Gas snapshot now excludes non-deterministic invariant tests for stable CI
-- Dead links in documentation (6 links fixed)
+- Dead links in documentation (4 broken internal links fixed)
 - Typos (British → US English spelling)
+- `testDeployMARKPoolRevertsWhenMissingTokenAdmin` flaky test: `PRIVATE_KEY` now explicitly set in test body so `_loadConfig()` succeeds in fresh-process contexts (e.g. `make gas-check`)
+- `validate-governance-policy.sh` path: `BRANCHING.md` → `docs/BRANCHING.md`
+- Stale transfer scripts removed (`pretransfer-readiness.sh`, `posttransfer-bootstrap.sh`)
+- `.vscode` exception rules removed from `.gitignore`
 
 ## [0.1.0] - 2026-05-19
 
