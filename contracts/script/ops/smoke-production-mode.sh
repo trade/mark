@@ -98,7 +98,7 @@ export VERIFY_MARK_SETTLEMENT_PROOF_ENABLED=true
 export VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE=true
 export VERIFY_MARK_SETTLEMENT_VERIFIER="$VERIFIER_ADDRESS"
 
-forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url "$RPC_URL" --broadcast -q
+forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url "$RPC_URL" --broadcast --non-interactive -q
 
 if [[ ! -f "$ARTIFACT_PATH" ]]; then
   echo "Missing artifact: $ARTIFACT_PATH" >&2
