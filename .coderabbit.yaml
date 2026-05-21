@@ -3,17 +3,28 @@ language: 'en-US'
 early_access: false
 
 reviews:
-  profile: 'chill'
-  request_changes_workflow: false
+  profile: 'assertive'
+  request_changes_workflow: true
   high_level_summary: true
   review_status: true
   collapse_walkthrough: true
   auto_review:
     enabled: true
     drafts: false
+    ignore_title_keywords:
+      - 'WIP'
+      - 'DO NOT REVIEW'
+    ignore_authors:
+      - 'dependabot[bot]'
+      - 'github-actions[bot]'
   path_filters:
     - '!**/.nvmrc'
     - '!**/pnpm-lock.yaml'
+    - '!**/package-lock.json'
+    - 'contracts/src/**/*.sol'
+    - 'contracts/script/**/*.sol'
+    - 'contracts/test/**/*.sol'
+    - 'circuits/**/*.circom'
     - '.github/workflows/**'
     - '**/*.md'
     - '**/*.yml'
@@ -25,14 +36,20 @@ reviews:
         Focus only on: security vulnerabilities, reentrancy, CEI violations,
         access control issues, integer overflow/underflow, and incorrect error handling.
         Skip style, naming, and minor readability suggestions.
+    - path: 'contracts/test/**/*.sol'
+      instructions: |
+        Focus only on: missing test cases for security-critical paths, incorrect
+        assertions that would pass on a broken implementation, and missing invariant
+        checks. Skip style suggestions.
     - path: 'circuits/**/*.circom'
       instructions: |
         Focus only on: constraint soundness, missing range checks, and
         signal assignment correctness. Skip style suggestions.
     - path: '.github/workflows/**'
       instructions: |
-        Focus only on: secret exposure, injection vulnerabilities, and
-        missing branch enforcement. Skip style suggestions.
+        Focus only on: secret exposure, injection vulnerabilities, unpinned action
+        versions, missing permissions scoping, and missing branch enforcement.
+        Skip style suggestions.
     - path: '**/*.md'
       instructions: |
         Focus on: broken links, incorrect commands, version mismatches,
@@ -52,3 +69,7 @@ chat:
 knowledge_base:
   code_guidelines:
     enabled: true
+    filePatterns:
+      - 'docs/CONTRIBUTING.md'
+      - 'docs/ARCHITECTURE.md'
+      - 'contracts/ARCHITECTURE.md'

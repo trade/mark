@@ -100,3 +100,17 @@ This document lists known limitations and intentional design decisions that audi
 **Required before mainnet:** Monitor `MARKPool` size on every change. If the margin drops below ~100 bytes, extract logic (e.g. bridge-out, fee policy, or root management) into a separate contract.
 
 **Accepted for now because:** The pool domain is pre-production. The settlement layer (which does not use `MARKPool`) is unaffected and can proceed to testnet independently.
+
+---
+
+## KI-9: Vulnerable transitive dependencies in circuits/ dev tooling
+
+**Scope:** `circuits/` — local trusted-setup and witness-test tooling only
+
+**Description:** `circomlibjs >= 0.1.0` depends on `ethers@5`, which pulls in `elliptic <= 6.6.1` (faulty ECDSA signatures, potential key exposure — GHSA-848j-6mx2-7j84) and `ws 8.0.0–8.20.0` (uninitialized memory disclosure — GHSA-58qx-3vcg-4xpx). No non-breaking fix is available: the only upstream resolution (`npm audit fix --force`) downgrades `circomlibjs` to `0.0.8`, which is incompatible with Node 22/24 and breaks `buildPoseidon`.
+
+**Impact:** None — `circuits/` is local developer tooling. It is never deployed, never handles user input, and never runs in CI with untrusted data. The `elliptic` key-exposure vector requires an attacker to obtain both a faulty and a correct signature for the same inputs, which is not possible in this context.
+
+**Accepted because:** No upstream fix is available without a breaking change. The packages are scoped to local trusted-setup (`setup.mjs`) and witness tests (`npm test`). Resolution is blocked on `circomlibjs` releasing a version that drops the `ethers@5` dependency.
+
+**Resolution path:** Replace `circomlibjs` with a lightweight Poseidon library that has no `ethers` dependency, such as `poseidon-lite` or `@zk-kit/poseidon-cipher`. Both provide `buildPoseidon`-equivalent functionality without pulling in `ethers@5`. Before switching, verify the Poseidon implementation produces identical field outputs to what `MARKPool.circom` expects — run the full witness test suite (`npm test` in `circuits/`) to confirm. Target this before mainnet promotion.
