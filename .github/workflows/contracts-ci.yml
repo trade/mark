@@ -21,6 +21,7 @@ jobs:
   contracts-unit-invariant:
     name: Contracts Unit + Invariant
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: contracts
@@ -179,6 +180,7 @@ jobs:
   contracts-integration:
     name: Contracts Integration (RPC)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [contracts-unit-invariant, contracts-release-check, contracts-production-mode-smoke]
     if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_integration == 'true' }}
     defaults:
