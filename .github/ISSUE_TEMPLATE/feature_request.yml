@@ -1,43 +1,88 @@
 name: Feature Request
-description: Suggest a feature for MARK Protocol
-labels: ["enhancement"]
+description: Suggest a new feature for MARK Protocol
+labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
-      value: Thanks for suggesting a feature!
-  
+      value: |
+        Thanks for suggesting a feature! Please describe your idea below.
+
   - type: textarea
     id: problem
     attributes:
-      label: Problem
-      description: What problem does this solve?
-      placeholder: "I'm frustrated when..."
+      label: Problem Statement
+      description: What problem does this feature solve?
+      placeholder: |
+        Example: As a developer, I need a way to batch multiple settlements in one transaction to save gas.
     validations:
       required: true
-  
+
   - type: textarea
     id: solution
     attributes:
-      label: Proposed solution
-      description: How would you solve this?
+      label: Proposed Solution
+      description: How would you solve this problem?
+      placeholder: |
+        Example: Add a batchSettle() function that accepts an array of settlement intents and processes them in a loop.
     validations:
       required: true
-  
+
   - type: textarea
     id: alternatives
     attributes:
-      label: Alternatives considered
+      label: Alternatives Considered
       description: What other solutions did you consider?
-  
+      placeholder: |
+        Example: 
+        - Using multicall pattern
+        - Off-chain batching with single proof
+        - Separate transactions (current approach)
+
   - type: dropdown
-    id: component
+    id: scope
     attributes:
-      label: Component
+      label: Scope
+      description: Which part of the protocol does this affect?
       options:
-        - Smart Contracts
-        - Frontend
-        - CI/CD
+        - Contracts (smart contracts)
+        - Frontend (UI/UX)
         - Documentation
+        - CI/CD
+        - Tooling
         - Other
     validations:
       required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (Your Opinion)
+      description: How important is this feature to you?
+      options:
+        - Critical (blocking my work)
+        - High (would significantly improve my workflow)
+        - Medium (nice to have)
+        - Low (minor improvement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other information that might help?
+      placeholder: |
+        - Use cases
+        - Similar features in other protocols
+        - Technical constraints
+        - Security considerations
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you willing to contribute to this feature?
+      options:
+        - label: I'm willing to submit a PR for this feature (after approval)
+        - label: I can help with documentation
+        - label: I can help with testing
