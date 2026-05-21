@@ -30,9 +30,9 @@ jobs:
         run: |
           CIRCOM_VERSION="v2.2.3"
           CIRCOM_URL="https://github.com/iden3/circom/releases/download/${CIRCOM_VERSION}/circom-linux-amd64"
-          curl -L "$CIRCOM_URL" -o circom
-          chmod +x circom
-          sudo mv circom /usr/local/bin/circom
+          curl -sSL "$CIRCOM_URL" -o /tmp/circom
+          echo '85342c7ff332d948df7c0c50ecf201e6129349aef550ce873f3c811b79fe53a3  /tmp/circom' | sha256sum -c -
+          install -m 755 /tmp/circom /usr/local/bin/circom
           circom --version
 
       - name: Install dependencies
