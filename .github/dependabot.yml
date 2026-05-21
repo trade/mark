@@ -16,6 +16,22 @@ updates:
       prefix: 'chore(deps)'
 
   - package-ecosystem: 'npm'
+    directory: '/circuits'
+    target-branch: 'dev'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '03:45'
+      timezone: 'UTC'
+    open-pull-requests-limit: 3
+    labels:
+      - 'dependencies'
+      - 'circuits'
+      - 'security'
+    commit-message:
+      prefix: 'chore(deps)'
+
+  - package-ecosystem: 'npm'
     directory: '/'
     target-branch: 'dev'
     schedule:

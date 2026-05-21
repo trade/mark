@@ -1,4 +1,4 @@
-## Release PR (`canary` -> `main`)
+## Release PR (`dev` -> `main`)
 
 Use this template only for production candidate merges.
 
