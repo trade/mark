@@ -22,6 +22,9 @@ on:
         default: 'broadcast/mark-mainnet-gate-ci.json'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   mainnet-readiness:
     name: Mainnet Readiness Gate
