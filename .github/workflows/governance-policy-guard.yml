@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/github/apply-governance.sh'
-      - 'BRANCHING.md'
+      - 'docs/BRANCHING.md'
       - '.github/PRODUCTION_GOVERNANCE_CHECKLIST.md'
       - '.github/workflows/governance-policy-guard.yml'
   push:
@@ -13,7 +13,7 @@ on:
       - dev
     paths:
       - 'scripts/github/apply-governance.sh'
-      - 'BRANCHING.md'
+      - 'docs/BRANCHING.md'
       - '.github/PRODUCTION_GOVERNANCE_CHECKLIST.md'
       - '.github/workflows/governance-policy-guard.yml'
   workflow_dispatch:
