@@ -502,8 +502,8 @@ Each exclusion is documented in the codebase. If you disagree with an exclusion,
 - [BRANCHING.md](./BRANCHING.md) — Release strategy & branch protection
 - [DEPLOYMENT.md](./DEPLOYMENT.md) — Step-by-step release runbook
 - [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) — Common issues & solutions
-- [contracts/ARCHITECTURE.md](./contracts/ARCHITECTURE.md) — Module architecture
-- [README.md](./README.md) — Project overview
+- [contracts/ARCHITECTURE.md](../contracts/ARCHITECTURE.md) — Module architecture
+- [README.md](../README.md) — Project overview
 
 ---
 

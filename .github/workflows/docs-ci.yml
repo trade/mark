@@ -1,0 +1,64 @@
+name: Docs CI
+
+on:
+  pull_request:
+    paths:
+      - '**/*.md'
+      - '.github/workflows/docs-ci.yml'
+  push:
+    branches:
+      - main
+      - dev
+    paths:
+      - '**/*.md'
+      - '.github/workflows/docs-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  link-check:
+    name: Internal Link Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Check internal links
+        run: |
+          python3 - <<'PY'
+          import re, sys
+          from pathlib import Path
+
+          docs = [
+              p for p in Path('.').rglob('*.md')
+              if not any(x in str(p) for x in [
+                  '.git/', 'node_modules/', 'contracts/lib/',
+              ])
+          ]
+
+          link_re = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
+          broken = []
+
+          for doc in sorted(docs):
+              content = doc.read_text(errors='ignore')
+              for text, href in link_re.findall(content):
+                  if href.startswith(('http://', 'https://', 'mailto:', '#')):
+                      continue
+                  path_part = href.split('#')[0]
+                  if not path_part:
+                      continue
+                  target = (doc.parent / path_part).resolve()
+                  if not target.exists():
+                      broken.append((str(doc), text, href))
+
+          if broken:
+              print(f"Found {len(broken)} broken internal link(s):\n")
+              for doc, text, href in broken:
+                  print(f"  {doc}: [{text}]({href})")
+              sys.exit(1)
+
+          print(f"Checked {len(docs)} files. No broken internal links.")
+          PY
