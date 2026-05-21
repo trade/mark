@@ -1,56 +1,92 @@
 name: Bug Report
 description: Report a bug in MARK Protocol
-labels: ["bug"]
+labels: ["bug", "triage"]
 body:
   - type: markdown
     attributes:
-      value: Thanks for reporting a bug. Please fill out the sections below.
-  
+      value: |
+        Thanks for reporting a bug! Please fill out the sections below to help us fix it.
+
   - type: textarea
     id: description
     attributes:
-      label: What happened?
-      description: Clear description of the bug
+      label: Description
+      description: What happened? Be specific and clear.
+      placeholder: |
+        Example: When I call settleMint() with a valid proof, the transaction reverts with "InvalidProof" error.
     validations:
       required: true
-  
+
   - type: textarea
     id: reproduction
     attributes:
-      label: Steps to reproduce
+      label: Steps to Reproduce
+      description: How can we reproduce this bug?
       placeholder: |
-        1. Deploy contract to...
-        2. Call function with...
-        3. See error...
+        1. Deploy contracts to OP Sepolia
+        2. Call settleMint() with intentId 0x123...
+        3. Transaction reverts
     validations:
       required: true
-  
+
   - type: textarea
     id: expected
     attributes:
-      label: Expected behavior
+      label: Expected Behavior
       description: What should have happened?
+      placeholder: |
+        Example: Transaction should succeed and mint RYLA tokens to the recipient.
     validations:
       required: true
-  
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: |
+        Example: Transaction reverted with "InvalidProof" error.
+    validations:
+      required: true
+
   - type: input
     id: version
     attributes:
       label: Version
-      description: Version or commit hash
-      placeholder: "v0.1.0 or commit abc123"
+      description: Which version are you using?
+      placeholder: "v0.1.0 or commit hash"
     validations:
       required: true
-  
+
   - type: dropdown
-    id: component
+    id: network
     attributes:
-      label: Component
+      label: Network
+      description: Which network did this occur on?
       options:
-        - Smart Contracts
-        - Frontend
-        - CI/CD
-        - Documentation
+        - OP Sepolia (testnet)
+        - OP Mainnet
+        - Local (supersim)
         - Other
     validations:
       required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Error Messages
+      description: Paste any relevant logs or error messages
+      render: shell
+      placeholder: |
+        Error: execution reverted: InvalidProof
+        at MARKSettlementModule.settleMint (0x123...)
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Any other information that might help?
+      placeholder: |
+        - Contract addresses
+        - Transaction hashes
+        - Environment details
