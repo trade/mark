@@ -47,6 +47,9 @@ on:
         default: 'broadcast/mark-staging-rehearsal.json'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   staging-rehearsal:
     name: Staging Rehearsal

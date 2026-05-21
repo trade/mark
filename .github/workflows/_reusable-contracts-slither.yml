@@ -3,6 +3,8 @@ name: Reusable Contracts Slither
 on:
   workflow_call:
 
+permissions:
+  contents: read
 jobs:
   slither-core:
     name: Slither Core Contracts

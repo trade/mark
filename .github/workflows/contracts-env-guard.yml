@@ -14,6 +14,9 @@ on:
       - '.github/workflows/contracts-env-guard.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   env-guard:
     name: Contracts Env Guard

@@ -20,6 +20,9 @@ on:
       - 'contracts/**'
       - '.github/workflows/contracts-release-gate-container.yml'
 
+permissions:
+  contents: read
+
 jobs:
   release-gate-container:
     name: Release Gate Container

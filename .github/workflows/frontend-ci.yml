@@ -8,6 +8,9 @@ on:
       - dev
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   frontend-checks:
     uses: ./.github/workflows/_reusable-frontend-checks.yml

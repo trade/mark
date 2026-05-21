@@ -33,6 +33,9 @@ on:
         default: '0x0000000000000000000000000000000000000000'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   production-lock-verify:
     name: Production Lock Verify

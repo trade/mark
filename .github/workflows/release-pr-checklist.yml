@@ -12,6 +12,9 @@ on:
       - synchronize
       - reopened
 
+permissions:
+  pull-requests: read
+
 jobs:
   validate-release-pr:
     name: Validate Release PR Checklist

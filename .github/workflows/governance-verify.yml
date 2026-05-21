@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: '15 4 * * 1'
 
+permissions:
+  contents: read
+
 jobs:
   verify-governance:
     name: Verify Governance Baseline
