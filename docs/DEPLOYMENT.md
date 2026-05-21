@@ -827,7 +827,7 @@ cast send $SETTLEMENT_ADDRESS "pause()" \
 
 - **Questions**: Open GitHub issue or discussion
 - **Urgent issue**: Contact @trade/maintainers
-- **Security concern**: See [SECURITY.md](SECURITY.md)
+- **Security concern**: See [SECURITY.md](../SECURITY.md)
 
 ---
 
