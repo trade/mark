@@ -16,7 +16,7 @@ reviews:
     ignore_title_keywords:
       - 'WIP'
       - 'DO NOT REVIEW'
-    ignore_authors:
+    ignore_usernames:
       - 'dependabot[bot]'
       - 'github-actions[bot]'
   path_filters:
