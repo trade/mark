@@ -111,7 +111,7 @@ jobs:
           VERIFY_MARK_SETTLEMENT_PROOF_ENABLED: 'false'
           VERIFY_MARK_SETTLEMENT_PRODUCTION_MODE: 'false'
           VERIFY_MARK_SETTLEMENT_VERIFIER: '0x0000000000000000000000000000000000000000'
-        run: forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL --broadcast -vv
+        run: forge script script/ops/settlement/ReleaseMARK.s.sol --rpc-url $RPC_URL --broadcast --non-interactive -vv
 
       - name: Assert release artifact schema
         run: |

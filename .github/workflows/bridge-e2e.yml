@@ -68,4 +68,4 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
           ATTESTER_KEY: ${{ secrets.MARK_STAGING_ATTESTER_PRIVATE_KEY }}
-        run: forge script script/ops/bridge/BridgeE2E.s.sol --rpc-url "$RPC_URL" --broadcast --slow -vv
+        run: forge script script/ops/bridge/BridgeE2E.s.sol --rpc-url "$RPC_URL" --broadcast --slow --non-interactive -vv

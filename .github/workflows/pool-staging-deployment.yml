@@ -120,7 +120,7 @@ jobs:
       - name: Run pool release script
         env:
           PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
-        run: forge script script/ops/pool/ReleasePool.s.sol --rpc-url "$RPC_URL" --broadcast --slow -vv
+        run: forge script script/ops/pool/ReleasePool.s.sol --rpc-url "$RPC_URL" --broadcast --slow --non-interactive -vv
 
       - name: Upload pool artifact
         if: always()
