@@ -1,8 +1,12 @@
 # MARK
 
+[![Gitleaks](https://github.com/trade/mark/workflows/Secrets%20Scan/badge.svg)](https://github.com/trade/mark/actions/workflows/secrets-scan.yml)
+
 Privacy-first settlement infrastructure leveraging zero-knowledge technologies for secure, private, and scalable transactions. Built for EVM-compatible blockchains, with native support for the Optimism Superchain.
 
-**Code is a rule.** No DAO, no drama. Don't Trust, Verify. Settlement rules are enforced on-chain. Whether operators run it as a centralized service or a decentralized network is their choice — the contracts don't care.
+**Code is a rule.** No DAO, no drama. Don't Trust, Verify.
+
+Settlement rules are enforced on-chain. Whether operators run it as a centralized service or a decentralized network is their choice — the contracts don't care.
 
 ## Quick Start
 
