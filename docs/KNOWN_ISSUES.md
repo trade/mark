@@ -62,15 +62,22 @@ This document lists known limitations and intentional design decisions that audi
 
 ---
 
-## KI-6: Transitive dependency alerts from @eth-optimism/super-cli
+## KI-6: Transitive dependency alerts from @eth-optimism/super-cli and wagmi
 
-**Scope:** Development tooling only
+**Scope:** Development tooling and frontend dev dashboard only
 
-**Description:** `@hono/node-server` (high), `drizzle-orm` (high), and `@stablelib/ed25519` (medium) have open Dependabot alerts. All are transitive dependencies of `@eth-optimism/super-cli`, a dev/deploy tool that never runs in production.
+**Description:** Several transitive dependency vulnerabilities exist with no upstream fix available:
 
-**Impact:** None — these packages are not part of the deployed protocol.
+- `drizzle-orm@0.38.4` (high — GHSA-gpj5-g38j-94v9): transitive dep of `@eth-optimism/super-cli@0.0.13`. Patched in `>=0.45.2` but super-cli still pins `^0.38.1`. No upstream fix available.
+- `uuid@9.0.1` (moderate — GHSA-w5hq-g745-h8pq): transitive dep of `wagmi` → `@wagmi/connectors` → `@metamask/utils@9.3.0`. Missing buffer bounds check in v3/v5/v6. Patched in `>=11.1.1`. `@metamask/utils` pins `uuid@^9.0.0` and has not released a version using `>=11.1.1`. No upstream fix available.
+- `ws@8.18.x` (moderate — GHSA-58qx-3vcg-4xpx): reported by audit but `ws@8.20.1` (patched) is already installed in the lockfile — this is a **false positive** in the audit output.
+- `@hono/node-server@1.19.14`: transitive dep of `@eth-optimism/super-cli`. The installed version `1.19.14` is not flagged by `pnpm audit` — earlier GHSAs (GHSA-wc8c-qw6v-h7f6, patched in `>=1.19.10`) are already resolved by the installed version.
 
-**Accepted because:** No upstream fix is available. The packages are scoped to development tooling only.
+**Impact:** None — `@eth-optimism/super-cli` is a dev/deploy tool that never runs in production. The frontend (`src/`) is a read-only dev dashboard with no wallet interaction or user funds per `SECURITY.md`. The `uuid` buffer bounds check issue is not exploitable in a read-only context.
+
+**Accepted because:** No upstream fix is available without breaking changes. All affected packages are scoped to development tooling or the non-production frontend dashboard.
+
+**Resolution path:** Blocked on upstream — `@eth-optimism/super-cli` updating `drizzle-orm`, and `wagmi`/`@metamask/sdk` updating `uuid`. Monitor Dependabot alerts for when fixes become available.
 
 ---
 
