@@ -9,7 +9,7 @@ Thank you to everyone who has contributed to MARK Protocol.
 <!-- Contributors will be added here as PRs are merged -->
 
 ## How to Contribute
-See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines on:
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on:
 - Setting up your development environment
 - Code standards and testing requirements
 - Submitting pull requests

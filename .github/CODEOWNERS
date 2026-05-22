@@ -19,7 +19,7 @@
 /.github/PRODUCTION_GOVERNANCE_CHECKLIST.md @trade/maintainers
 /.github/CODEOWNERS @trade/maintainers
 /docs/BRANCHING.md @trade/maintainers
-/docs/CONTRIBUTING.md @trade/maintainers
+/CONTRIBUTING.md @trade/maintainers
 
 # Frontend
 

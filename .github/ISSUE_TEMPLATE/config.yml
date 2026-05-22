@@ -4,7 +4,7 @@ contact_links:
     url: https://github.com/trade/mark/discussions
     about: Ask questions, share ideas, or discuss the protocol
   - name: 📖 Documentation
-    url: https://github.com/trade/mark/blob/main/docs/CONTRIBUTING.md
+    url: https://github.com/trade/mark/blob/main/CONTRIBUTING.md
     about: Read our contribution guidelines before submitting
   - name: 🔒 Security Advisory
     url: https://github.com/trade/mark/security/advisories/new

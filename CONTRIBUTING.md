@@ -67,7 +67,7 @@ These require extra scrutiny:
 - Dependency updates
 - Code handling secrets/keys
 
-**Report security issues**: See [SECURITY.md](../SECURITY.md)
+**Report security issues**: See [SECURITY.md](./SECURITY.md)
 
 ---
 
@@ -499,11 +499,11 @@ Each exclusion is documented in the codebase. If you disagree with an exclusion,
 
 ## Additional Resources
 
-- [BRANCHING.md](./BRANCHING.md) — Release strategy & branch protection
-- [DEPLOYMENT.md](./DEPLOYMENT.md) — Step-by-step release runbook
-- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) — Common issues & solutions
-- [contracts/ARCHITECTURE.md](../contracts/ARCHITECTURE.md) — Module architecture
-- [README.md](../README.md) — Project overview
+- [BRANCHING.md](./docs/BRANCHING.md) — Release strategy & branch protection
+- [DEPLOYMENT.md](./docs/DEPLOYMENT.md) — Step-by-step release runbook
+- [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) — Common issues & solutions
+- [contracts/ARCHITECTURE.md](./contracts/ARCHITECTURE.md) — Module architecture
+- [README.md](./README.md) — Project overview
 
 ---
 
