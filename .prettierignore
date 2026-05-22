@@ -1,21 +1,15 @@
-# Prettier v3 automatically respects .gitignore for ignored paths.
-# Only list exclusions not covered by .gitignore.
-
-# Solidity — formatted by forge fmt, not Prettier
+node_modules/
+dist/
+build/
+out/
+cache/
 contracts/
-
-# ZK circuits — not formatted by Prettier
 circuits/
-
-# Config and markup — managed by their own tooling or not formatted
+*.sol
 *.toml
 *.yaml
 *.yml
 *.md
-
-# Lock file — generated, not hand-edited
 pnpm-lock.yaml
-
-# Local-only directories (excluded via .git/info/exclude, not .gitignore)
-.amazonq/
-.planning/
+.*
+!.github/
