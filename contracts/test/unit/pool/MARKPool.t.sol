@@ -78,7 +78,7 @@ contract MARKPoolTest is Test {
 
     uint256[2] internal A;
     uint256[2][2] internal B;
-    uint256[2] internal C_PROOF;
+    uint256[2] internal C;
 
     function setUp() public {
         mockOk = new MockVerifier(true);
@@ -122,7 +122,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory nullifiers = [N0, N1];
         bytes32[2] memory commitments = [C0, C1];
 
-        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
 
         assertTrue(pool.isNullifierUsedGlobal(N0));
         assertTrue(pool.isNullifierUsedGlobal(N1));
@@ -133,12 +133,12 @@ contract MARKPoolTest is Test {
         bytes32[2] memory nullifiers = [N0, N1];
         bytes32[2] memory commitments = [C0, C1];
 
-        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
 
         // New commitments, same nullifiers
         bytes32[2] memory commitments2 = [bytes32(uint256(5)), bytes32(uint256(6))];
         vm.expectRevert(PoolErrors.NullifierUsed.selector);
-        pool.transact(root, nullifiers, commitments2, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments2, 0, address(0), A, B, C);
     }
 
     function testTransactRevertsOnUnknownRoot() public {
@@ -147,7 +147,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.UnknownRoot.selector);
-        pool.transact(badRoot, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(badRoot, nullifiers, commitments, 0, address(0), A, B, C);
     }
 
     function testTransactRevertsOnInvalidProof() public {
@@ -163,7 +163,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.InvalidProof.selector);
-        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
     }
 
     function testTransactRevertsOnDuplicateNullifiers() public {
@@ -172,7 +172,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.NullifierDuplicate.selector);
-        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
     }
 
     function testTransactRevertsOnDuplicateCommitments() public {
@@ -181,7 +181,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C0]; // duplicate
 
         vm.expectRevert(PoolErrors.CommitmentDuplicate.selector);
-        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
     }
 
     function testTransactRevertsWhenWithdrawalsPaused() public {
@@ -193,7 +193,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.WithdrawalsArePaused.selector);
-        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
     }
 
     // --- root expiry ---
@@ -203,7 +203,7 @@ contract MARKPoolTest is Test {
         bytes32 initialRoot = pool.getMerkleRoot();
         bytes32[2] memory nullifiers = [N0, N1];
         bytes32[2] memory commitments = [C0, C1];
-        pool.transact(initialRoot, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(initialRoot, nullifiers, commitments, 0, address(0), A, B, C);
 
         // Set max root age (tightening from 0 requires pause)
         vm.startPrank(admin);
@@ -242,7 +242,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory nullifiers = [N0, N1];
         bytes32[2] memory commitments = [C0, C1];
 
-        pool.transact(root, nullifiers, commitments, 100, relayer, A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 100, relayer, A, B, C);
 
         assertEq(ledger.balances(relayer), 100);
     }
@@ -253,7 +253,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.InvalidRelayer.selector);
-        pool.transact(root, nullifiers, commitments, 100, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 100, address(0), A, B, C);
     }
 
     function testFeeTooLowReverts() public {
@@ -265,7 +265,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.FeeTooLow.selector);
-        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
     }
 
     // --- pruneRoots ---
@@ -282,7 +282,7 @@ contract MARKPoolTest is Test {
         // Add a new root
         bytes32[2] memory nullifiers = [N0, N1];
         bytes32[2] memory commitments = [C0, C1];
-        pool.transact(initialRoot, nullifiers, commitments, 0, address(0), A, B, C_PROOF);
+        pool.transact(initialRoot, nullifiers, commitments, 0, address(0), A, B, C);
 
         vm.warp(block.timestamp + 2 days);
 
@@ -299,7 +299,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.BridgeOutDisabled.selector);
-        pool.bridgeOut(root, nullifiers, commitments, 0, address(0), 902, A, B, C_PROOF);
+        pool.bridgeOut(root, nullifiers, commitments, 0, address(0), 902, A, B, C);
     }
 
     function testBridgeOutRevertsWhenCallerNotEntrypoint() public {
@@ -317,7 +317,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         vm.expectRevert(PoolErrors.UnauthorizedBridgeOutCaller.selector);
-        pool.bridgeOut(root, nullifiers, commitments, 0, address(0), 902, A, B, C_PROOF);
+        pool.bridgeOut(root, nullifiers, commitments, 0, address(0), 902, A, B, C);
     }
 
     // --- bridgeIn access control ---
@@ -359,7 +359,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0), owner, recipient, amount, A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), owner, recipient, amount, A, B, C
         );
 
         bytes32 expectedBinding = pool.computeWithdrawBindingHash(owner, recipient, amount);
@@ -374,7 +374,7 @@ contract MARKPoolTest is Test {
 
         vm.expectRevert(PoolErrors.InvalidWithdrawAmount.selector);
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0), makeAddr("o"), makeAddr("r"), 0, A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), makeAddr("o"), makeAddr("r"), 0, A, B, C
         );
     }
 

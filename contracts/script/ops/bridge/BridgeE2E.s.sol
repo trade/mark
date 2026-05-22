@@ -11,7 +11,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 /// @notice Bridge E2E test: mint RYLA via attested settlement, then bridge.
 /// @dev Requires:
 ///      - PRIVATE_KEY: operator key (must have OPERATOR_ROLE on module)
-///      - ATTESTER_KEY: attester key (must have ATTESTER_ROLE on verifier)
+///      - ATTESTER_KEY: attester key (must have ATTESTER_ROLE on verifier, must differ from operator key)
 ///
 ///      Setup (one-time, run as admin):
 ///        cast send $MODULE "setOperator(address,bool)" $OPERATOR true --private-key $ADMIN_KEY
@@ -32,8 +32,9 @@ contract BridgeE2E is Script {
 
     function run() external {
         uint256 operatorKey = vm.envUint("PRIVATE_KEY");
-        uint256 attesterKey = vm.envOr("ATTESTER_KEY", operatorKey);
+        uint256 attesterKey = vm.envUint("ATTESTER_KEY");
         address operator = vm.addr(operatorKey);
+        address attester = vm.addr(attesterKey);
 
         RYLA ryla = RYLA(RYLA_ADDR);
         MARKSettlementModule module = MARKSettlementModule(MODULE_ADDR);
@@ -44,13 +45,15 @@ contract BridgeE2E is Script {
         console.log("RYLA balance before:", ryla.balanceOf(operator));
 
         // Preflight
-        require(module.hasRole(module.OPERATOR_ROLE(), operator), "operator missing OPERATOR_ROLE");
-        require(verifier.hasRole(verifier.ATTESTER_ROLE(), vm.addr(attesterKey)), "attester missing ATTESTER_ROLE");
-        require(bridge.destinationEnabled(DST_CHAIN_ID), "destination not enabled");
+        if (operator == attester) revert("operator and attester must use different keys");
+        if (!module.hasRole(module.OPERATOR_ROLE(), operator)) revert("operator missing OPERATOR_ROLE");
+        if (!verifier.hasRole(verifier.ATTESTER_ROLE(), attester)) revert("attester missing ATTESTER_ROLE");
+        if (!bridge.destinationEnabled(DST_CHAIN_ID)) revert("destination not enabled");
 
         // Build EIP-712 attestation matching AttestedSettlementVerifier._settlementDigest
         bytes32 intentId = keccak256(abi.encodePacked("bridge-e2e", block.timestamp, operator));
-        uint256 deadline = block.timestamp + 1 hours;
+        uint256 deadlineWindow = vm.envOr("DEADLINE_SECONDS", uint256(1 hours));
+        uint256 deadline = block.timestamp + deadlineWindow;
         bytes32 contextHash = bytes32(0); // opaque attester-controlled value
 
         bytes32 structHash = keccak256(
