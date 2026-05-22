@@ -2,7 +2,7 @@
 
 Privacy-first settlement infrastructure leveraging zero-knowledge technologies for secure, private, and scalable transactions. Built for EVM-compatible blockchains, with native support for the Optimism Superchain.
 
-**Code is a rule.** Settlement rules are enforced on-chain. Whether operators run it as a centralized service or a decentralized network is their choice — the contracts don't care.
+**Code is a rule.** No DAO, no drama. Don't Trust, Verify. Settlement rules are enforced on-chain. Whether operators run it as a centralized service or a decentralized network is their choice — the contracts don't care.
 
 ## Quick Start
 
@@ -15,12 +15,12 @@ pnpm i && pnpm dev
 
 Visit http://localhost:5173 to see the MARK dashboard running on a local Superchain (1 L1 + 2 L2 chains).
 
-**Missing prerequisites?** See [Getting Started](./docs/CONTRIBUTING.md#getting-started) for installation instructions.
+**Missing prerequisites?** See [Getting Started](./CONTRIBUTING.md#getting-started) for installation instructions.
 
 ## Documentation
 
 ### Core Documentation
-- **[Getting Started](./docs/CONTRIBUTING.md)** — Development setup, code standards, and contribution guidelines
+- **[Getting Started](./CONTRIBUTING.md)** — Development setup, code standards, and contribution guidelines
 - **[Architecture](./docs/ARCHITECTURE.md)** — System design, domain rules, and contract interactions
 - **[Deployment](./docs/DEPLOYMENT.md)** — Step-by-step deployment to testnet and mainnet
 - **[Branching Strategy](./docs/BRANCHING.md)** — Git workflow, release process, and CI/CD
