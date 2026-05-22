@@ -11,7 +11,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 /// @notice Bridge E2E test: mint RYLA via attested settlement, then bridge.
 /// @dev Requires:
 ///      - PRIVATE_KEY: operator key (must have OPERATOR_ROLE on module)
-///      - ATTESTER_KEY: attester key (must have ATTESTER_ROLE on verifier)
+///      - ATTESTER_KEY: attester key (must have ATTESTER_ROLE on verifier, must differ from operator key)
 ///
 ///      Setup (one-time, run as admin):
 ///        cast send $MODULE "setOperator(address,bool)" $OPERATOR true --private-key $ADMIN_KEY
@@ -32,7 +32,7 @@ contract BridgeE2E is Script {
 
     function run() external {
         uint256 operatorKey = vm.envUint("PRIVATE_KEY");
-        uint256 attesterKey = vm.envOr("ATTESTER_KEY", operatorKey);
+        uint256 attesterKey = vm.envUint("ATTESTER_KEY");
         address operator = vm.addr(operatorKey);
         address attester = vm.addr(attesterKey);
 
