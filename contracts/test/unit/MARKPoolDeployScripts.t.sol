@@ -10,13 +10,23 @@ import {IVerifier} from "../../src/interfaces/IVerifier.sol";
 import {DeployMARKPool} from "../../script/deploy/pool/DeployMARKPool.s.sol";
 
 contract MockVerifier is IVerifier {
+    bool internal shouldVerify = true;
+
+    function setShouldVerify(bool _shouldVerify) external {
+        shouldVerify = _shouldVerify;
+    }
+
     function verifyProof(
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         uint256[13] calldata input
-    ) external pure returns (bool) {
-        return true;
+    ) external view returns (bool) {
+        a;
+        b;
+        c;
+        input;
+        return shouldVerify;
     }
 }
 
