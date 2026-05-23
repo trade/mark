@@ -15,6 +15,10 @@ on:
     - cron: '30 3 * * 1'
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 permissions:
   actions: read
   contents: read
@@ -24,6 +28,7 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       fail-fast: false
@@ -43,7 +48,8 @@ jobs:
       - name: Setup pnpm (corepack)
         run: |
           corepack enable
-          corepack prepare pnpm@9.0.2 --activate
+          PNPM_VERSION=$(jq -r '.packageManager' package.json | grep -oP 'pnpm@\K[0-9.]+')
+          corepack prepare pnpm@$PNPM_VERSION --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
