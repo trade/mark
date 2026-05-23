@@ -32,11 +32,23 @@ echo ""
 
 # Type checking
 echo "🔍 Type checking..."
-pnpm -s typecheck
+pnpm typecheck
 echo ""
 
-# Contract checks (if changed since origin/dev)
-if git diff --name-only origin/dev...HEAD contracts/ 2>/dev/null | grep -q .; then
+# Contract checks (if changed since base branch)
+BASE_REF=""
+for ref in origin/dev origin/main origin/master; do
+  if git rev-parse --verify --quiet "$ref" >/dev/null; then
+    BASE_REF="$ref"
+    break
+  fi
+done
+
+if [[ -z "$BASE_REF" ]]; then
+  echo "⚠️  No base branch found (tried: origin/dev, origin/main, origin/master)."
+  echo "    Skipping contract checks..."
+  echo ""
+elif git diff --name-only "$BASE_REF"...HEAD contracts/ | grep -q .; then
   echo "⚙️  Contract checks..."
   (cd contracts && make ci-fast)
   echo ""
