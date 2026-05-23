@@ -141,15 +141,9 @@ contract MARKWithdrawAdapterTest is Test {
 
         _configureBindingAndMint(user, recipient, amount, nullifiers);
 
-        bytes32 intentHash =
-            emptyAdapter.computeWithdrawIntentHash(user, recipient, amount, nullifiers, nonce, deadline);
-        bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash));
-
-        (uint8 ov, bytes32 or_, bytes32 os) = vm.sign(userPrivateKey, digest);
-        (uint8 iv, bytes32 ir, bytes32 is_) = vm.sign(intentSignerPrivateKey, digest);
-
-        bytes memory ownerSig = abi.encodePacked(or_, os, ov);
-        bytes memory intentSig = abi.encodePacked(ir, is_, iv);
+        // Sign using emptyAdapter's domain (address(emptyAdapter) is part of the intent hash)
+        (bytes memory ownerSig, bytes memory intentSig) =
+            _signWithdrawForAdapter(emptyAdapter, user, recipient, amount, nullifiers, nonce, deadline, userPrivateKey, intentSignerPrivateKey);
 
         vm.expectRevert(MARKWithdrawErrors.InsufficientLiquidity.selector);
         emptyAdapter.withdrawWithSig(user, recipient, amount, nullifiers, nonce, deadline, ownerSig, intentSig);
@@ -270,7 +264,21 @@ contract MARKWithdrawAdapterTest is Test {
         uint256 ownerPk,
         uint256 intentPk
     ) internal view returns (bytes memory ownerSig, bytes memory intentSig) {
-        bytes32 intentHash = adapter.computeWithdrawIntentHash(
+        return _signWithdrawForAdapter(adapter, owner, withdrawRecipient, amount, nullifiers, nonce, deadline, ownerPk, intentPk);
+    }
+
+    function _signWithdrawForAdapter(
+        MARKWithdrawAdapter targetAdapter,
+        address owner,
+        address withdrawRecipient,
+        uint256 amount,
+        bytes32[2] memory nullifiers,
+        uint256 nonce,
+        uint256 deadline,
+        uint256 ownerPk,
+        uint256 intentPk
+    ) internal view returns (bytes memory ownerSig, bytes memory intentSig) {
+        bytes32 intentHash = targetAdapter.computeWithdrawIntentHash(
             owner, withdrawRecipient, amount, nullifiers, nonce, deadline
         );
         bytes32 digest = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", intentHash));
