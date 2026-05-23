@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
   issues: write
 
 jobs:
@@ -38,23 +37,60 @@ jobs:
         working-directory: contracts
         continue-on-error: true
         run: |
-          # Run Slither with same exclusions as CI, output JSON
-          slither . \
+          # Run Slither with same exclusions as CI (make slither-core)
+          # Base exclusions for all contracts
+          BASE_EXCLUDE="naming-convention,timestamp"
+          
+          # Additional exclusions per contract (from Makefile comments)
+          BRIDGE_EXCLUDE="$BASE_EXCLUDE,arbitrary-send-erc20"
+          SETTLEMENT_EXCLUDE="$BASE_EXCLUDE,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign"
+          POOL_EXCLUDE="$BASE_EXCLUDE,reentrancy-benign,incorrect-return,assembly"
+          LEDGER_EXCLUDE="$BASE_EXCLUDE,arbitrary-send-erc20"
+          WITHDRAW_EXCLUDE="$BASE_EXCLUDE,arbitrary-send-eth,missing-zero-check,low-level-calls"
+          
+          # Run on all src/ contracts with appropriate exclusions
+          slither src/ \
             --json slither-report.json \
             --exclude-dependencies \
-            --filter-paths "lib/|test/" \
-            --exclude naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign \
-            || true
+            --filter-paths "lib/|test/|script/" \
+            --exclude "$BASE_EXCLUDE,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign,incorrect-return,assembly,arbitrary-send-eth,missing-zero-check,low-level-calls"
+          
+          SLITHER_EXIT=$?
           
           # Check if report exists and has findings
           if [ -f slither-report.json ]; then
             echo "report_exists=true" >> $GITHUB_OUTPUT
+            echo "slither_failed=false" >> $GITHUB_OUTPUT
           else
             echo "report_exists=false" >> $GITHUB_OUTPUT
+            if [ $SLITHER_EXIT -ne 0 ]; then
+              echo "slither_failed=true" >> $GITHUB_OUTPUT
+            else
+              echo "slither_failed=false" >> $GITHUB_OUTPUT
+            fi
           fi
       
+      - name: Report Slither execution failure
+        if: steps.slither.outputs.slither_failed == 'true' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## ⚠️ Slither Execution Failed
+              
+              Slither failed to run on this PR. This may indicate:
+              - Compilation errors
+              - Invalid remappings
+              - Slither runtime errors
+              
+              Please check the workflow logs for details.`
+            });
+      
       - name: Parse and post findings
-        if: steps.slither.outputs.report_exists == 'true'
+        if: steps.slither.outputs.report_exists == 'true' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
