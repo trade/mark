@@ -39,7 +39,7 @@ updates:
       day: 'monday'
       time: '03:30'
       timezone: 'UTC'
-    open-pull-requests-limit: 8
+    open-pull-requests-limit: 10
     labels:
       - 'dependencies'
       - 'frontend'
