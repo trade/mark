@@ -43,7 +43,7 @@
     "tailwindcss": "^4.3.0",
     "tailwindcss-animate": "^1.0.7",
     "viem": "^2.50.4",
-    "wagmi": "^2.19.5"
+    "wagmi": "^3.6.15"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
