@@ -52,6 +52,13 @@ contract MARKPoolDeployScriptsTest is Test {
         vm.setEnv("MARK_RYLA_TOKEN", vm.toString(address(defaultToken)));
     }
 
+    function _setPrivateKeyEnvForIsolatedRuns() internal {
+        // Some tooling modes (for example gas-check in a fresh process) may
+        // execute without inheriting env assumptions from setUp(). Keep this
+        // explicit in one helper to avoid duplicating inline env wiring.
+        vm.setEnv("PRIVATE_KEY", vm.toString(DEPLOYER_PK));
+    }
+
     function testDeployMARKPoolWiresAllContracts() public {
         vm.prank(deployer);
         RYLA token = new RYLA(deployer);
@@ -94,11 +101,7 @@ contract MARKPoolDeployScriptsTest is Test {
         RYLA token = new RYLA(nonAdmin);
 
         vm.setEnv("MARK_RYLA_TOKEN", vm.toString(address(token)));
-        // Ensure PRIVATE_KEY is set so _loadConfig() succeeds and the
-        // MissingTokenAdminForRoleGrants check is reached. Without this,
-        // vm.envUint reverts with no data when gas-check runs in a fresh
-        // process where setUp() env vars are not inherited.
-        vm.setEnv("PRIVATE_KEY", vm.toString(DEPLOYER_PK));
+        _setPrivateKeyEnvForIsolatedRuns();
 
         vm.expectRevert(DeployMARKPool.MissingTokenAdminForRoleGrants.selector);
         deployPool.run();
