@@ -60,6 +60,15 @@ jobs:
           script: |
             const fs = require('fs');
             
+            // Escape HTML and markdown to prevent injection
+            function escapeMarkdown(text) {
+              return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/[`*_{}[\]()#+\-.!|]/g, '\\$&');
+            }
+            
             // Read Slither report
             let report;
             try {
@@ -92,13 +101,13 @@ jobs:
               .map(d => {
                 const location = d.elements?.[0]?.source_mapping?.filename_relative || 'unknown';
                 const lines = d.elements?.[0]?.source_mapping?.lines?.join(',') || '?';
-                return `### ${d.impact}: ${d.check}
+                return `### ${escapeMarkdown(d.impact)}: ${escapeMarkdown(d.check)}
             
-            **Location**: \`${location}:${lines}\`
+            **Location**: \`${escapeMarkdown(location)}:${escapeMarkdown(lines)}\`
             
-            ${d.description}
+            ${escapeMarkdown(d.description)}
             
-            **Confidence**: ${d.confidence}`;
+            **Confidence**: ${escapeMarkdown(d.confidence)}`;
               })
               .join('\n\n---\n\n');
             
