@@ -24,13 +24,13 @@ reviews:
     - 'contracts/script/**/*.sol'
     - 'contracts/test/**/*.sol'
     - 'circuits/**/*.circom'
-    - 'src/**/*.ts'
-    - 'src/**/*.tsx'
+    - 'src/**/*.{ts,tsx}'
     - '.github/workflows/**'
     - '**/*.md'
-    - '**/*.yml'
-    - '**/*.yaml'
+    - '**/*.{yml,yaml}'
     - '**/*.toml'
+    - '**/*.json'
+    - '**/*.sh'
     - '!**/.nvmrc'
     - '!**/pnpm-lock.yaml'
     - '!**/package-lock.json'
@@ -54,12 +54,7 @@ reviews:
       instructions: |
         Focus only on: constraint soundness, missing range checks, and
         signal assignment correctness. Skip style suggestions.
-    - path: 'src/**/*.ts'
-      instructions: |
-        Focus only on: incorrect ABI usage, misconfigured chain or transport settings,
-        unsafe type assertions, and missing error handling on contract calls.
-        Skip style suggestions.
-    - path: 'src/**/*.tsx'
+    - path: 'src/**/*.{ts,tsx}'
       instructions: |
         Focus only on: incorrect ABI usage, misconfigured chain or transport settings,
         unsafe type assertions, and missing error handling on contract calls.
@@ -77,10 +72,18 @@ reviews:
       instructions: |
         Focus on: invalid syntax, incorrect glob patterns, and configuration
         errors that would break builds. Skip style suggestions.
-    - path: '**/*.yml'
+    - path: '**/*.{yml,yaml}'
       instructions: |
         Focus on: syntax errors, invalid job dependencies, and security issues.
         Skip style suggestions.
+    - path: '**/*.json'
+      instructions: |
+        Focus on: syntax errors, invalid schema, and security issues (e.g., exposed
+        credentials in package.json). Skip style suggestions.
+    - path: '**/*.sh'
+      instructions: |
+        Focus on: unquoted variables, missing error handling (set -euo pipefail),
+        command injection risks, and hardcoded secrets. Skip style suggestions.
 
 chat:
   auto_reply: true
