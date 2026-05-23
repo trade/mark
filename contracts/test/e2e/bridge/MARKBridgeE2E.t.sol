@@ -35,13 +35,9 @@ contract MARKBridgeE2ETest is Test {
 
     function testE2EBridgeFlow() public {
         uint256 amount = 10 ether;
-        
+
         bytes memory callData = abi.encodeWithSelector(
-            ISuperchainTokenBridge.sendERC20.selector,
-            address(token),
-            user,
-            amount,
-            DST_CHAIN_ID
+            ISuperchainTokenBridge.sendERC20.selector, address(token), user, amount, DST_CHAIN_ID
         );
         vm.mockCall(PredeployAddresses.SUPERCHAIN_TOKEN_BRIDGE, callData, abi.encode(keccak256("msg-1")));
 
@@ -61,11 +57,7 @@ contract MARKBridgeE2ETest is Test {
         adapter.setBridgeLimits(5 ether, 20 ether);
 
         bytes memory callData1 = abi.encodeWithSelector(
-            ISuperchainTokenBridge.sendERC20.selector,
-            address(token),
-            user,
-            5 ether,
-            DST_CHAIN_ID
+            ISuperchainTokenBridge.sendERC20.selector, address(token), user, 5 ether, DST_CHAIN_ID
         );
         vm.mockCall(PredeployAddresses.SUPERCHAIN_TOKEN_BRIDGE, callData1, abi.encode(keccak256("msg-1")));
 
@@ -75,11 +67,7 @@ contract MARKBridgeE2ETest is Test {
         assertEq(adapter.bridgedInDailyCapEpoch(), 5 ether);
 
         bytes memory callData2 = abi.encodeWithSelector(
-            ISuperchainTokenBridge.sendERC20.selector,
-            address(token),
-            user,
-            5 ether,
-            DST_CHAIN_ID
+            ISuperchainTokenBridge.sendERC20.selector, address(token), user, 5 ether, DST_CHAIN_ID
         );
         vm.mockCall(PredeployAddresses.SUPERCHAIN_TOKEN_BRIDGE, callData2, abi.encode(keccak256("msg-2")));
 

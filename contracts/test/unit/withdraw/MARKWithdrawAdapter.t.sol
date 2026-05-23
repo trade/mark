@@ -142,8 +142,9 @@ contract MARKWithdrawAdapterTest is Test {
         _configureBindingAndMint(user, recipient, amount, nullifiers);
 
         // Sign using emptyAdapter's domain (address(emptyAdapter) is part of the intent hash)
-        (bytes memory ownerSig, bytes memory intentSig) =
-            _signWithdrawForAdapter(emptyAdapter, user, recipient, amount, nullifiers, nonce, deadline, userPrivateKey, intentSignerPrivateKey);
+        (bytes memory ownerSig, bytes memory intentSig) = _signWithdrawForAdapter(
+            emptyAdapter, user, recipient, amount, nullifiers, nonce, deadline, userPrivateKey, intentSignerPrivateKey
+        );
 
         vm.expectRevert(MARKWithdrawErrors.InsufficientLiquidity.selector);
         emptyAdapter.withdrawWithSig(user, recipient, amount, nullifiers, nonce, deadline, ownerSig, intentSig);
@@ -264,7 +265,9 @@ contract MARKWithdrawAdapterTest is Test {
         uint256 ownerPk,
         uint256 intentPk
     ) internal view returns (bytes memory ownerSig, bytes memory intentSig) {
-        return _signWithdrawForAdapter(adapter, owner, withdrawRecipient, amount, nullifiers, nonce, deadline, ownerPk, intentPk);
+        return _signWithdrawForAdapter(
+            adapter, owner, withdrawRecipient, amount, nullifiers, nonce, deadline, ownerPk, intentPk
+        );
     }
 
     function _signWithdrawForAdapter(
