@@ -23,6 +23,15 @@ def parse_checks(var_name: str) -> list[str]:
     return re.findall(r'"([^"]+)"', block)
 
 
+def parse_branching_bullet(raw: str) -> str | None:
+    line = raw.strip()
+    if not line.startswith("- "):
+        return None
+    if line.startswith("- `") and line.endswith("`"):
+        return line[3:-1]
+    return line[2:]
+
+
 def parse_branching_section(title: str) -> list[str]:
     # Capture bullet lines after a section header until the next header.
     pattern = rf"### {re.escape(title)}\n\n(.*?)(?:\n### |\n## |\Z)"
@@ -30,8 +39,12 @@ def parse_branching_section(title: str) -> list[str]:
     if not m:
         raise RuntimeError(f"Could not parse section '{title}' from BRANCHING.md")
     block = m.group(1)
-    return [line.strip()[3:-1] if line.strip().startswith("- `") and line.strip().endswith("`") else line.strip()[2:]
-            for line in block.splitlines() if line.strip().startswith("- ")]
+    checks = []
+    for line in block.splitlines():
+        parsed = parse_branching_bullet(line)
+        if parsed is not None:
+            checks.append(parsed)
+    return checks
 
 
 def parse_checklist_section(title: str) -> list[str]:
