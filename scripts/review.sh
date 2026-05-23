@@ -32,7 +32,7 @@ echo ""
 
 # Type checking
 echo "🔍 Type checking..."
-pnpm -s typecheck
+pnpm typecheck
 echo ""
 
 # Contract checks (if changed since base branch)
