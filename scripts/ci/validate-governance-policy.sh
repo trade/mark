@@ -51,7 +51,9 @@ def parse_checklist_section(title: str) -> list[str]:
             if line.startswith("- `") and line.endswith("`"):
                 checks.append(line[3:-1])
                 continue
-            if line.startswith("- ") and not line.startswith("- `"):
+            # Any non-code bullet indicates we've reached the next subsection.
+            is_non_code_bullet = line.startswith("- ") and not (line.startswith("- `") and line.endswith("`"))
+            if is_non_code_bullet:
                 break
     return checks
 
