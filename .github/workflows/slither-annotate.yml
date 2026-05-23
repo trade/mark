@@ -1,0 +1,121 @@
+name: Slither PR Annotations
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/src/**/*.sol'
+      - 'contracts/script/**/*.sol'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  annotate:
+    name: Annotate Slither Findings
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+      
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.11'
+      
+      - name: Install Slither
+        run: pip install slither-analyzer==0.11.5
+      
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
+      
+      - name: Run Slither with JSON output
+        id: slither
+        working-directory: contracts
+        continue-on-error: true
+        run: |
+          # Run Slither with same exclusions as CI, output JSON
+          slither . \
+            --json slither-report.json \
+            --exclude-dependencies \
+            --filter-paths "lib/|test/" \
+            --exclude naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign \
+            || true
+          
+          # Check if report exists and has findings
+          if [ -f slither-report.json ]; then
+            echo "report_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "report_exists=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Parse and post findings
+        if: steps.slither.outputs.report_exists == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read Slither report
+            let report;
+            try {
+              const reportContent = fs.readFileSync('contracts/slither-report.json', 'utf8');
+              report = JSON.parse(reportContent);
+            } catch (error) {
+              console.log('No valid Slither report found or parsing failed');
+              return;
+            }
+            
+            // Filter for high/medium impact findings only
+            const findings = (report.results?.detectors || [])
+              .filter(d => d.impact === 'High' || d.impact === 'Medium')
+              .filter(d => {
+                // Exclude findings in test files (double-check)
+                const elements = d.elements || [];
+                return !elements.some(e => 
+                  e.source_mapping?.filename_relative?.includes('test/') ||
+                  e.source_mapping?.filename_relative?.includes('script/')
+                );
+              });
+            
+            if (findings.length === 0) {
+              console.log('No high/medium findings in src/ contracts');
+              return;
+            }
+            
+            // Format findings for PR comment
+            const findingsText = findings
+              .map(d => {
+                const location = d.elements?.[0]?.source_mapping?.filename_relative || 'unknown';
+                const lines = d.elements?.[0]?.source_mapping?.lines?.join(',') || '?';
+                return `### ${d.impact}: ${d.check}
+            
+            **Location**: \`${location}:${lines}\`
+            
+            ${d.description}
+            
+            **Confidence**: ${d.confidence}`;
+              })
+              .join('\n\n---\n\n');
+            
+            // Post as PR comment
+            const body = `## 🔍 Slither Security Findings
+            
+            Found **${findings.length}** high/medium severity issue(s) in \`src/\` contracts:
+            
+            ${findingsText}
+            
+            ---
+            
+            💡 **Note**: Low-severity findings and excluded patterns are not shown. See full report in CI logs.`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
