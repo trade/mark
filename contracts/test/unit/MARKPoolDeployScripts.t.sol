@@ -10,13 +10,23 @@ import {IVerifier} from "../../src/interfaces/IVerifier.sol";
 import {DeployMARKPool} from "../../script/deploy/pool/DeployMARKPool.s.sol";
 
 contract MockVerifier is IVerifier {
+    bool internal shouldVerify = true;
+
+    function setShouldVerify(bool _shouldVerify) external {
+        shouldVerify = _shouldVerify;
+    }
+
     function verifyProof(
         uint256[2] calldata a,
         uint256[2][2] calldata b,
         uint256[2] calldata c,
         uint256[13] calldata input
-    ) external pure returns (bool) {
-        return true;
+    ) external view returns (bool) {
+        a;
+        b;
+        c;
+        input;
+        return shouldVerify;
     }
 }
 
@@ -50,6 +60,13 @@ contract MARKPoolDeployScriptsTest is Test {
         vm.prank(deployer);
         RYLA defaultToken = new RYLA(deployer);
         vm.setEnv("MARK_RYLA_TOKEN", vm.toString(address(defaultToken)));
+    }
+
+    function _setPrivateKeyEnvForIsolatedRuns() internal {
+        // Some tooling modes (for example gas-check in a fresh process) may
+        // execute without inheriting env assumptions from setUp(). Keep this
+        // explicit in one helper to avoid duplicating inline env wiring.
+        vm.setEnv("PRIVATE_KEY", vm.toString(DEPLOYER_PK));
     }
 
     function testDeployMARKPoolWiresAllContracts() public {
@@ -94,11 +111,7 @@ contract MARKPoolDeployScriptsTest is Test {
         RYLA token = new RYLA(nonAdmin);
 
         vm.setEnv("MARK_RYLA_TOKEN", vm.toString(address(token)));
-        // Ensure PRIVATE_KEY is set so _loadConfig() succeeds and the
-        // MissingTokenAdminForRoleGrants check is reached. Without this,
-        // vm.envUint reverts with no data when gas-check runs in a fresh
-        // process where setUp() env vars are not inherited.
-        vm.setEnv("PRIVATE_KEY", vm.toString(DEPLOYER_PK));
+        _setPrivateKeyEnvForIsolatedRuns();
 
         vm.expectRevert(DeployMARKPool.MissingTokenAdminForRoleGrants.selector);
         deployPool.run();
