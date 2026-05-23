@@ -8,7 +8,7 @@ Privacy-first settlement infrastructure leveraging zero-knowledge technologies f
 
 Settlement rules are enforced on-chain. Whether operators run it as a centralized service or a decentralized network is their choice — the contracts don't care.
 
-## Quick Start
+## Quick Start (5 minutes)
 
 ```bash
 # Prerequisites: Node.js 20/22, pnpm 9.0.2+, Foundry
@@ -20,6 +20,15 @@ pnpm i && pnpm dev
 Visit http://localhost:5173 to see the MARK dashboard running on a local Superchain (1 L1 + 2 L2 chains).
 
 **Missing prerequisites?** See [Getting Started](./CONTRIBUTING.md#getting-started) for installation instructions.
+
+### What Just Happened?
+
+- ✅ Installed dependencies (contracts + frontend)
+- ✅ Started local Superchain (supersim)
+- ✅ Deployed MARK contracts to L2A and L2B
+- ✅ Launched frontend dev server
+
+**Next steps**: Try the [5-minute tutorial](./CONTRIBUTING.md#quick-tutorial) or explore the [architecture](./docs/ARCHITECTURE.md).
 
 ## Documentation
 

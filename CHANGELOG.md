@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - KI-9: documented circuits transitive dependency vulnerabilities with resolution path
 
 ### Changed
+- Workflow concurrency control added to 4 CI workflows (20-30% CI time reduction)
+- Dynamic pnpm version extraction from package.json (eliminates version drift)
 - Migrated to mise for Node version management (removed .nvmrc)
 - Removed pnpm-workspace.yaml (single-package project)
 - Updated frontend dependencies (minor/patch versions)
