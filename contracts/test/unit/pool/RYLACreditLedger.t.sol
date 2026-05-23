@@ -123,11 +123,32 @@ contract RYLACreditLedgerTest is Test {
         new RYLACreditLedger(address(token), makeAddr("eoa-pool"));
     }
 
-    function testSetAdapterRevertsOnEOA() public {
+    function testDebitRevertsOnEOA() public {
         vm.prank(admin);
         RYLACreditLedger fresh = new RYLACreditLedger(address(token), pool);
         vm.prank(admin);
         vm.expectRevert(RYLACreditLedger.InvalidContract.selector);
         fresh.setAdapter(makeAddr("eoa-adapter"));
+    }
+
+    function testDebitRevertsWithoutApproval() public {
+        vm.prank(pool);
+        ledger.credit(user, 100e18);
+
+        vm.prank(adapter);
+        vm.expectRevert();
+        ledger.debit(user, 100e18);
+    }
+
+    function testDebitRevertsWithInsufficientApproval() public {
+        vm.prank(pool);
+        ledger.credit(user, 100e18);
+
+        vm.prank(user);
+        token.approve(address(ledger), 50e18);
+
+        vm.prank(adapter);
+        vm.expectRevert();
+        ledger.debit(user, 100e18);
     }
 }

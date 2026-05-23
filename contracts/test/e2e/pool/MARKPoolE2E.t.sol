@@ -54,7 +54,7 @@ contract MARKPoolE2ETest is Test {
 
     uint256[2] internal A;
     uint256[2][2] internal B;
-    uint256[2] internal C_PROOF;
+    uint256[2] internal C;
 
     function setUp() public {
         creditOwner = vm.addr(ownerPk);
@@ -124,7 +124,7 @@ contract MARKPoolE2ETest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C
         );
 
         assertTrue(pool.isNullifierUsedGlobal(N0));
@@ -178,7 +178,7 @@ contract MARKPoolE2ETest is Test {
         bytes32[2] memory commitments = [C0, C1];
 
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C
         );
 
         vm.deal(address(adapter), MINT_AMOUNT * 2);
@@ -237,7 +237,7 @@ contract MARKPoolE2ETest is Test {
 
         // Bind to `recipient`
         pool.transactWithWithdrawBinding(
-            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C_PROOF
+            root, nullifiers, commitments, 0, address(0), creditOwner, recipient, MINT_AMOUNT, A, B, C
         );
 
         vm.deal(address(adapter), MINT_AMOUNT);
