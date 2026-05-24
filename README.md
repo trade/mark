@@ -46,6 +46,8 @@ Visit http://localhost:5173 to see the MARK dashboard running on a local Superch
 - **[Known Issues](./docs/KNOWN_ISSUES.md)** — Accepted design decisions and limitations
 - **[CONTRIBUTORS](./CONTRIBUTORS.md)** — Contributor recognition
 
+**Generate API docs**: `cd contracts && forge doc --out docs/api`
+
 ## Deployed Contracts
 
 ### OP Sepolia (chainId: 11155420)
