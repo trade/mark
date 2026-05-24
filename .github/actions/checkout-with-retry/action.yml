@@ -1,0 +1,33 @@
+name: 'Checkout with Retry'
+description: 'Checkout code with automatic retry on failure'
+inputs:
+  submodules:
+    description: 'Whether to checkout submodules'
+    required: false
+    default: 'recursive'
+  token:
+    description: 'GitHub token for authentication'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        submodules: ${{ inputs.submodules }}
+        token: ${{ inputs.token || github.token }}
+        persist-credentials: true
+      continue-on-error: true
+      id: checkout-attempt-1
+    
+    - name: Retry checkout on failure
+      if: steps.checkout-attempt-1.outcome == 'failure'
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        submodules: ${{ inputs.submodules }}
+        token: ${{ inputs.token || github.token }}
+        persist-credentials: true
+        clean: false
+      shell: bash
