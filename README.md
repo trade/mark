@@ -42,10 +42,11 @@ Visit http://localhost:5173 to see the MARK dashboard running on a local Superch
 ### Additional Resources
 - **[CHANGELOG](./CHANGELOG.md)** — Release history and version notes
 - **[Contracts README](./contracts/README.md)** — Smart contract details and testing
-- **[Contract API Documentation](./contracts/docs/api/src/SUMMARY.md)** — Generated API docs for all contracts
 - **[Threat Model](./docs/THREAT_MODEL.md)** — Security assumptions and role compromise impact
 - **[Known Issues](./docs/KNOWN_ISSUES.md)** — Accepted design decisions and limitations
 - **[CONTRIBUTORS](./CONTRIBUTORS.md)** — Contributor recognition
+
+**Generate API docs**: `cd contracts && forge doc --out docs/api`
 
 ## Deployed Contracts
 
