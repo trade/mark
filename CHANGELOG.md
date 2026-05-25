@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub issue templates: bug report, feature request, config (blank issues disabled)
 - `circuits/` added as separate Dependabot npm ecosystem entry
 - KI-9: documented circuits transitive dependency vulnerabilities with resolution path
+- `contracts/config/profiles/local.env.example` for supersim local development (#230)
+- Warning comment for public test key in local.env.example (#231)
 
 ### Changed
 - Workflow concurrency control added to 4 CI workflows (20-30% CI time reduction)
@@ -46,9 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dead links in documentation (4 broken internal links fixed)
 - Typos (British → US English spelling)
 - `testDeployMARKPoolRevertsWhenMissingTokenAdmin` flaky test: `PRIVATE_KEY` now explicitly set in test body so `_loadConfig()` succeeds in fresh-process contexts (e.g. `make gas-check`)
-- `validate-governance-policy.sh` path: `BRANCHING.md` → `docs/BRANCHING.md`
 - Stale transfer scripts removed (`pretransfer-readiness.sh`, `posttransfer-bootstrap.sh`)
 - `.vscode` exception rules removed from `.gitignore`
+
+### Removed
+- Unused button component from frontend (#233)
 
 ## [0.1.0] - 2026-05-19
 
