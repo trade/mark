@@ -32,13 +32,13 @@ if [ -z "$deployed_bytecode_hex" ]; then
   exit 1
 fi
 
-byte_len=$(( ${#deployed_bytecode_hex} / 2 ))
-margin=$(( MAX_CODE_SIZE - byte_len ))
+byte_len=$((${#deployed_bytecode_hex} / 2))
+margin=$((MAX_CODE_SIZE - byte_len))
 
 echo "size-guard: MARKPool deployed size=${byte_len} bytes, margin=${margin} bytes (threshold=${MIN_MARGIN_BYTES})"
 
 if [ "$margin" -lt 0 ]; then
-  echo "size-guard: FAIL MARKPool exceeds EIP-170 by $(( -margin )) bytes" >&2
+  echo "size-guard: FAIL MARKPool exceeds EIP-170 by $((-margin)) bytes" >&2
   exit 1
 fi
 
