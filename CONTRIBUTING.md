@@ -96,6 +96,7 @@ pnpm i
 pnpm typecheck                    # TypeScript check
 pnpm lint                         # Linting
 cd contracts && make ci-fast      # Contract tests
+# ci-fast now includes MARKPool bytecode size budget enforcement
 ```
 
 ### Start Development
@@ -169,6 +170,18 @@ MARK uses a **two-track branch model**:
 
    # Contract compilation and tests
    cd contracts && make ci-fast
+   ```
+
+   `make ci-fast` includes:
+   - `make architecture-guard`
+   - `make layering-guard`
+   - `make size-guard` (fails if `MARKPool` bytecode margin is below threshold)
+   - core contract tests
+
+   Override bytecode margin threshold locally if needed:
+   ```bash
+   cd contracts
+   MARK_POOL_MIN_SIZE_MARGIN_BYTES=120 make size-guard
    ```
 
 2. **Verify no secrets in code**:

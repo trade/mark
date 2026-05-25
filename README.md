@@ -30,6 +30,16 @@ Visit http://localhost:5173 to see the MARK dashboard running on a local Superch
 
 **Next steps**: Try the [5-minute tutorial](./CONTRIBUTING.md#quick-tutorial) or explore the [architecture](./docs/ARCHITECTURE.md).
 
+### Local Verification (Recommended Before PR)
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm -s contracts:ci-fast
+```
+
+`contracts:ci-fast` runs architecture/layering guards, core contract tests, and the `MARKPool` bytecode size budget guard.
+
 ## Documentation
 
 ### Core Documentation
