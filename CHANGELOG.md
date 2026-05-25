@@ -48,11 +48,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dead links in documentation (4 broken internal links fixed)
 - Typos (British → US English spelling)
 - `testDeployMARKPoolRevertsWhenMissingTokenAdmin` flaky test: `PRIVATE_KEY` now explicitly set in test body so `_loadConfig()` succeeds in fresh-process contexts (e.g. `make gas-check`)
-- Stale transfer scripts removed (`pretransfer-readiness.sh`, `posttransfer-bootstrap.sh`)
-- `.vscode` exception rules removed from `.gitignore`
 
 ### Removed
 - Unused button component from frontend (#233)
+- Stale transfer scripts (`pretransfer-readiness.sh`, `posttransfer-bootstrap.sh`)
+- `.vscode` exception rules from `.gitignore`
 
 ## [0.1.0] - 2026-05-19
 
