@@ -38,15 +38,15 @@ cd contracts && make ci-fast
 
 ### Pre-Push Hook (Automatic)
 
-CodeRabbit runs automatically before push:
+Contracts fast checks and CodeRabbit run automatically before push:
 
 ```bash
-git push  # CodeRabbit review runs
+git push  # contracts:ci-fast + CodeRabbit review run
 ```
 
 **Skip if needed**:
 ```bash
-SKIP_CODERABBIT=1 git push
+SKIP_CONTRACTS_FAST=1 SKIP_CODERABBIT=1 git push
 # or
 git push --no-verify
 ```
@@ -100,6 +100,9 @@ coderabbit stats
 # Skip CodeRabbit for WIP pushes
 SKIP_CODERABBIT=1 git push
 
+# Skip contracts fast checks for WIP pushes
+SKIP_CONTRACTS_FAST=1 git push
+
 # Run only what changed
 pnpm typecheck  # Fast
 pnpm lint       # Fast
@@ -118,6 +121,7 @@ pnpm eslint src/components/MyComponent.tsx
 ```bash
 # Option 1: Environment variable
 SKIP_CODERABBIT=1 git push
+SKIP_CONTRACTS_FAST=1 git push
 
 # Option 2: Skip all hooks
 git push --no-verify

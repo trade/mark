@@ -61,6 +61,9 @@ jobs:
       - name: Enforce test/script layering boundaries
         run: make layering-guard
 
+      - name: Enforce MARKPool bytecode size budget
+        run: make size-guard
+
       - name: Run deterministic test suite
         run: forge test -vv
 
