@@ -179,8 +179,7 @@ DEV_CHECKS_JSON='[
   "Contracts Production Mode Smoke",
   "gitleaks / Gitleaks Scan",
   "slither-core / Slither Core Contracts",
-  "frontend-checks / Frontend Checks (Node 20)",
-  "frontend-checks / Frontend Checks (Node 22)",
+  "frontend-checks / Frontend Checks (Node 24)",
   "Detect Secrets Drift",
   "Release Gate Container"
 ]'
@@ -192,8 +191,7 @@ MAIN_CHECKS_JSON='[
   "Contracts Production Mode Smoke",
   "gitleaks / Gitleaks Scan",
   "slither-core / Slither Core Contracts",
-  "frontend-checks / Frontend Checks (Node 20)",
-  "frontend-checks / Frontend Checks (Node 22)",
+  "frontend-checks / Frontend Checks (Node 24)",
   "Detect Secrets Drift",
   "Release Gate Container",
   "Validate Release PR Checklist",
