@@ -67,8 +67,7 @@ Use this matrix as the merge baseline.
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Contracts Production Mode Smoke`
 - `slither-core / Slither Core Contracts`
-- `frontend-checks / Frontend Checks (Node 20)`
-- `frontend-checks / Frontend Checks (Node 22)`
+- `frontend-checks / Frontend Checks (Node 24)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `main` (release candidate)
@@ -82,8 +81,7 @@ Use this matrix as the merge baseline.
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Contracts Production Mode Smoke`
 - `slither-core / Slither Core Contracts`
-- `frontend-checks / Frontend Checks (Node 20)`
-- `frontend-checks / Frontend Checks (Node 22)`
+- `frontend-checks / Frontend Checks (Node 24)`
 - `Validate Release PR Checklist`
 - `Validate Release Evidence`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
@@ -108,8 +106,7 @@ Apply these repository settings:
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
-  - `frontend-checks / Frontend Checks (Node 20)`
-  - `frontend-checks / Frontend Checks (Node 22)`
+  - `frontend-checks / Frontend Checks (Node 24)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
 - Require at least 1-2 approvals.
@@ -127,8 +124,7 @@ Apply these repository settings:
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
-  - `frontend-checks / Frontend Checks (Node 20)`
-  - `frontend-checks / Frontend Checks (Node 22)`
+  - `frontend-checks / Frontend Checks (Node 24)`
 
 Notes:
 
