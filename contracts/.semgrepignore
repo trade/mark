@@ -1,0 +1,23 @@
+# Semgrep ignore patterns for MARK Protocol
+
+# Docker files - CI containers run as root (acceptable for ephemeral CI)
+docker/
+
+# Operational bash scripts - local development only
+script/ops/*.sh
+script/ci/*.sh
+
+# Generated files
+src/crypto/generated/
+
+# Build artifacts
+out/
+cache/
+broadcast/
+
+# Dependencies
+lib/
+
+# Test files (covered by Foundry)
+test/
+*.t.sol

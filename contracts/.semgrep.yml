@@ -1,0 +1,22 @@
+# Semgrep configuration for MARK Protocol
+# https://semgrep.dev/docs/writing-rules/rule-syntax
+
+rules:
+  # Solidity-specific security rules
+  - id: mark-no-selfdestruct
+    languages: [solidity]
+    message: "selfdestruct is deprecated and dangerous. Remove it."
+    severity: ERROR
+    pattern: selfdestruct(...)
+
+  - id: mark-no-tx-origin
+    languages: [solidity]
+    message: "tx.origin should not be used for authorization. Use msg.sender instead."
+    severity: ERROR
+    pattern: tx.origin
+
+  - id: mark-no-delegatecall
+    languages: [solidity]
+    message: "delegatecall is dangerous. Ensure target contract is trusted."
+    severity: WARNING
+    pattern: delegatecall(...)
