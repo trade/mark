@@ -55,7 +55,7 @@ mkdir -p "$INSTALL_DIR"
 
 # Download to temp file
 TMP_FILE="$(mktemp)"
-trap "rm -f $TMP_FILE" EXIT
+trap 'rm -f "$TMP_FILE"' EXIT
 
 echo "Downloading..."
 curl -sSfL "$URL" -o "$TMP_FILE"
