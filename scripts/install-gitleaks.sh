@@ -13,14 +13,20 @@ ARCH=$(uname -m)
 
 case "$ARCH" in
   x86_64) ARCH="x64" ;;
-  aarch64|arm64) ARCH="arm64" ;;
-  *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+  aarch64 | arm64) ARCH="arm64" ;;
+  *)
+    echo "Unsupported architecture: $ARCH"
+    exit 1
+    ;;
 esac
 
 case "$OS" in
   darwin) OS="darwin" ;;
   linux) OS="linux" ;;
-  *) echo "Unsupported OS: $OS"; exit 1 ;;
+  *)
+    echo "Unsupported OS: $OS"
+    exit 1
+    ;;
 esac
 
 FILENAME="gitleaks_${VERSION}_${OS}_${ARCH}.tar.gz"
@@ -63,16 +69,16 @@ curl -sSfL "$URL" -o "$TMP_FILE"
 # Verify SHA256 if available
 if [ -n "$EXPECTED_SHA" ]; then
   echo "Verifying SHA256 checksum..."
-  
+
   if command -v shasum >/dev/null 2>&1; then
     ACTUAL_SHA=$(shasum -a 256 "$TMP_FILE" | awk '{print $1}')
   elif command -v sha256sum >/dev/null 2>&1; then
     ACTUAL_SHA=$(sha256sum "$TMP_FILE" | awk '{print $1}')
   else
     echo "⚠️  sha256sum/shasum not found, skipping verification"
-    ACTUAL_SHA="$EXPECTED_SHA"  # Skip check
+    ACTUAL_SHA="$EXPECTED_SHA" # Skip check
   fi
-  
+
   if [ "$ACTUAL_SHA" != "$EXPECTED_SHA" ]; then
     echo "✗ SHA256 mismatch!"
     echo "  Expected: $EXPECTED_SHA"
@@ -80,7 +86,7 @@ if [ -n "$EXPECTED_SHA" ]; then
     echo "  This could indicate a compromised download."
     exit 1
   fi
-  
+
   echo "✓ SHA256 verified"
 fi
 
@@ -92,7 +98,7 @@ tar -xzf "$TMP_FILE" -C "$INSTALL_DIR" gitleaks
 if [ -x "$INSTALL_DIR/gitleaks" ]; then
   echo "✓ gitleaks installed to $INSTALL_DIR/gitleaks"
   echo ""
-  
+
   # Check if in PATH
   if echo "$PATH" | grep -q "$INSTALL_DIR"; then
     echo "✓ $INSTALL_DIR is in your PATH"
