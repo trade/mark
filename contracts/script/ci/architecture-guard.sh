@@ -21,7 +21,11 @@ check_no_imports() {
   fi
 
   local hits
-  hits="$(rg -n --no-heading "$forbidden_re" $files || true)"
+  if command -v rg &>/dev/null; then
+    hits="$(rg -n --no-heading "$forbidden_re" $files || true)"
+  else
+    hits="$(grep -nE "$forbidden_re" $files || true)"
+  fi
   if [[ -n "$hits" ]]; then
     echo "[architecture-guard] Forbidden imports found for rule: $label" >&2
     echo "$hits" >&2
