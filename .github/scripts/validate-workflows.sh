@@ -25,7 +25,8 @@ WORKFLOWS=$(find .github/workflows -name "*.yml" -exec grep -l "node-version:" {
 for workflow in $WORKFLOWS; do
   WORKFLOW_NODE=$(grep "node-version:" "$workflow" | head -1 | grep -oP "'\\K[0-9]+" || true)
   if [ -n "$WORKFLOW_NODE" ] && [ "$WORKFLOW_NODE" != "$MISE_NODE" ]; then
-    echo "⚠️  $(basename "$workflow"): Node $WORKFLOW_NODE (expected $MISE_NODE)"
+    echo "❌ $(basename "$workflow"): Node $WORKFLOW_NODE (expected $MISE_NODE)"
+    ERRORS=$((ERRORS + 1))
   fi
 done
 
