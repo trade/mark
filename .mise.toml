@@ -1,2 +1,18 @@
+# MARK Protocol - Tool Version Management
+# https://mise.jdx.dev/configuration.html
+
 [tools]
-node = "22"
+# Core dependencies (required)
+node = "24"
+pnpm = "9.0.2"
+
+# Optional tools (uncomment to enable)
+# foundry = "latest"      # Solidity development (forge, cast, anvil)
+# gitleaks = "8.30.1"     # Secrets detection
+
+[env]
+# Load environment variables from .env if it exists
+_.file = ".env"
+
+# Project-specific environment
+MARK_PROJECT_ROOT = "{{config_root}}"

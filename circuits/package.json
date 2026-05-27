@@ -13,5 +13,10 @@
   "devDependencies": {
     "circomlibjs": "^0.1.7",
     "snarkjs": "0.7.6"
+  },
+  "pnpm": {
+    "overrides": {
+      "underscore@<1.13.7": ">=1.13.7"
+    }
   }
 }
