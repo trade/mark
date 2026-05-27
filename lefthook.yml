@@ -18,6 +18,11 @@ pre-commit:
 
 pre-push:
   commands:
+    validate_workflows:
+      run: bash .github/scripts/validate-workflows.sh
+      skip:
+        - merge
+        - rebase
     contracts_fast:
       run: |
         if [ "${SKIP_CONTRACTS_FAST:-}" != "1" ]; then
