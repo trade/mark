@@ -19,4 +19,4 @@ rules:
     languages: [solidity]
     message: "delegatecall is dangerous. Ensure target contract is trusted."
     severity: WARNING
-    pattern: delegatecall(...)
+    pattern: $TARGET.delegatecall(...)
