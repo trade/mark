@@ -43,7 +43,7 @@ jobs:
       - name: Setup Node + pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
-          node-version: '22'
+          node-version: '24'
           pnpm-version: '9.0.2'
 
       - name: Install dependencies

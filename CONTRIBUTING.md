@@ -75,7 +75,7 @@ These require extra scrutiny:
 
 ### Prerequisites
 
-- **Node.js**: 22 (managed via mise - see `.mise.toml`)
+- **Node.js**: 24 (managed via mise - see `.mise.toml`)
 - **pnpm**: 9.0.2+ (managed via corepack)
 - **mise**: `brew install mise` — manages Node version via `.mise.toml`
 - **lefthook**: installed automatically via `pnpm install` (`prepare` script)
