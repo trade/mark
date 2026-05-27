@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -11,7 +11,7 @@ export const sortBy = <T>(array: T[], ...fns: ((item: T) => number | bigint)[]) 
       const aValue = fn(a);
       const bValue = fn(b);
       const comparison =
-        typeof aValue === 'bigint' && typeof bValue === 'bigint'
+        typeof aValue === "bigint" && typeof bValue === "bigint"
           ? Number(aValue - bValue)
           : Number(aValue) - Number(bValue);
 

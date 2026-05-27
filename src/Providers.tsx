@@ -1,6 +1,6 @@
-import { createConfig, http, WagmiProvider } from 'wagmi';
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { optimism, optimismSepolia } from 'viem/chains';
+import { createConfig, http, WagmiProvider } from "wagmi";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import { optimism, optimismSepolia } from "viem/chains";
 
 const queryClient = new QueryClient();
 

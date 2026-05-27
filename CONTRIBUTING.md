@@ -81,6 +81,16 @@ These require extra scrutiny:
 - **lefthook**: installed automatically via `pnpm install` (`prepare` script)
 - **Foundry**: Latest version ([install](https://book.getfoundry.sh/getting-started/installation))
 - **super-cli**: Latest version ([install](https://github.com/ethereum-optimism/super-cli))
+- **gitleaks** (optional, recommended): Secrets detection in pre-commit hook
+  ```bash
+  # Quick install (macOS/Linux)
+  bash scripts/install-gitleaks.sh
+  
+  # Or use package manager:
+  # macOS: brew install gitleaks
+  # Linux: See https://github.com/gitleaks/gitleaks#installing
+  ```
+  If not installed, secrets scan runs in CI only
 
 ### Local Setup
 

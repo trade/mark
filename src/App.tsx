@@ -1,36 +1,36 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const CONTRACTS = [
   {
-    name: 'RYLA Credits',
-    symbol: 'RYLA',
+    name: "RYLA Credits",
+    symbol: "RYLA",
     description:
-      'Superchain-compatible credit token. Mintable and burnable only by the settlement module.',
+      "Superchain-compatible credit token. Mintable and burnable only by the settlement module.",
   },
   {
-    name: 'MARKSettlementModule',
+    name: "MARKSettlementModule",
     description:
-      'Operator-gated settlement boundary. Validates proofs and executes RYLA mint/burn with replay protection.',
+      "Operator-gated settlement boundary. Validates proofs and executes RYLA mint/burn with replay protection.",
   },
   {
-    name: 'MARKBridgeAdapter',
+    name: "MARKBridgeAdapter",
     description:
-      'Operator-gated bridge adapter routing RYLA cross-chain via SuperchainTokenBridge with rate limits.',
+      "Operator-gated bridge adapter routing RYLA cross-chain via SuperchainTokenBridge with rate limits.",
   },
   {
-    name: 'AttestedSettlementVerifier',
+    name: "AttestedSettlementVerifier",
     description:
-      'EIP-712 signature-based verifier for settlement intents. Production bridge step before ZK verifier integration.',
+      "EIP-712 signature-based verifier for settlement intents. Production bridge step before ZK verifier integration.",
   },
 ];
 
 const LINKS = [
-  { label: 'GitHub', href: 'https://github.com/trade/mark' },
-  { label: 'Security Policy', href: 'https://github.com/trade/mark/security/policy' },
+  { label: "GitHub", href: "https://github.com/trade/mark" },
+  { label: "Security Policy", href: "https://github.com/trade/mark/security/policy" },
   {
-    label: 'Report a Vulnerability',
-    href: 'https://github.com/trade/mark/security/advisories/new',
+    label: "Report a Vulnerability",
+    href: "https://github.com/trade/mark/security/advisories/new",
   },
 ];
 
