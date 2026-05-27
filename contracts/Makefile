@@ -1,4 +1,4 @@
-.PHONY: ci-local ci-fast ci-full test-core test-invariants release-gate release-gate-container architecture-guard layering-guard size-guard smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature slither-install slither-core gas-snapshot gas-check
+.PHONY: ci-local ci-fast ci-full test-core test-invariants release-gate release-gate-container architecture-guard layering-guard size-guard semgrep smoke-production-mode test-production-lock verify-production-lock dispatch-production-lock-verify dispatch-release-evidence-sequence bootstrap-release-secrets rehearse-production-lock generate-promotion-checklist validate-prod-env validate-prod-env-all generate-evidence-manifest verify-evidence-manifest sign-evidence-manifest verify-evidence-signature slither-install slither-core gas-snapshot gas-check
 
 # Fast local loop: guards + bytecode budget + unit/e2e tests (excludes invariants and integration profile tests).
 ci-fast: architecture-guard layering-guard size-guard test-core
@@ -30,6 +30,13 @@ layering-guard:
 
 size-guard:
 	@./script/ci/size-guard.sh
+
+semgrep:
+	@command -v semgrep >/dev/null 2>&1 || { \
+	  echo "semgrep not found. Install: pip install semgrep"; \
+	  exit 1; \
+	}
+	@semgrep --config .semgrep.yml --quiet
 
 smoke-production-mode:
 	@./script/ops/smoke-production-mode.sh
