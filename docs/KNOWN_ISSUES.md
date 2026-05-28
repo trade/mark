@@ -109,7 +109,7 @@ This document lists known limitations and intentional design decisions that audi
 
 **Description:** 
 
-1. **circuits/ dependencies**: `circomlibjs >= 0.1.0` depends on `ethers@5`, which pulls in `elliptic@6.6.1` (risky cryptographic primitive implementation — CVE-2025-14505, GHSA-848j-6mx2-7j84, low severity, Dependabot alert #69). No non-breaking fix is available: the only upstream resolution (`npm audit fix --force`) downgrades `circomlibjs` to `0.0.8`, which is incompatible with Node 22/24 and breaks `buildPoseidon`.
+1. **circuits/ dependencies**: `circomlibjs >= 0.1.0` depends on `ethers@5`, which pulls in `elliptic@6.6.1` (risky cryptographic primitive implementation — CVE-2025-14505, GHSA-848j-6mx2-7j84, low severity, Dependabot alert #69) and `ws@8.18.0` (uninitialized memory disclosure — CVE-2026-45736, GHSA-58qx-3vcg-4xpx, medium severity). The root pnpm override does not apply to `circuits/pnpm-lock.yaml`. No non-breaking fix is available: the only upstream resolution (`npm audit fix --force`) downgrades `circomlibjs` to `0.0.8`, which is incompatible with Node 22/24 and breaks `buildPoseidon`.
 
 2. **@eth-optimism/super-cli dependencies**: `uuid < 11.1.1` (missing buffer bounds check in v3/v5/v6 — CVE-2026-41907, GHSA-w5hq-g745-h8pq, medium severity, Dependabot alert #68) is pulled in via `@metamask/utils` packages. The vulnerable versions are `uuid@8.3.2` and `uuid@9.0.1`. No upstream fix is available from @metamask packages.
 
