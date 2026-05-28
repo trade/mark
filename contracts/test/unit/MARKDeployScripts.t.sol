@@ -114,6 +114,7 @@ contract MARKDeployScriptsTest is Test {
         vm.prank(deployer);
         RYLA token = new RYLA(deployer);
 
+        vm.setEnv("PRIVATE_KEY", vm.toString(DEPLOYER_PK));
         vm.setEnv("MARK_RYLA_TOKEN", vm.toString(address(token)));
         vm.setEnv("MARK_MODULE_OWNER", vm.toString(deployer));
         vm.setEnv("MARK_SETTLEMENT_OPERATOR", vm.toString(operator));
