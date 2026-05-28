@@ -103,14 +103,28 @@ This document lists known limitations and intentional design decisions that audi
 
 ---
 
-## KI-9: Vulnerable transitive dependencies in circuits/ dev tooling
+## KI-9: Vulnerable transitive dependencies in dev tooling
 
-**Scope:** `circuits/` — local trusted-setup and witness-test tooling only
+**Scope:** Development tooling only — `circuits/` and `@eth-optimism/super-cli`
 
-**Description:** `circomlibjs >= 0.1.0` depends on `ethers@5`, which pulls in `elliptic <= 6.6.1` (faulty ECDSA signatures, potential key exposure — GHSA-848j-6mx2-7j84) and `ws 8.0.0–8.20.0` (uninitialized memory disclosure — GHSA-58qx-3vcg-4xpx). No non-breaking fix is available: the only upstream resolution (`npm audit fix --force`) downgrades `circomlibjs` to `0.0.8`, which is incompatible with Node 22/24 and breaks `buildPoseidon`.
+**Description:** 
 
-**Impact:** None — `circuits/` is local developer tooling. It is never deployed, never handles user input, and never runs in CI with untrusted data. The `elliptic` key-exposure vector requires an attacker to obtain both a faulty and a correct signature for the same inputs, which is not possible in this context.
+1. **circuits/ dependencies**: `circomlibjs >= 0.1.0` depends on `ethers@5`, which pulls in `elliptic@6.6.1` (risky cryptographic primitive implementation — CVE-2025-14505, GHSA-848j-6mx2-7j84, low severity, Dependabot alert #69) and `ws@8.18.0` (uninitialized memory disclosure — CVE-2026-45736, GHSA-58qx-3vcg-4xpx, medium severity). The root pnpm override does not apply to `circuits/pnpm-lock.yaml`. No non-breaking fix is available: the only upstream resolution (`npm audit fix --force`) downgrades `circomlibjs` to `0.0.8`, which is incompatible with Node 22/24 and breaks `buildPoseidon`.
 
-**Accepted because:** No upstream fix is available without a breaking change. The packages are scoped to local trusted-setup (`setup.mjs`) and witness tests (`npm test`). Resolution is blocked on `circomlibjs` releasing a version that drops the `ethers@5` dependency.
+2. **@eth-optimism/super-cli dependencies**: `uuid < 11.1.1` (missing buffer bounds check in v3/v5/v6 — CVE-2026-41907, GHSA-w5hq-g745-h8pq, medium severity, Dependabot alert #68) is pulled in via `@metamask/utils` packages. The vulnerable versions are `uuid@8.3.2` and `uuid@9.0.1`. No upstream fix is available from @metamask packages.
 
-**Resolution path:** Replace `circomlibjs` with a lightweight Poseidon library that has no `ethers` dependency, such as `poseidon-lite` or `@zk-kit/poseidon-cipher`. Both provide `buildPoseidon`-equivalent functionality without pulling in `ethers@5`. Before switching, verify the Poseidon implementation produces identical field outputs to what `MARKPool.circom` expects — run the full witness test suite (`npm test` in `circuits/`) to confirm. Target this before mainnet promotion.
+**Impact:** None — these packages are scoped to local development tooling only. They are never deployed, never handle user input, and never run in CI with untrusted data. The `elliptic` key-exposure vector requires an attacker to obtain both a faulty and a correct signature for the same inputs, which is not possible in this context. The `uuid` buffer bounds issue requires providing a malicious `buf` parameter to v3/v5/v6 functions, which does not occur in the dependency usage.
+
+**Accepted because:** No upstream fix is available without breaking changes. The packages are scoped to:
+- `circuits/`: local trusted-setup (`setup.mjs`) and witness tests (`npm test`)
+- `@eth-optimism/super-cli`: local deployment tool (devDependencies)
+
+Resolution is blocked on:
+- `circomlibjs` releasing a version that drops the `ethers@5` dependency
+- `@metamask/*` packages updating to `uuid@11.1.1+`
+
+**Resolution path:** 
+1. For circuits: Replace `circomlibjs` with a lightweight Poseidon library that has no `ethers` dependency, such as `poseidon-lite` or `@zk-kit/poseidon-cipher`. Both provide `buildPoseidon`-equivalent functionality without pulling in `ethers@5`. Before switching, verify the Poseidon implementation produces identical field outputs to what `MARKPool.circom` expects — run the full witness test suite (`npm test` in `circuits/`) to confirm.
+2. For uuid: Monitor @metamask package updates or add pnpm override if needed before mainnet.
+
+Target this before mainnet promotion.

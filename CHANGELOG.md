@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `labels.yml` config and sync workflow (EndBug/label-sync) — labels as code, 15 labels defined
 - GitHub issue templates: bug report, feature request, config (blank issues disabled)
 - `circuits/` added as separate Dependabot npm ecosystem entry
-- KI-9: documented circuits transitive dependency vulnerabilities with resolution path
+- KI-9: documented circuits and super-cli transitive dependency vulnerabilities with resolution path (elliptic CVE-2025-14505, ws CVE-2026-45736, uuid CVE-2026-41907)
 - `contracts/config/profiles/local.env.example` for supersim local development (#230)
 - Warning comment for public test key in local.env.example (#231)
 
@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dead links in documentation (4 broken internal links fixed)
 - Typos (British → US English spelling)
 - `testDeployMARKPoolRevertsWhenMissingTokenAdmin` flaky test: `PRIVATE_KEY` now explicitly set in test body so `_loadConfig()` succeeds in fresh-process contexts (e.g. `make gas-check`)
+- ws vulnerability (CVE-2026-45736, GHSA-58qx-3vcg-4xpx): upgraded to 8.21.0 via pnpm override (#245)
+- `testDeployMARKSettlementConfiguresAndGrantsRoles` flaky test: added explicit `PRIVATE_KEY` env setup (#245)
 
 ### Removed
 - Unused button component from frontend (#233)
