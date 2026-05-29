@@ -170,3 +170,64 @@ Mitigations:
 6. `nullifierUsed[nullifier]` is set to `true` before any state changes in `MARKPool.transact*` — nullifiers cannot be replayed even under reentrancy.
 7. `nullifierWithdrawBinding` is written only after nullifiers are consumed — a withdraw binding cannot be created without a valid ZK proof.
 8. `RYLACreditLedger.debit` requires `from` to have approved the ledger for at least `amount` RYLA — the burn cannot proceed without explicit token approval from the note owner.
+
+## MARKPool Privacy Model
+
+### Privacy Guarantees
+
+**What is private:**
+- **Sender anonymity**: The ZK proof proves note ownership without revealing which address owns the note. Observers cannot determine who spent a note by examining the proof or on-chain data.
+- **Transaction graph privacy**: The Merkle tree hides which specific notes were spent. Observers see nullifiers but cannot link them to specific commitments without the secret.
+- **Note ownership**: The secret key never appears on-chain. Only the note owner can generate a valid proof.
+
+**What is NOT private:**
+- **Withdrawal amounts**: Public in `WithdrawBindingRecorded` events and `withdrawAmount` public signal.
+- **Withdrawal recipients**: Public in `WithdrawBindingRecorded` events and `withdrawRecipient` public signal.
+- **Withdrawal timing**: Two-transaction flow (transactWithWithdrawBinding → withdrawWithSig) creates timing correlation. Observers can link nullifiers to owners if transactions occur within a short time window (< 10 blocks).
+- **Cross-chain destinations**: `dstChainId` is a public signal. Output commitments are bound to destination chain, revealing where notes will be spent.
+- **Bridge transaction graph**: `BridgeOut` and `BridgeIn` events expose raw commitments, allowing observers to link transactions across chains (see KI-10).
+
+### Privacy Scope
+
+**MARKPool provides sender anonymity only.** It does not provide:
+- Recipient anonymity (by design — withdraw recipients are public)
+- Amount privacy (by design — withdraw amounts are public)
+- Timing privacy (limitation — two-transaction withdrawal flow)
+- Cross-chain privacy (limitation — bridge integration breaks privacy)
+
+**Comparison to other privacy protocols:**
+- **Tornado Cash**: Sender + recipient anonymity, fixed denominations (amount privacy)
+- **Zcash**: Full privacy (sender + recipient + amount via shielded addresses)
+- **MARK**: Sender anonymity only
+
+### Privacy Limitations
+
+1. **Withdrawal timing attack** (KI-11): Observers can correlate `NoteSpent` and `WithdrawExecuted` events by timing to link nullifiers to owners.
+2. **No recipient shielding** (KI-12): Withdrawal recipients are public. Observers know who receives withdrawn funds.
+3. **Bridge privacy leak** (KI-10): Cross-chain transfers expose commitments in public events, breaking transaction graph privacy.
+
+### Recommended Use Cases
+
+MARKPool is suitable for:
+- **Private transfers within a single chain** where sender anonymity is sufficient
+- **Non-withdrawal transactions** where timing correlation is not a concern
+- **Use cases where recipient and amount privacy are not required**
+
+MARKPool is NOT suitable for:
+- **Cross-chain private transfers** (bridge integration breaks privacy)
+- **Withdrawals requiring full anonymity** (timing attack reveals ownership)
+- **Use cases requiring recipient privacy** (recipients are public)
+
+### Mitigation Strategies
+
+For users requiring stronger privacy:
+1. **Avoid withdrawals** — keep funds in the pool and transact within the pool
+2. **Use relayers** — submit withdrawal intents through a relayer to batch transactions
+3. **Add delays** — wait 10+ minutes between transactWithWithdrawBinding and withdrawWithSig
+4. **Avoid cross-chain** — do not use bridgeOut/bridgeIn (will be removed before mainnet)
+
+For protocol improvements (future):
+1. **Combine withdrawal transactions** — merge transactWithWithdrawBinding + withdrawWithSig into single atomic transaction
+2. **Add recipient shielding** — implement stealth addresses or encrypted recipient field
+3. **Remove bridge integration** — keep pool single-chain only (planned before mainnet)
+4. **Migrate to Halo 2** — eliminate trusted setup requirement
