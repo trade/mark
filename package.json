@@ -16,6 +16,9 @@
     "contracts:release-gate": "cd contracts && make release-gate",
     "contracts:rehearse-staging": "cd contracts && make rehearse-production-lock",
     "contracts:evidence-manifest": "cd contracts && make generate-evidence-manifest",
+    "circuits:build": "pnpm --filter @mark/circuits run build",
+    "circuits:test": "pnpm --filter @mark/circuits run test",
+    "check": "pnpm -s typecheck && pnpm -s lint && pnpm -s contracts:ci-fast",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
@@ -63,7 +66,8 @@
   },
   "pnpm": {
     "overrides": {
-      "ws@>=8.0.0 <8.21.0": "8.21.0"
+      "ws@>=8.0.0 <8.21.0": "8.21.0",
+      "underscore@<1.13.7": ">=1.13.7"
     }
   }
 }
