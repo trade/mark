@@ -102,9 +102,13 @@ cd mark
 # Install dependencies (pnpm is auto-managed via corepack)
 pnpm i
 
+# This installs the root frontend/dev tooling and the @mark/circuits workspace package
+# from the root lockfile.
+
 # Verify setup
 pnpm typecheck                    # TypeScript check
 pnpm lint                         # Linting
+pnpm -s circuits:test             # Circuit witness tests
 cd contracts && make ci-fast      # Contract tests
 # ci-fast now includes MARKPool bytecode size budget enforcement
 ```
@@ -177,6 +181,9 @@ MARK uses a **two-track branch model**:
 
    # Format code
    pnpm format
+
+   # Circuit witness tests
+   pnpm -s circuits:test
 
    # Contract compilation and tests
    cd contracts && make ci-fast
@@ -345,7 +352,7 @@ See `contracts/test/unit/RYLA.t.sol` for examples.
 Before opening a PR, verify:
 
 - [ ] Feature branch created from `dev` (or `main` for hotfixes)
-- [ ] All local tests pass: `pnpm typecheck && pnpm lint && cd contracts && make ci-fast`
+- [ ] All local tests pass: `pnpm typecheck && pnpm lint && pnpm -s circuits:test && cd contracts && make ci-fast`
 - [ ] No secrets/private keys added
 - [ ] Commits follow conventional format
 - [ ] Documentation updated (if applicable)
