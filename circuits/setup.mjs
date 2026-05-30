@@ -30,7 +30,7 @@ await powersOfTau.preparePhase2('build/pot15_final.ptau', 'build/pot15_phase2.pt
 
 // Verify compiled circuit exists before attempting trusted setup
 if (!existsSync('build/MARKPool.r1cs')) {
-  console.error('Error: build/MARKPool.r1cs not found. Run: npm run build');
+  console.error('Error: build/MARKPool.r1cs not found. Run: pnpm run build');
   process.exit(1);
 }
 

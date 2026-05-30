@@ -11,7 +11,7 @@ Settlement rules are enforced on-chain. Whether operators run it as a centralize
 ## Quick Start (5 minutes)
 
 ```bash
-# Prerequisites: Node.js 20/22, pnpm 9.0.2+, Foundry
+# Prerequisites: Node.js 24, pnpm 9.0.2, Foundry
 git clone https://github.com/trade/mark.git
 cd mark
 pnpm i && pnpm dev
@@ -35,10 +35,11 @@ Visit http://localhost:5173 to see the MARK dashboard running on a local Superch
 ```bash
 pnpm typecheck
 pnpm lint
+pnpm -s circuits:test
 pnpm -s contracts:ci-fast
 ```
 
-`contracts:ci-fast` runs architecture/layering guards, core contract tests, and the `MARKPool` bytecode size budget guard.
+`circuits:test` runs the MARKPool witness tests. `contracts:ci-fast` runs architecture/layering guards, core contract tests, and the `MARKPool` bytecode size budget guard.
 
 ## Documentation
 
@@ -60,7 +61,11 @@ pnpm -s contracts:ci-fast
 
 ## Deployed Contracts
 
-### OP Sepolia (chainId: 11155420)
+### OP Sepolia Testnet (chainId: 11155420)
+
+**Status**: Active testnet deployment - NOT production
+
+**Missing**: Groth16SettlementVerifier (deployment in progress)
 
 | Contract | Address |
 |---|---|
