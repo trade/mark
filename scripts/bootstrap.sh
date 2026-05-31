@@ -300,3 +300,8 @@ else
 fi
 echo "Tip: Re-running this script is safe — it checks before installing."
 echo
+
+# Exit with error if any required tools failed
+if [[ ${#FAIL[@]} -gt 0 ]]; then
+  exit 1
+fi
