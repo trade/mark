@@ -74,8 +74,8 @@ Check that the tokens arrived on L2B:
 RYLA_L2B=$(cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 "l2bToken()(address)" --rpc-url http://localhost:8545)
 echo "RYLA on L2B: $RYLA_L2B"
 
-# Check balance on L2B
-cast balance $RYLA_L2B --rpc-url http://localhost:8546  # L2B RPC port
+# Check RYA token balance of the recipient on L2B
+cast call $RYLA_L2B "balanceOf(address)(uint256)" 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --rpc-url http://localhost:8546
 ```
 
 ## Step 3: Create Settlement Intent
@@ -164,11 +164,11 @@ cast send $SETTLEMENT_MODULE_L2A "executeSettlement(bytes32)" $INTENT_ID \
 Check that tokens moved as expected:
 
 ```bash
-# Check L2A balance (should have +5 RYLA from mint)
-cast balance $RYLA_L2A --rpc-url http://localhost:8545
+# Check L2A RYLA token balance of the recipient (should have +5 RYLA from mint)
+cast call $RYLA_L2A "balanceOf(address)(uint256)" 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://localhost:8545
 
-# Check L2B balance (should have -5 RYLA from burn)
-cast balance $RYLA_L2B --rpc-url http://localhost:8546
+# Check L2B RYLA token balance of the recipient (should have -5 RYLA from burn)
+cast call $RYLA_L2B "balanceOf(address)(uint256)" 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --rpc-url http://localhost:8546
 ```
 
 ## Step 5: Using the Frontend Dashboard
@@ -216,4 +216,4 @@ You've successfully:
 This demonstrates the core MARK Protocol flow: private, verifiable transfers between chains using zero-knowledge technology and Superchain infrastructure.
 
 ---
-*Last updated: $(date)*
+*Last updated: 2025-06-01*

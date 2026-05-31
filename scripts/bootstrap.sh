@@ -75,13 +75,16 @@ else
     record_warn "mise (not installed)"
   else
     info "Installing mise via official script..."
+    set +o pipefail
     curl https://mise.run | sh
+    local_mise_ok=$?
+    set -o pipefail
     export PATH="$HOME/.local/bin:$PATH"
-    if command -v mise &>/dev/null; then
+    if [[ $local_mise_ok -eq 0 ]] && command -v mise &>/dev/null; then
       success "mise installed ($(mise --version | awk '{print $1}'))"
       record_ok "mise"
     else
-      error "mise installation failed"
+      error "mise installation failed (exit code: $local_mise_ok)"
       record_fail "mise"
     fi
   fi
@@ -142,12 +145,12 @@ fi
 # ---- Foundry -------------------------------------------------------
 FOUNDRY_BIN="$HOME/.foundry/bin"
 info "Checking Foundry..."
-if command -v forge &>/dev/null && forge --version | grep -q "0.2.0"; then
-  success "Foundry up-to-date ($(forge --version | head -1))"
+if command -v forge &>/dev/null; then
+  success "Foundry available ($(forge --version | head -1))"
   record_ok "foundry"
 elif $CHECK_ONLY; then
-  skip "Foundry not installed or not up-to-date"
-  record_warn "foundry (not ready)"
+  skip "Foundry not installed"
+  record_warn "foundry (not installed)"
 else
   info "Installing Foundry..."
   curl -L https://foundry.paradigm.xyz | bash
@@ -159,7 +162,7 @@ else
   if [[ -x "$FOUNDRY_BIN/foundryup" ]]; then
     "$FOUNDRY_BIN/foundryup"
   fi
-  if command -v forge &>/dev/null && forge --version | grep -q "0.2.0"; then
+  if command -v forge &>/dev/null; then
     success "Foundry installed ($(forge --version | head -1))"
     record_ok "foundry"
   else
@@ -201,13 +204,16 @@ elif $CHECK_ONLY; then
   record_warn "uv (not installed)"
 else
   info "Installing uv via astral.sh..."
+  set +o pipefail
   curl -LsSf https://astral.sh/uv/install.sh | sh
+  local_uv_ok=$?
+  set -o pipefail
   export PATH="$HOME/.local/bin:$PATH"
-  if command -v uv &>/dev/null; then
+  if [[ $local_uv_ok -eq 0 ]] && command -v uv &>/dev/null; then
     success "uv installed ($(uv --version | awk '{print $1}'))"
     record_ok "uv"
   else
-    error "uv installation failed"
+    error "uv installation failed (exit code: $local_uv_ok)"
     record_fail "uv"
   fi
 fi
