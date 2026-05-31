@@ -37,7 +37,7 @@ Visit http://localhost:5173 to see the MARK dashboard running on a local Superch
 - ✅ Deployed MARK contracts to L2A and L2B
 - ✅ Launched frontend dev server
 
-**Next steps**: Try the [5-minute tutorial](./CONTRIBUTING.md#quick-tutorial) or explore the [architecture](./docs/ARCHITECTURE.md).
+**Next steps**: Try the [tutorial](./docs/TUTORIAL.md) or explore the [architecture](./docs/ARCHITECTURE.md).
 
 ### Local Verification (Recommended Before PR)
 
