@@ -5,7 +5,7 @@ This tutorial walks you through a complete transaction flow on the MARK Protocol
 ## Prerequisites
 
 Before starting, ensure you have:
-1. Completed the [Getting Started](./CONTRIBUTING.md#getting-started) guide
+1. Completed the [Getting Started](../CONTRIBUTING.md#getting-started) guide
 2. Running local development environment: `pnpm dev` (in one terminal)
 3. The MARK dashboard accessible at http://localhost:5173
 
@@ -74,7 +74,7 @@ Check that the tokens arrived on L2B:
 RYLA_L2B=$(cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 "l2bToken()(address)" --rpc-url http://localhost:8545)
 echo "RYLA on L2B: $RYLA_L2B"
 
-# Check RYA token balance of the recipient on L2B
+# Check RYLA token balance of the recipient on L2B
 cast call $RYLA_L2B "balanceOf(address)(uint256)" 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --rpc-url http://localhost:8546
 ```
 
@@ -107,7 +107,7 @@ For the attested verifier, we need to create a signature. In a real implementati
 # Prepare the message to sign (simplified format)
 # In practice: abi.encode(uint256 deadline, bytes32 contextHash, uint8 v, bytes32 r, bytes32 s)
 DEADLINE=$(( $(date +%s) + 3600 ))  # 1 hour from now
-CONTEXT_HASH=$(cast keccak "abi.encode((address,address,uint256,uint256),0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,0x70997970C51812dc3A010C7d01b50e0d17dc79C8,5,10000000000000000000)")
+CONTEXT_HASH=$(cast abi-encode "(address,address,uint256,uint256)" 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 5 10000000000000000000 | cast keccak -)
 
 # Sign with our private key (this is just for demo - never expose keys like this in production!)
 SIGNATURE=$(cast sign --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 $CONTEXT_HASH)
@@ -140,7 +140,7 @@ Verify the intent was processed:
 
 ```bash
 # Check if intent was recorded (simplified)
-INTENT_ID=$(cast keccak "abi.encode((address,address,uint256,uint256),0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,0x70997970C51812dc3A010C7d01b50e0d17dc79C8,5,10000000000000000000)")
+INTENT_ID=$(cast abi-encode "(address,address,uint256,uint256)" 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 5 10000000000000000000 | cast keccak -)
 cast call $SETTLEMENT_MODULE_L2B "intents(bytes32)(bool)" $INTENT_ID --rpc-url http://localhost:8546
 ```
 

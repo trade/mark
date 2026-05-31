@@ -82,7 +82,7 @@ Run the bootstrap script to automatically install and verify all prerequisites:
 git clone https://github.com/trade/mark.git
 cd mark
 
-# Install prerequisites (mise, Node.js 24, pnpm, Foundry, super-cli, gitleaks)
+# Install prerequisites (mise, Node.js 24, pnpm, Foundry, super-cli, uv, gitleaks)
 ./scripts/bootstrap.sh
 
 # Install dependencies

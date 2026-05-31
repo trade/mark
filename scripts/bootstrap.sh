@@ -153,16 +153,19 @@ elif $CHECK_ONLY; then
   record_warn "foundry (not installed)"
 else
   info "Installing Foundry..."
+  set +o pipefail
   curl -L https://foundry.paradigm.xyz | bash
+  local_foundry_ok=$?
+  set -o pipefail
   # Source the updated PATH
   export PATH="$FOUNDRY_BIN:$PATH"
   if [[ -f "$HOME/.bashrc" ]]; then source "$HOME/.bashrc" 2>/dev/null || true; fi
   if [[ -f "$HOME/.zshrc" ]]; then source "$HOME/.zshrc" 2>/dev/null || true; fi
   # Run foundryup
   if [[ -x "$FOUNDRY_BIN/foundryup" ]]; then
-    "$FOUNDRY_BIN/foundryup"
+    "$FOUNDRY_BIN/foundryup" || true
   fi
-  if command -v forge &>/dev/null; then
+  if [[ $local_foundry_ok -eq 0 ]] && command -v forge &>/dev/null; then
     success "Foundry installed ($(forge --version | head -1))"
     record_ok "foundry"
   else
