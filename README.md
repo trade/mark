@@ -14,12 +14,18 @@ Settlement rules are enforced on-chain. Whether operators run it as a centralize
 # Prerequisites: Node.js 24, pnpm 9.0.2, Foundry
 git clone https://github.com/trade/mark.git
 cd mark
+
+# Install prerequisites automatically (or skip if you already have them)
+./scripts/bootstrap.sh
+
 pnpm i && pnpm dev
 ```
 
+Alternatively, run `./scripts/bootstrap.sh` on its own first to see which tools it installs.
+
 Visit http://localhost:5173 to see the MARK dashboard running on a local Superchain (1 L1 + 2 L2 chains).
 
-**Missing prerequisites?** See [Getting Started](./CONTRIBUTING.md#getting-started) for installation instructions.
+**Missing prerequisites?** See [Getting Started](./CONTRIBUTING.md#getting-started) for installation instructions, or run `./scripts/bootstrap.sh` to install them all at once.
 
 ### What Just Happened?
 
@@ -45,6 +51,7 @@ pnpm -s contracts:ci-fast
 
 ### Core Documentation
 - **[Getting Started](./CONTRIBUTING.md)** — Development setup, code standards, and contribution guidelines
+- **[Tutorial](./docs/TUTORIAL.md)** — End-to-end transaction flow walkthrough (deposit, bridge, settlement)
 - **[Architecture](./docs/ARCHITECTURE.md)** — System design, domain rules, and contract interactions
 - **[Deployment](./docs/DEPLOYMENT.md)** — Step-by-step deployment to testnet and mainnet
 - **[Branching Strategy](./docs/BRANCHING.md)** — Git workflow, release process, and CI/CD
