@@ -5,6 +5,7 @@
 1. **[README.md](../README.md)** — Project overview and quick start
 2. **[CONTRIBUTING.md](../CONTRIBUTING.md)** — Development setup, code standards, testing
 3. **[ARCHITECTURE.md](./ARCHITECTURE.md)** — System design, domain rules, contract interactions
+4. **[TUTORIAL.md](./TUTORIAL.md)** — End-to-end transaction flow walkthrough
 
 ## Development
 

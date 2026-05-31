@@ -816,7 +816,7 @@ TX Hash: 0x1234...
 **Solutions**:
 
 1. **Cancel workflow**:
-   - Go to: https://github.com/iap/mark/actions
+   - Go to: https://github.com/trade/mark/actions
    - Find workflow
    - Click: "Cancel workflow"
 
@@ -1012,8 +1012,8 @@ Error: Contract not found at 0x1234...
 
 ## Getting More Help
 
-- **Check existing issues**: https://github.com/iap/mark/issues
-- **Review pull requests**: https://github.com/iap/mark/pulls
+- **Check existing issues**: https://github.com/trade/mark/issues
+- **Review pull requests**: https://github.com/trade/mark/pulls
 - **Read documentation**: `CONTRIBUTING.md`, `DEPLOYMENT.md`, `BRANCHING.md`
 - **Ask in GitHub Discussions** (if enabled)
 

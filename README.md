@@ -11,15 +11,24 @@ Settlement rules are enforced on-chain. Whether operators run it as a centralize
 ## Quick Start (5 minutes)
 
 ```bash
-# Prerequisites: Node.js 24, pnpm 9.0.2, Foundry
+# Prerequisites: Node.js 24, pnpm, Foundry, uv (all auto-installed by bootstrap)
 git clone https://github.com/trade/mark.git
 cd mark
+
+# Install prerequisites automatically (or skip if you already have them)
+./scripts/bootstrap.sh
+
+# Or just check what's installed:
+# ./scripts/bootstrap.sh --check
+
 pnpm i && pnpm dev
 ```
 
+Alternatively, run `./scripts/bootstrap.sh` on its own first to see which tools it installs.
+
 Visit http://localhost:5173 to see the MARK dashboard running on a local Superchain (1 L1 + 2 L2 chains).
 
-**Missing prerequisites?** See [Getting Started](./CONTRIBUTING.md#getting-started) for installation instructions.
+**Missing prerequisites?** See [Getting Started](./CONTRIBUTING.md#getting-started) for installation instructions, or run `./scripts/bootstrap.sh` to install them all at once.
 
 ### What Just Happened?
 
@@ -28,7 +37,7 @@ Visit http://localhost:5173 to see the MARK dashboard running on a local Superch
 - ✅ Deployed MARK contracts to L2A and L2B
 - ✅ Launched frontend dev server
 
-**Next steps**: Try the [5-minute tutorial](./CONTRIBUTING.md#quick-tutorial) or explore the [architecture](./docs/ARCHITECTURE.md).
+**Next steps**: Try the [tutorial](./docs/TUTORIAL.md) or explore the [architecture](./docs/ARCHITECTURE.md).
 
 ### Local Verification (Recommended Before PR)
 
@@ -45,6 +54,7 @@ pnpm -s contracts:ci-fast
 
 ### Core Documentation
 - **[Getting Started](./CONTRIBUTING.md)** — Development setup, code standards, and contribution guidelines
+- **[Tutorial](./docs/TUTORIAL.md)** — End-to-end transaction flow walkthrough (deposit, bridge, settlement)
 - **[Architecture](./docs/ARCHITECTURE.md)** — System design, domain rules, and contract interactions
 - **[Deployment](./docs/DEPLOYMENT.md)** — Step-by-step deployment to testnet and mainnet
 - **[Branching Strategy](./docs/BRANCHING.md)** — Git workflow, release process, and CI/CD
