@@ -91,15 +91,18 @@ pnpm i
 
 The bootstrap script will check each prerequisite, install anything missing, and print a summary of what was done. Re-run it at any time to update your tools.
 
+Run `./scripts/bootstrap.sh --check` to see what's installed without making changes.
+
 ### Option B: Manual Setup
 
 If you prefer to install tools manually, the prerequisites are:
 
-- **mise**: `brew install mise` (manages Node version via `.mise.toml`)
+- **mise**: `curl https://mise.run | sh` (manages Node version via `.mise.toml`; no package manager required)
 - **Node.js**: 24 (managed via mise after installing mise)
 - **pnpm**: 9.0.2+ (managed via corepack)
 - **Foundry**: Latest version ([install guide](https://book.getfoundry.sh/getting-started/installation))
 - **super-cli**: Latest version ([install guide](https://github.com/ethereum-optimism/super-cli))
+- **uv**: `curl -LsSf https://astral.sh/uv/install.sh | sh` (Python package manager, for off-chain tooling)
 - **lefthook**: installed automatically via `pnpm install` (`prepare` script)
 - **gitleaks** (optional, recommended): Secrets detection in pre-commit hook
   ```bash

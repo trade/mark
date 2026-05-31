@@ -11,12 +11,15 @@ Settlement rules are enforced on-chain. Whether operators run it as a centralize
 ## Quick Start (5 minutes)
 
 ```bash
-# Prerequisites: Node.js 24, pnpm 9.0.2, Foundry
+# Prerequisites: Node.js 24, pnpm, Foundry, uv (all auto-installed by bootstrap)
 git clone https://github.com/trade/mark.git
 cd mark
 
 # Install prerequisites automatically (or skip if you already have them)
 ./scripts/bootstrap.sh
+
+# Or just check what's installed:
+# ./scripts/bootstrap.sh --check
 
 pnpm i && pnpm dev
 ```
