@@ -68,39 +68,40 @@ bash: pnpm: command not found
 
 **Symptoms**:
 ```
-⚠️ This project requires Node.js v20 or v22
+⚠️ This project requires Node.js v24
 You are using v18.x.x
 ```
 
 **Causes**:
-- Node.js version doesn't match `.nvmrc`
-- Node version manager not installed
+- Node.js version doesn't match `.mise.toml`
+- mise or another Node version manager is not installed
 
 **Solutions**:
 
-1. **Use nvm** (recommended):
+1. **Use mise** (recommended):
    ```bash
-   # Install nvm if not present
-   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-   
-   # Install correct version
-   nvm install 20
-   nvm use 20
-   
+   # Install mise if not present
+   brew install mise
+
+   # Trust and install tools from .mise.toml
+   mise trust
+   mise install
+
    # Verify
-   node --version  # Should show v20.x.x
+   node --version  # Should show v24.x.x
    ```
 
-2. **Use fnm** (faster alternative):
+2. **Use another version manager**:
    ```bash
-   brew install fnm  # macOS
-   fnm install 20
-   fnm use 20
+   # Example with fnm
+   brew install fnm
+   fnm install 24
+   fnm use 24
    ```
 
 3. **Manual installation**:
    - Download from https://nodejs.org
-   - Install v20 LTS or v22
+   - Install Node.js v24
 
 ---
 
@@ -132,6 +133,48 @@ cast --version
 ```powershell
 # Use WSL2 or install from https://github.com/foundry-rs/foundry/releases
 ```
+
+---
+
+### "circom fails with Bad CPU type or Not Found"
+
+**Symptoms**:
+```
+sh: /usr/local/bin/circom: Bad CPU type in executable
+/usr/local/bin/circom: line 1: Not: command not found
+```
+
+**Causes**:
+- A stale or wrong-architecture `circom` binary is earlier in PATH
+- A failed download wrote an error page to `/usr/local/bin/circom`
+- The local shell and downloaded binary architectures do not match
+
+**Solutions**:
+
+1. **Inspect active candidates**:
+   ```bash
+   type -a circom
+   file "$(command -v circom)"
+   circom --version
+   ```
+
+2. **Install a known-good local binary with Cargo**:
+   ```bash
+   cargo install --git https://github.com/iden3/circom.git --tag v2.2.3 --locked
+   ```
+
+3. **Remove or replace the broken system binary**:
+   ```bash
+   mv /usr/local/bin/circom /usr/local/bin/circom.bak.$(date +%Y%m%d%H%M%S)
+   ln -s "$HOME/.cargo/bin/circom" /usr/local/bin/circom
+   ```
+
+4. **Verify circuit tests**:
+   ```bash
+   command -v circom
+   circom --version
+   pnpm -s circuits:test
+   ```
 
 ---
 

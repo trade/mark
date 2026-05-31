@@ -1,0 +1,6 @@
+packages:
+  - .
+  - circuits
+  - '!contracts/lib/**'
+  - '!contracts/cache/**'
+  - '!contracts/out/**'
