@@ -82,14 +82,23 @@ Run the bootstrap script to automatically install and verify all prerequisites:
 git clone https://github.com/trade/mark.git
 cd mark
 
-# Install prerequisites (mise, Node.js 24, pnpm, Foundry, super-cli, uv, gitleaks)
+# Install prerequisites (mise manages: Node.js, pnpm, Foundry, gitleaks)
 ./scripts/bootstrap.sh
 
 # Install dependencies
 pnpm i
 ```
 
-The bootstrap script will check each prerequisite, install anything missing, and print a summary of what was done. Re-run it at any time to update your tools.
+The bootstrap script uses [mise](https://mise.jdx.dev/) (`.mise.toml`) to manage tool versions. Tools managed by mise:
+- **Node.js 24** + **pnpm 9.0.2** — toolchain
+- **Foundry** (forge, cast, anvil) — Solidity development
+- **gitleaks** — secrets detection
+
+The script also installs (not managed by mise):
+- **uv** — Python package manager (for off-chain tooling)
+- **super-cli** — OP Superchain deployment CLI
+
+Re-run `./scripts/bootstrap.sh` at any time to verify/update tools. Use `./scripts/bootstrap.sh --check` for a read-only status report.
 
 Run `./scripts/bootstrap.sh --check` to see what's installed without making changes.
 
@@ -97,17 +106,14 @@ Run `./scripts/bootstrap.sh --check` to see what's installed without making chan
 
 If you prefer to install tools manually, the prerequisites are:
 
-- **mise**: `curl https://mise.run | sh` (manages Node version via `.mise.toml`; no package manager required)
-- **Node.js**: 24 (managed via mise after installing mise)
-- **pnpm**: 9.0.2+ (managed via corepack)
-- **Foundry**: Latest version ([install guide](https://book.getfoundry.sh/getting-started/installation))
-- **super-cli**: Latest version ([install guide](https://github.com/ethereum-optimism/super-cli))
+- **mise**: `curl https://mise.run | sh` — manages tool versions via `.mise.toml`
+- **Node.js 24**: `mise use -g node@24`
+- **pnpm 9.x**: `mise use -g pnpm@9.0.2`
+- **Foundry**: `mise use -g foundry@latest`
+- **gitleaks**: `mise use -g gitleaks@8.30.1`
 - **uv**: `curl -LsSf https://astral.sh/uv/install.sh | sh` (Python package manager, for off-chain tooling)
+- **super-cli**: `npm install -g @ethereum-optimism/super-cli`
 - **lefthook**: installed automatically via `pnpm install` (`prepare` script)
-- **gitleaks** (optional, recommended): Secrets detection in pre-commit hook
-  ```bash
-  bash scripts/install-gitleaks.sh
-  ```
 
 ### Verify Setup
 
