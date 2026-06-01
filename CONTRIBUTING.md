@@ -75,24 +75,30 @@ These require extra scrutiny:
 
 ### Option A: Automated Setup (Recommended)
 
-Run the bootstrap script to automatically install and verify all prerequisites:
+Install all prerequisites via mise (tool versions pinned in `.mise.toml`):
 
 ```bash
 # Clone the repository
 git clone https://github.com/trade/mark.git
 cd mark
 
-# Install prerequisites (mise manages: Node.js, pnpm, Foundry, gitleaks)
-./scripts/bootstrap.sh
+# Install and activate all tools via mise (Node, pnpm, Foundry, gitleaks)
+mise trust
+mise install
 
-# Install dependencies
+# Install project dependencies
 pnpm i
 ```
 
-The bootstrap script uses [mise](https://mise.jdx.dev/) (`.mise.toml`) to manage tool versions. Tools managed by mise:
+All tool versions are pinned in `.mise.toml`. Run `mise install` after every `git pull` to stay in sync.
+
+Tools managed by mise:
 - **Node.js 24** + **pnpm 9.0.2** — toolchain
 - **Foundry** (forge, cast, anvil) — Solidity development
 - **gitleaks** — secrets detection
+
+The bootstrap script (`./scripts/bootstrap.sh`) remains available as a
+convenience wrapper that also installs mise itself if missing.
 
 The script also installs (not managed by mise):
 - **uv** — Python package manager (for off-chain tooling)
