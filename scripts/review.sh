@@ -24,6 +24,10 @@ for ref in origin/dev origin/main origin/master; do
   fi
 done
 
+if [[ -z "$BASE_REF" ]]; then
+  WARNINGS+=("No base branch found (tried: origin/dev, origin/main, origin/master) — circuits and contract checks skipped")
+fi
+
 # CodeRabbit review (optional, non-blocking)
 if ! $QUICK_MODE; then
   if command -v coderabbit &>/dev/null; then
