@@ -142,35 +142,28 @@ else
   fi
 fi
 
-# ---- Foundry -------------------------------------------------------
-FOUNDRY_BIN="$HOME/.foundry/bin"
+# ---- Foundry (via mise) --------------------------------------------
 info "Checking Foundry..."
 if command -v forge &>/dev/null; then
   success "Foundry available ($(forge --version | head -1))"
   record_ok "foundry"
 elif $CHECK_ONLY; then
-  skip "Foundry not installed"
+  skip "Foundry not installed (will be installed by: mise install foundry)"
   record_warn "foundry (not installed)"
 else
-  info "Installing Foundry..."
-  set +o pipefail
-  curl -L https://foundry.paradigm.xyz | bash
-  local_foundry_ok=$?
-  set -o pipefail
-  # Source the updated PATH
-  export PATH="$FOUNDRY_BIN:$PATH"
-  if [[ -f "$HOME/.bashrc" ]]; then source "$HOME/.bashrc" 2>/dev/null || true; fi
-  if [[ -f "$HOME/.zshrc" ]]; then source "$HOME/.zshrc" 2>/dev/null || true; fi
-  # Run foundryup
-  if [[ -x "$FOUNDRY_BIN/foundryup" ]]; then
-    "$FOUNDRY_BIN/foundryup" || true
-  fi
-  if [[ $local_foundry_ok -eq 0 ]] && command -v forge &>/dev/null; then
-    success "Foundry installed ($(forge --version | head -1))"
-    record_ok "foundry"
+  if command -v mise &>/dev/null; then
+    info "Installing Foundry via mise..."
+    mise install foundry && {
+      eval "$(mise activate bash 2>/dev/null || true)"
+      success "Foundry installed ($(forge --version | head -1))"
+      record_ok "foundry"
+    } || {
+      error "Foundry installation failed"
+      record_fail "foundry"
+    }
   else
-    error "Foundry installation may have failed — restart your shell and run 'foundryup'"
-    record_warn "foundry (needs shell restart)"
+    warning "mise not available — install foundry manually: https://book.getfoundry.sh/getting-started/installation"
+    record_warn "foundry (mise unavailable)"
   fi
 fi
 
@@ -230,30 +223,19 @@ elif $CHECK_ONLY; then
   skip "gitleaks not installed"
   record_warn "gitleaks (not installed)"
 else
-  warning "gitleaks not found — installing..."
-  if [[ -x "./scripts/install-gitleaks.sh" ]]; then
-    ./scripts/install-gitleaks.sh && {
+  if command -v mise &>/dev/null; then
+    info "Installing gitleaks via mise..."
+    mise install gitleaks && {
+      eval "$(mise activate bash 2>/dev/null || true)"
       success "gitleaks installed"
       record_ok "gitleaks"
     } || {
-      record_warn "gitleaks (install failed)"
+      error "gitleaks installation failed"
+      record_fail "gitleaks"
     }
   else
-    # Download the installer from the repo
-    TMP_INSTALLER="$(mktemp)"
-    if curl -fsSL "https://raw.githubusercontent.com/trade/mark/master/scripts/install-gitleaks.sh" -o "$TMP_INSTALLER"; then
-      bash "$TMP_INSTALLER"
-      if command -v gitleaks &>/dev/null; then
-        success "gitleaks installed"
-        record_ok "gitleaks"
-      else
-        record_warn "gitleaks (install may have failed)"
-      fi
-    else
-      warning "Could not download gitleaks installer"
-      record_warn "gitleaks (download failed)"
-    fi
-    rm -f "$TMP_INSTALLER"
+    warning "mise not available — install gitleaks manually: https://github.com/gitleaks/gitleaks#installing"
+    record_warn "gitleaks (mise unavailable)"
   fi
 fi
 
