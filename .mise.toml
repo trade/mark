@@ -6,9 +6,11 @@
 node = "24"
 pnpm = "9.0.2"
 
-# Optional tools (uncomment to enable)
-# foundry = "latest"      # Solidity development (forge, cast, anvil)
-# gitleaks = "8.30.1"     # Secrets detection
+# Foundry toolkit (forge, cast, anvil)
+foundry = "latest"
+
+# Secrets detection
+gitleaks = "8.30.1"
 
 [env]
 # Load environment variables from .env if it exists

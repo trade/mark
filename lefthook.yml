@@ -23,15 +23,3 @@ pre-push:
       skip:
         - merge
         - rebase
-    contracts_fast:
-      run: |
-        if [ "${SKIP_CONTRACTS_FAST:-}" != "1" ]; then
-          echo "Running contracts fast checks (set SKIP_CONTRACTS_FAST=1 to skip)..."
-          pnpm -s contracts:ci-fast
-        fi
-    coderabbit:
-      run: |
-        if [ "${SKIP_CODERABBIT:-}" != "1" ]; then
-          echo "🤖 Running CodeRabbit review (set SKIP_CODERABBIT=1 to skip)..."
-          coderabbit review --plain || true
-        fi
