@@ -35,7 +35,7 @@ jobs:
       - name: Install Semgrep
         run: |
           pip install uv
-          uv pip install semgrep
+          uv pip install --system semgrep
 
       - name: Run Semgrep
         run: semgrep --config .semgrep.yml --error
