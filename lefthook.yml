@@ -21,7 +21,7 @@ pre-push:
     validate_workflows:
       run: |
         # Only validate if workflow files changed
-        CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^\.github/workflows/|^.mise\.toml$' || true)
+        CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^\.github/workflows/|^\.mise\.toml$' || true)
         if [ -n "$CHANGED" ]; then
           echo "Workflow files changed, running validation..."
           bash .github/scripts/validate-workflows.sh
