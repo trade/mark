@@ -88,11 +88,13 @@ verify-evidence-signature:
 	@./script/ops/verify-evidence-signature.sh
 
 slither-install:
-	@python3 -m pip install --user slither-analyzer==0.11.5
+	@python3 -m venv .venv
+	@.venv/bin/python3 -m pip install --upgrade pip
+	@.venv/bin/python3 -m pip install slither-analyzer==0.11.5
 
 slither-core:
-	@python3 -m slither --version >/dev/null 2>&1 || { \
-	  echo "slither not found. Run: make slither-install"; \
+	@.venv/bin/python3 -m slither --version >/dev/null 2>&1 || { \
+	  echo "slither not found in .venv. Run: make slither-install"; \
 	  exit 1; \
 	}
 	# Per-contract exclusion rationale:
