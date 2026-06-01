@@ -93,7 +93,7 @@ slither-install:
 	@.venv/bin/python3 -m pip install slither-analyzer==0.11.5
 
 # Slither analysis configuration (defined at top level for use in recipe)
-SLITHER_CMD := $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3) -m slither
+SLITHER_CMD = $(if $(wildcard .venv/bin/python3),.venv/bin/python3,python3) -m slither
 SLITHER_REMAPS := @interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/
 SLITHER_BASE_EXCLUDES := naming-convention,timestamp
 
