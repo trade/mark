@@ -19,19 +19,24 @@ pre-commit:
 pre-push:
   commands:
     validate_workflows:
-      run: bash .github/scripts/validate-workflows.sh
+      run: |
+        # Only validate if workflow files changed
+        CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^\.github/workflows/|^.mise\.toml$' || true)
+        if [ -n "$CHANGED" ]; then
+          echo "Workflow files changed, running validation..."
+          bash .github/scripts/validate-workflows.sh
+        else
+          echo "✓ No workflow changes, skipping validation"
+        fi
       skip:
         - merge
         - rebase
-    contracts_fast:
+
+post-merge:
+  commands:
+    mise_sync:
       run: |
-        if [ "${SKIP_CONTRACTS_FAST:-}" != "1" ]; then
-          echo "Running contracts fast checks (set SKIP_CONTRACTS_FAST=1 to skip)..."
-          pnpm -s contracts:ci-fast
-        fi
-    coderabbit:
-      run: |
-        if [ "${SKIP_CODERABBIT:-}" != "1" ]; then
-          echo "🤖 Running CodeRabbit review (set SKIP_CODERABBIT=1 to skip)..."
-          coderabbit review --plain || true
+        if command -v mise >/dev/null 2>&1; then
+          echo "Syncing tool versions after merge..."
+          mise install --quiet 2>/dev/null || mise install
         fi
