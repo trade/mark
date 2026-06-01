@@ -7,9 +7,8 @@ on:
     branches: [main, dev]
     paths:
       - 'src/**'
-      - 'contracts/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
+      - 'contracts/src/**'
+      - 'contracts/script/**'
       - '.github/workflows/codeql.yml'
   schedule:
     - cron: '30 3 * * 1'
