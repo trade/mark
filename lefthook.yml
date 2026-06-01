@@ -19,7 +19,28 @@ pre-commit:
 pre-push:
   commands:
     validate_workflows:
-      run: bash .github/scripts/validate-workflows.sh
+      run: |
+        # Check all changed files since the last push, not just the last commit
+        CHANGED=$(git diff --name-only @{push}..HEAD 2>/dev/null | grep -E '^\.github/workflows/|\.mise\.toml$' || true)
+        if [ -z "$CHANGED" ]; then
+          # Fallback for first push: check last commit only
+          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -E '^\.github/workflows/|\.mise\.toml$' || true)
+        fi
+        if [ -n "$CHANGED" ]; then
+          echo "Workflow files changed, running validation..."
+          bash .github/scripts/validate-workflows.sh
+        else
+          echo "✓ No workflow changes, skipping validation"
+        fi
       skip:
         - merge
         - rebase
+
+post-merge:
+  commands:
+    mise_sync:
+      run: |
+        if command -v mise >/dev/null 2>&1; then
+          echo "Syncing tool versions after merge..."
+          mise install --quiet 2>/dev/null || mise install
+        fi
