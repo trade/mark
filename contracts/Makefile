@@ -106,17 +106,18 @@ slither-core:
 	# arbitrary-send-eth — MARKWithdrawAdapter sends ETH to recipient by design (withdrawal adapter)
 	# missing-zero-check — false positive: recipient checked in _validateWithdrawRequest before ETH send
 	# low-level-calls    — .call{value} is intentional (supports contract recipients)
-	@REMAPS="@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/"; \
-	FLAGS="--exclude-dependencies --filter-paths lib|test|script|out|cache --fail-medium"; \
-	BASE="naming-convention,timestamp"; \
-	python3 -m slither src/token/RYLA.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE"; \
-	python3 -m slither src/bridge/MARKBridgeAdapter.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-erc20"; \
-	python3 -m slither src/settlement/MARKSettlementModule.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign"; \
-	python3 -m slither src/settlement/verifier/AttestedSettlementVerifier.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE"; \
-	python3 -m slither src/settlement/verifier/Groth16SettlementVerifier.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE"; \
-	python3 -m slither src/pool/MARKPool.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,reentrancy-benign,incorrect-return,assembly"; \
-	python3 -m slither src/pool/RYLACreditLedger.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-erc20"; \
-	python3 -m slither src/withdraw/MARKWithdrawAdapter.sol --solc-remaps "$$REMAPS" $$FLAGS --exclude "$$BASE,arbitrary-send-eth,missing-zero-check,low-level-calls"
+SLITHER_CMD := python3 -m slither
+SLITHER_REMAPS := @interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/
+SLITHER_FLAGS := --exclude-dependencies --filter-paths lib|test|script|out|cache --fail-medium
+SLITHER_BASE_EXCLUDES := naming-convention,timestamp
+	@$(SLITHER_CMD) src/token/RYLA.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES)"
+	@$(SLITHER_CMD) src/bridge/MARKBridgeAdapter.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES),arbitrary-send-erc20"
+	@$(SLITHER_CMD) src/settlement/MARKSettlementModule.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES),arbitrary-send-erc20,reentrancy-balance,reentrancy-benign"
+	@$(SLITHER_CMD) src/settlement/verifier/AttestedSettlementVerifier.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES)"
+	@$(SLITHER_CMD) src/settlement/verifier/Groth16SettlementVerifier.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES)"
+	@$(SLITHER_CMD) src/pool/MARKPool.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES),reentrancy-benign,incorrect-return,assembly"
+	@$(SLITHER_CMD) src/pool/RYLACreditLedger.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES),arbitrary-send-erc20"
+	@$(SLITHER_CMD) src/withdraw/MARKWithdrawAdapter.sol --solc-remaps "$(SLITHER_REMAPS)" $(SLITHER_FLAGS) --exclude "$(SLITHER_BASE_EXCLUDES),arbitrary-send-eth,missing-zero-check,low-level-calls"
 
 gas-snapshot:
 	@echo "Generating gas snapshot (excluding invariants)..."
