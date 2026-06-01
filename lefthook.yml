@@ -42,7 +42,7 @@ post-merge:
       run: |
         if command -v mise >/dev/null 2>&1; then
           # Only sync if .mise.toml changed in this merge
-          CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -c '\.mise\.toml$' || true)
+          CHANGED=$(git diff --name-only ORIG_HEAD HEAD 2>/dev/null | grep -c '\.mise\.toml$' || true)
           if [ "$CHANGED" -gt 0 ]; then
             echo "mise config changed, syncing tool versions..."
             mise install
