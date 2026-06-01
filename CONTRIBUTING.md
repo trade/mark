@@ -102,8 +102,10 @@ The bootstrap script (`./scripts/bootstrap.sh`) remains available as a
 convenience wrapper that also installs mise itself if missing.
 
 The script also installs (not managed by mise):
-- **uv** — Python package manager (for off-chain tooling)
+- **uv** — Python package manager (for slither, semgrep, and other Python tooling)
 - **super-cli** — OP Superchain deployment CLI
+
+Python tools (slither, semgrep) are installed via `uv pip install` for fast, isolated, reproducible installs.
 
 Re-run `./scripts/bootstrap.sh` at any time to verify/update tools. Use `./scripts/bootstrap.sh --check` for a read-only status report.
 
@@ -118,7 +120,9 @@ If you prefer to install tools manually, the prerequisites are:
 - **pnpm 9.x**: `mise use -g pnpm@9.0.2`
 - **Foundry**: `mise use -g foundry@latest`
 - **gitleaks**: `mise use -g gitleaks@8.30.1`
-- **uv**: `curl -LsSf https://astral.sh/uv/install.sh | sh` (Python package manager, for off-chain tooling)
+- **uv**: `curl -LsSf https://astral.sh/uv/install.sh | sh` — Python package manager
+- **slither**: `uv pip install slither-analyzer==0.11.5`
+- **semgrep**: `uv pip install semgrep`
 - **super-cli**: `npm install -g @ethereum-optimism/super-cli`
 - **lefthook**: installed automatically via `pnpm install` (`prepare` script)
 
