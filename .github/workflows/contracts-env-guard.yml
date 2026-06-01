@@ -14,7 +14,11 @@ on:
       - '.github/workflows/contracts-env-guard.yml'
   workflow_dispatch:
 
-permissions:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+  permissions:
   contents: read
 
 jobs:

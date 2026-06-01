@@ -6,6 +6,8 @@ on:
     branches:
       - main
       - dev
+  schedule:
+    - cron: '0 6 * * 1,4'  # Mon & Thu at 06:00 UTC
   workflow_dispatch:
     inputs:
       run_integration:
@@ -32,22 +34,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: ./.github/actions/checkout-retry
         with:
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-        continue-on-error: true
-        id: checkout-attempt-1
-
-      - name: Retry checkout on failure
-        if: steps.checkout-attempt-1.outcome == 'failure'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-          clean: false
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
@@ -90,22 +79,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: ./.github/actions/checkout-retry
         with:
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-        continue-on-error: true
-        id: checkout-attempt-1
-
-      - name: Retry checkout on failure
-        if: steps.checkout-attempt-1.outcome == 'failure'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-          clean: false
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
@@ -199,22 +175,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: ./.github/actions/checkout-retry
         with:
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-        continue-on-error: true
-        id: checkout-attempt-1
-
-      - name: Retry checkout on failure
-        if: steps.checkout-attempt-1.outcome == 'failure'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-          clean: false
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
@@ -231,7 +194,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: [contracts-unit-invariant, contracts-release-check, contracts-production-mode-smoke]
-    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_integration == 'true' }}
+    if: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_integration == 'true') }}
     defaults:
       run:
         working-directory: contracts
@@ -241,7 +204,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: ./.github/actions/checkout-retry
         with:
           submodules: recursive
 
