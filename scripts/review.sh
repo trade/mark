@@ -15,6 +15,15 @@ echo ""
 FAILED=()
 WARNINGS=()
 
+# Detect base ref for diff checks
+BASE_REF=""
+for ref in origin/dev origin/main origin/master; do
+  if git rev-parse --verify --quiet "$ref" >/dev/null 2>&1; then
+    BASE_REF="$ref"
+    break
+  fi
+done
+
 # CodeRabbit review (optional, non-blocking)
 if ! $QUICK_MODE; then
   if command -v coderabbit &>/dev/null; then
@@ -44,7 +53,7 @@ fi
 echo ""
 
 # Circuits tests (if circuits files changed)
-if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q '^circuits/'; then
+if [[ -n "$BASE_REF" ]] && git diff --name-only "$BASE_REF"...HEAD circuits/ 2>/dev/null | grep -q .; then
   echo "⚡ Circuits tests..."
   if ! pnpm -s circuits:test 2>&1; then
     FAILED+=("circuits")
@@ -52,16 +61,8 @@ if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q '^circuits/'; then
   echo ""
 fi
 
-# Contract checks (if contract files changed and mise/foundry available)
+# Contract checks (if contract files changed and forge available)
 if command -v forge &>/dev/null; then
-  BASE_REF=""
-  for ref in origin/dev origin/main origin/master; do
-    if git rev-parse --verify --quiet "$ref" >/dev/null 2>&1; then
-      BASE_REF="$ref"
-      break
-    fi
-  done
-
   if [[ -n "$BASE_REF" ]] && git diff --name-only "$BASE_REF"...HEAD contracts/ 2>/dev/null | grep -q .; then
     echo "⚙️  Contract checks..."
     if ! (cd contracts && make ci-fast 2>&1); then
