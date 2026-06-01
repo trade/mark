@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated docs/DEPLOYMENT.md (Sourcify verification, gas tracker fixes)
 - All GitHub Actions pinned to commit SHAs across 22 workflow files (supply chain hardening)
 - Added least-privilege `permissions` blocks to 14 workflow files (OpenSSF Token-Permissions)
-- CodeRabbit GitHub bot auto-review disabled — local CLI pre-push hook is the enforcement point
+- CodeRabbit configuration and references completely removed — migrated to Greptile for AI PR reviews
 - `staging.env` RPC URL replaced with `MARK_STAGING_RPC_URL` env var (CWE-798)
 - CODEOWNERS paths corrected to `docs/` prefix; removed non-existent `remappings.txt` entry
 - `setup-foundry` and `setup-node-pnpm` composite actions pinned to commit SHAs
