@@ -20,7 +20,7 @@ pre-push:
   commands:
     validate_workflows:
       run: |
-        # Check all changed files since the last push, not just the last commit
+        # Only validate if workflow or mise config files changed
         CHANGED=$(git diff --name-only @{push}..HEAD 2>/dev/null | grep -E '^\.github/workflows/|\.mise\.toml$' || true)
         if [ -z "$CHANGED" ]; then
           # Fallback for first push: check last commit only
@@ -41,6 +41,12 @@ post-merge:
     mise_sync:
       run: |
         if command -v mise >/dev/null 2>&1; then
-          echo "Syncing tool versions after merge..."
-          mise install --quiet 2>/dev/null || mise install
+          # Only sync if .mise.toml changed in this merge
+          CHANGED=$(git diff --name-only ORIG_HEAD HEAD 2>/dev/null | grep -c '\.mise\.toml$' || true)
+          if [ "$CHANGED" -gt 0 ]; then
+            echo "mise config changed, syncing tool versions..."
+            mise install
+          else
+            echo "✓ No mise config changes"
+          fi
         fi
