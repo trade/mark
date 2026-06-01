@@ -27,8 +27,10 @@ jobs:
           python-version: '3.11'
       
       - name: Install Slither
-        run: pip install slither-analyzer==0.11.5
-      
+        run: |
+          pip install uv
+          uv pip install --system slither-analyzer==0.11.5
+
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
       
