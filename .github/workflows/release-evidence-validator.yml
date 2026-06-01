@@ -3,6 +3,7 @@ name: Release Evidence Validator
 on:
   # pull_request_target runs with base-branch permissions so the GITHUB_TOKEN
   # can read PR metadata from forks. No untrusted code is checked out here.
+  # SECURITY: Do NOT add a checkout step for the PR head sha.
   pull_request_target:
     branches:
       - main
