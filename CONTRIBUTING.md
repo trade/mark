@@ -36,8 +36,8 @@ This policy protects the project and community from potential security risks.
 
 3. **Run CI locally before submitting**
    - All contributors must verify their changes pass CI
-   - Run full test suite: `pnpm review` (includes CodeRabbit, lint, typecheck, circuits, contracts)
-   - Quick mode (skip CodeRabbit): `pnpm review:quick`
+   - Run full test suite: `pnpm review` (includes lint, typecheck, circuits, contracts)
+   - Quick mode: `pnpm review:quick`
    - Provide CI verification in PR description
 
 4. **Verify your identity (for code contributions)**

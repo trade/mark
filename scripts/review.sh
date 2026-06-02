@@ -28,20 +28,6 @@ if [[ -z "$BASE_REF" ]]; then
   WARNINGS+=("No base branch found (tried: origin/dev, origin/main, origin/master) — circuits and contract checks skipped")
 fi
 
-# CodeRabbit review (optional, non-blocking)
-if ! $QUICK_MODE; then
-  if command -v coderabbit &>/dev/null; then
-    echo "📊 CodeRabbit analysis..."
-    if ! coderabbit review --plain 2>&1; then
-      WARNINGS+=("CodeRabbit found issues")
-    fi
-    echo ""
-  else
-    echo "⚠️  CodeRabbit CLI not found. Skipping."
-    echo ""
-  fi
-fi
-
 # Linting
 echo "📝 Linting..."
 if ! pnpm -s lint 2>&1; then
