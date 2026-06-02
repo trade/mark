@@ -27,7 +27,7 @@ rules:
     languages: [solidity]
     severity: ERROR
     message: "MARK-CRITICAL: Bridge adapter must not mint. Breaks trust model."
-    pattern: $TOKEN.mint(...);
+    pattern: $TOKEN.mint(...)
     paths:
       include:
         - contracts/src/bridge/**
@@ -64,40 +64,18 @@ rules:
     message: "MARK-HIGH: Use 'signal' for witness data, not 'var'. Var is not constrained."
     pattern: var $X = ...;
     paths:
-      - pattern-not: |
-          $X;
-      - pattern-not: |
-          $X;
-          ...
-          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
-          $Y;
-      - pattern-not: |
-          $X;
-          ...
-          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
-          $Y;
-          ...
-          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
-          $Z;
-      - pattern-not: |
-          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
-          $X;
-          $Y;
-          $Z;
-      - pattern-not: |
-          contracts/src/crypto/generated/PoseidonT3.sol
-  
+      include: [circuits/**]
+
+  # === General Secrets ===
+  # NOTE: pattern-regex cannot be combined with pattern-not at the top level.
+  # Instead we use path-based filtering to exclude generated Poseidon constants.
   - id: mark-hardcoded-private-key
     languages: [solidity, typescript, javascript]
     severity: ERROR
     message: "MARK-CRITICAL: Possible hardcoded private key. Use env var."
     pattern-regex: '0x[a-fA-F0-9]{64}'
-    pattern-not: 0x0000000000000000000000000000000000000000
     paths:
-      exclude: [tests/**, scripts/test/**]
-      include:
-        - 'contracts/**/*.sol'
-        - 'circuits/**/*.js'
-        - 'circuits/**/*.ts'
-        - 'src/**/*.js'
-        - 'src/**/*.ts'
+      exclude:
+        - tests/**
+        - scripts/test/**
+        - contracts/src/crypto/generated/**
