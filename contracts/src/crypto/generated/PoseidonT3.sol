@@ -2,11 +2,17 @@
 pragma solidity ^0.8.25;
 
 library PoseidonT3 {
+    // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
     uint256 constant M00 = 0x109b7f411ba0e4c9b2b70caf5c36a7b194be7c11ad24378bfedb68592ba8118b;
+    // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
     uint256 constant M01 = 0x2969f27eed31a480b9c36c764379dbca2cc8fdd1415c3dded62940bcde0bd771;
+    // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
     uint256 constant M02 = 0x143021ec686a3f330d5f9e654638065ce6cd79e28c5b3753326244ee65a1b1a7;
+    // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
     uint256 constant M10 = 0x16ed41e13bb9c0c66ae119424fddbcbc9314dc9fdbdeea55d6c64543dc4903e0;
+    // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
     uint256 constant M11 = 0x2e2419f9ec02ec394c9871c832963dc1b89d743c8c7b964029b2311687b1fe23;
+    // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
     uint256 constant M12 = 0x176cc029695ad02582a70eff08a6fd99d057e12e58e7d7b6b16cdfabc8ee2911;
 
     // See here for a simplified implementation: https://github.com/vimwitch/poseidon-solidity/blob/e57becdabb65d99fdc586fe1e1e09e7108202d53/contracts/Poseidon.sol#L40

@@ -117,6 +117,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         tree.init(20, _poseidon);
         bytes32 initialRoot = tree.getRoot();
         knownRoots[initialRoot] = true;
+        // nosemgrep: mark-timestamp-in-withdraw - Root timestamp tracking, not ZK proof path
         rootTimestamps[initialRoot] = block.timestamp;
         rootQueue[0] = initialRoot;
         rootQueueHead = 0;
@@ -260,8 +261,10 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     function _pruneRoots(uint256 maxToPrune) internal returns (uint256 pruned) {
         if (maxRootAge == 0 || maxToPrune == 0) return 0;
         // slither-disable-next-line timestamp
+        // nosemgrep: mark-timestamp-in-withdraw - Root age pruning logic, not ZK proof
         if (block.timestamp <= maxRootAge) return 0;
 
+        // nosemgrep: mark-timestamp-in-withdraw - Root age pruning calculation, not ZK proof
         uint256 cutoff = block.timestamp - maxRootAge;
         uint256 head = rootQueueHead;
         uint256 tail = rootQueueTail;
@@ -294,6 +297,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (root == tree.getRoot()) return true;
         if (maxRootAge == 0) return true;
         // slither-disable-next-line timestamp
+        // nosemgrep: mark-timestamp-in-withdraw - Root usability check, not ZK proof path
         return block.timestamp <= rootTimestamps[root] + maxRootAge;
     }
 
@@ -472,6 +476,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             tree.insert(outCommitments[i]);
             bytes32 newRoot = tree.getRoot();
             knownRoots[newRoot] = true;
+            // nosemgrep: mark-timestamp-in-withdraw - Root timestamp tracking, not ZK proof path
             rootTimestamps[newRoot] = block.timestamp;
             rootQueue[tail] = newRoot;
             tail++;
