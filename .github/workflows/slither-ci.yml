@@ -55,6 +55,10 @@ jobs:
         if: failure() && steps.slither.outcome == 'failure' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
+            - name: Post PR comment and fail on findings
+        if: failure() && steps.slither.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
           script: |
             const fs = require('fs');
             const path = 'contracts/slither-report.json';
@@ -93,13 +97,29 @@ jobs:
               return `### ${d.impact}: ${d.check}\n**${file}:${line}**\n> ${d.description}`;
             }).join('\n\n---\n\n');
 
+            // Construct the URL to the Semgrep findings for better context
+            // This assumes the PR run ID is available or can be inferred. If not, fall back.
+            let semgrepFindingsUrl = '';
+            if (context.payload.pull_request && context.payload.pull_request.check_suite) {
+              semgrepFindingsUrl = `${context.payload.pull_request.html_url}/checks?check_suite_id=${context.payload.pull_request.check_suite.id}`;
+            } else {
+              semgrepFindingsUrl = context.payload.pull_request.html_url; // Fallback
+            }
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🔍 Slither Security Findings\n\n**${findings.length} High/Medium severity issue(s) found**\n\n${md}\n\n[View full report](${context.payload.pull_request.html_url}/checks)`
+              body: `## 🔍 Slither Security Findings\n\n**${findings.length} High/Medium severity issue(s) found**\n\n${md}\n\n[View full report](${semgrepFindingsUrl})`
             });
             core.setFailed(`Slither found ${findings.length} security issues`);
+
+      - name: Fail job if Slither failed
+        if: failure() && steps.slither.outcome == 'failure'
+        run: |
+          echo "::error::Slither analysis failed - see previous steps for details"
+          exit 1
+
 
       - name: Fail job if Slither failed
         if: failure() && steps.slither.outcome == 'failure'
