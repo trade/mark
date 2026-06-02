@@ -44,13 +44,14 @@ bash: pnpm: command not found
    pnpm --version  # Should show 9.0.2+
    ```
 
-2. **Install pnpm manually** (fallback):
+2. **Install pnpm via mise** (project standard):
    ```bash
-   npm install -g pnpm@9.0.2
+   # mise manages pnpm version per .mise.toml
+   mise install pnpm
    
    # Verify
    which pnpm
-   pnpm --version
+   pnpm --version  # Should show 9.0.2
    ```
 
 3. **Update PATH**:
@@ -188,11 +189,11 @@ sup: command not found
 **Solutions**:
 
 ```bash
-# Install super-cli (via npm)
-npm install -g @eth-optimism/super-cli
-
-# Or via pnpm
+# Install super-cli via pnpm (dev tooling)
 pnpm add -g @eth-optimism/super-cli
+
+# Or use the bootstrap script which installs all tools:
+./scripts/bootstrap.sh
 
 # Verify
 sup --version

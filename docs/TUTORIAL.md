@@ -1,5 +1,13 @@
 # MARK Protocol Tutorial: End-to-End Transaction Flow
 
+> **WARNING: This tutorial is currently outdated and contains incorrect contract addresses and function names.**
+> 
+> The commands below reference a registry contract architecture that does not exist in the current codebase. The actual contract functions are different (e.g., `bridgeTo()` instead of `deposit()`, `settleMint()`/`settleBurn()` instead of `settleWithAttestedProof()`).
+> 
+> **Do not follow this tutorial until it is rewritten.** For current contract interfaces, see the contract source code in `contracts/src/`.
+> 
+> Last verified: 2026-06-02
+
 This tutorial walks you through a complete transaction flow on the MARK Protocol using the local development environment.
 
 ## Prerequisites
