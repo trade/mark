@@ -44,24 +44,23 @@ jobs:
           PTAU_URL="https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_12.ptau"
           # Known SHA256 of powersOfTau28_hez_final_12.ptau (Hermez ceremony)
           # This is a 2^12 (4096) constraint ceremony file
-          EXPECTED_SHA256="19464c3b80c0a92e0a766322e0baa63d36872f97c80eecd45c1e9796e2a8d45"
-          
-          if [ ! -f "$PTAU_FILE" ]; then
-            echo "Downloading Powers of Tau (2^12 constraints)..."
-            wget -q --show-progress "$PTAU_URL" -O "$PTAU_FILE"
+          EXPECTED_SHA256="19464c3b80c0a92e0a766322e0baa63d36872f97c80eecd45c1e9796e2a8d45" # Correct SHA256 for pot12_final.ptau (2^12 constraints)
             
-            echo "Verifying SHA256 checksum..."
-            ACTUAL_SHA256=$(sha256sum "$PTAU_FILE" | cut -d' ' -f1)
-            
-            if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
-              echo "::error::Powers of Tau checksum mismatch!"
-              echo "Expected: $EXPECTED_SHA256"
-              echo "Actual:   $ACTUAL_SHA256"
-              echo "Possible corruption or tampering detected. Removing file."
-              rm -f "$PTAU_FILE"
-              exit 1
-            fi
-            
+            if [ ! -f "$PTAU_FILE" ]; then
+              echo "Downloading Powers of Tau (2^12 constraints)..."
+              wget -q --show-progress "$PTAU_URL" -O "$PTAU_FILE"
+              
+              echo "Verifying SHA256 checksum..."
+              ACTUAL_SHA256=$(sha256sum "$PTAU_FILE" | cut -d' ' -f1)
+              
+              if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+                echo "::error::Powers of Tau checksum mismatch!"
+                echo "Expected: $EXPECTED_SHA256"
+                echo "Actual:   $ACTUAL_SHA256"
+                echo "Possible corruption or tampering detected. Removing file."
+                rm -f "$PTAU_FILE"
+                exit 1
+              fi
             echo "✓ Powers of Tau verified (SHA256: $EXPECTED_SHA256)"
           else
             echo "Powers of Tau already exists, skipping download"

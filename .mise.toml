@@ -14,6 +14,7 @@ rust = "1.80.0"
 _.python.venv = { path = ".venv", create = true }
 FOUNDRY_PROFILE = "ci"
 OP_SEPOLIA_RPC = "https://sepolia.optimism.io"  # Override with your own RPC in ~/.mise.local.toml
+FOUNDRY_COMPILER_SETTINGS = "nightly"
 
 [tasks.setup]
 description = "Full project setup: deps + toolchains + circuits"

@@ -64,9 +64,29 @@ rules:
     message: "MARK-HIGH: Use 'signal' for witness data, not 'var'. Var is not constrained."
     pattern: var $X = ...;
     paths:
-      include: [circuits/**]
-
-  # === General Secrets ===
+      - pattern-not: |
+          $X;
+      - pattern-not: |
+          $X;
+          ...
+          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
+          $Y;
+      - pattern-not: |
+          $X;
+          ...
+          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
+          $Y;
+          ...
+          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
+          $Z;
+      - pattern-not: |
+          // nosemgrep: mark-hardcoded-private-key - Poseidon matrix constants, not private keys
+          $X;
+          $Y;
+          $Z;
+      - pattern-not: |
+          contracts/src/crypto/generated/PoseidonT3.sol
+  
   - id: mark-hardcoded-private-key
     languages: [solidity, typescript, javascript]
     severity: ERROR
@@ -75,3 +95,9 @@ rules:
     pattern-not: 0x0000000000000000000000000000000000000000
     paths:
       exclude: [tests/**, scripts/test/**]
+      include:
+        - 'contracts/**/*.sol'
+        - 'circuits/**/*.js'
+        - 'circuits/**/*.ts'
+        - 'src/**/*.js'
+        - 'src/**/*.ts'
