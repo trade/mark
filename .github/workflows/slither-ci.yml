@@ -5,15 +5,15 @@ on:
     paths:
       - 'contracts/**/*.sol'
       - 'contracts/slither.config.json'
-      - '.github/workflows/slither.yml'
+      - '.github/workflows/slither-ci.yml'
   push:
     branches: [dev, main]
     paths: ['contracts/**/*.sol']
 
 permissions:
   contents: read
-  pull-requests: write # for comments
-  checks: write # for annotations
+  pull-requests: write
+  checks: write
 
 jobs:
   slither:
@@ -39,8 +39,6 @@ jobs:
         id: slither
         run: |
           cd contracts
-          # Uses contracts/slither.config.json for all rules
-          # Fails job on High/Medium per fail_on config
           uv run slither . --config-file slither.config.json --json slither-report.json 2>&1 | tee slither-output.log
         shell: bash
 
@@ -55,10 +53,6 @@ jobs:
         if: failure() && steps.slither.outcome == 'failure' && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
-            - name: Post PR comment and fail on findings
-        if: failure() && steps.slither.outcome == 'failure' && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
           script: |
             const fs = require('fs');
             const path = 'contracts/slither-report.json';
@@ -68,7 +62,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## ❌ Slither Analysis Failed\n\nSlither failed to generate a report. Check the workflow logs for compilation errors or configuration issues.`
+                body: '## ❌ Slither Analysis Failed\n\nSlither failed to generate a report. Check the workflow logs for compilation errors or configuration issues.'
               });
               core.setFailed('Slither failed without generating report');
               return;
@@ -79,12 +73,11 @@ jobs:
               .filter(d => d.impact === 'High' || d.impact === 'Medium');
 
             if (findings.length === 0) {
-              // Slither failed but no High/Medium findings - likely infra/config error
               await github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## ⚠️ Slither Infrastructure Issue\n\nSlither encountered an error. Check workflow logs.`
+                body: '## ⚠️ Slither Infrastructure Issue\n\nSlither encountered an error. Check workflow logs.'
               });
               core.setFailed('Slither infrastructure failure');
               return;
@@ -97,29 +90,13 @@ jobs:
               return `### ${d.impact}: ${d.check}\n**${file}:${line}**\n> ${d.description}`;
             }).join('\n\n---\n\n');
 
-            // Construct the URL to the Semgrep findings for better context
-            // This assumes the PR run ID is available or can be inferred. If not, fall back.
-            let semgrepFindingsUrl = '';
-            if (context.payload.pull_request && context.payload.pull_request.check_suite) {
-              semgrepFindingsUrl = `${context.payload.pull_request.html_url}/checks?check_suite_id=${context.payload.pull_request.check_suite.id}`;
-            } else {
-              semgrepFindingsUrl = context.payload.pull_request.html_url; // Fallback
-            }
-
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## 🔍 Slither Security Findings\n\n**${findings.length} High/Medium severity issue(s) found**\n\n${md}\n\n[View full report](${semgrepFindingsUrl})`
+              body: `## 🔍 Slither Security Findings\n\n**${findings.length} High/Medium severity issue(s) found**\n\n${md}\n\n[View full report](${context.payload.pull_request.html_url}/checks)`
             });
             core.setFailed(`Slither found ${findings.length} security issues`);
-
-      - name: Fail job if Slither failed
-        if: failure() && steps.slither.outcome == 'failure'
-        run: |
-          echo "::error::Slither analysis failed - see previous steps for details"
-          exit 1
-
 
       - name: Fail job if Slither failed
         if: failure() && steps.slither.outcome == 'failure'
