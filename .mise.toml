@@ -13,6 +13,7 @@ rust = "1.80.0"
 [env]
 _.python.venv = { path = ".venv", create = true }
 FOUNDRY_PROFILE = "ci"
+OP_SEPOLIA_RPC = "https://sepolia.optimism.io"  # Override with your own RPC in ~/.mise.local.toml
 
 [tasks.setup]
 description = "Full project setup: deps + toolchains + circuits"
@@ -69,7 +70,7 @@ run = [
 
 [tasks.circomspect]
 description = "Static analysis for all circuits"
-run = "circomspect circuits/ --warn unused_signals,unconstrained_signals,non_deterministic_circuits"
+run = "circomspect circuits/ --error unused_signals,unconstrained_signals,non_deterministic_circuits"
 
 # === Testing/CI Tasks ===
 [tasks.test]
@@ -105,6 +106,13 @@ run = [
 description = "Test 1-block reorg double-spend protection"
 run = "cd contracts && forge test --match-test testReorgDoubleSpend --fork-url $OP_SEPOLIA_RPC -vvv"
 
+[tasks.zk-proof-tests]
+description = "ZK proof soundness and completeness tests"
+run = [
+  "cd circuits && pnpm run test:soundness",
+  "cd circuits && pnpm run test:completeness"
+]
+
 [tasks.slither]
 description = "Run Slither static analysis"
 run = "cd contracts && uv run slither . --config-file slither.config.json"
@@ -121,7 +129,7 @@ run = [
   "echo 'Cleaning circuits...'",
   "rm -rf circuits/build circuits/node_modules",
   "echo 'Cleaning frontend...'",
-  "rm -rf node_modules dist.packages/*/dist",
+  "rm -rf node_modules dist packages/*/dist",
   "echo 'Cleaning python...'",
   "rm -rf .venv",
   "echo 'Cleaning mise...'",
@@ -129,10 +137,10 @@ run = [
   "echo 'Done. Run mise run setup to rebuild.'"
 ]
 
-[tasks.clean:contracts]
+[tasks."clean:contracts"]
 description = "Clean contracts only"
 run = "rm -rf contracts/out contracts/cache contracts/broadcast"
 
-[tasks.clean:circuits]
+[tasks."clean:circuits"]
 description = "Clean circuits + zkeys only"
 run = "rm -rf circuits/build"

@@ -173,7 +173,9 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         if (ownerSignature.length == 0) revert MissingOwnerSignature();
         if (intentSignature.length == 0) revert MissingIntentSignature();
         if (deadline == 0) revert InvalidIntentDeadline();
+        // nosemgrep: mark-timestamp-in-withdraw - Deadline validation, not in ZK proof circuit
         if (deadline < block.timestamp) revert IntentExpired();
+        // nosemgrep: mark-timestamp-in-withdraw - Deadline validation, not in ZK proof circuit
         if (deadline - block.timestamp > maxIntentValidity) revert IntentExceedsMaxValidity();
         if (address(this).balance < amount) revert InsufficientLiquidity();
         if (nonce != withdrawNonce[creditOwner]) revert NonceMismatch();

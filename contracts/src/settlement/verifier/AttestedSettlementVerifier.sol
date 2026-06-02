@@ -75,6 +75,7 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
         if (proof.length != 160) return false;
 
         Attestation memory att = abi.decode(proof, (Attestation));
+        // nosemgrep: mark-timestamp-in-withdraw - Deadline validation only, not in ZK proof path
         if (att.deadline < block.timestamp) return false;
 
         bytes32 digest =
