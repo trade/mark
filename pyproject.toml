@@ -1,0 +1,58 @@
+# pyproject.toml — MARK Protocol Python tooling
+# Managed by uv. Do not use pip directly.
+
+[project]
+name = "mark-security-tools"
+version = "0.1.0"
+description = "Static analysis + security tooling for MARK Protocol ZK UTXO pool"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+  { name = "MARK Protocol" }
+]
+dependencies = [
+  # Solidity static analysis
+  "slither-analyzer==0.11.5",
+
+  # Custom security rules + secrets scanning
+  "semgrep==1.90.0",
+
+  # For circuit test orchestration if you write python tests
+  "pytest==8.3.3",
+  "pytest-xdist==3.6.1", # parallel tests
+]
+
+# Lock all deps. Run `uv lock` to generate uv.lock
+[tool.uv]
+dev-dependencies = [
+  # Extra tools for local dev only, not CI
+  "ipython==8.28.0", # for debugging
+  "pre-commit==4.0.1",
+]
+
+# Slither config so it matches AGENTS.md rules
+[tool.slither]
+solc-version = "0.8.24"
+filter-paths = ["test", "script", "lib"]
+exclude-dependencies = true
+exclude-informational = true
+exclude-low = false # Keep low severity for MARK
+
+# Semgrep runs via CLI, but we pin version here
+[tool.semgrep]
+config = [
+  "auto",
+  "p/security-audit",
+  "p/secrets",
+  "./.semgrep.yml"
+]
+
+# Pytest config if you add python tests for circuits
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

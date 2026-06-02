@@ -1,0 +1,51 @@
+{
+  "filter_paths": [
+    "lib",
+    "test",
+    "script",
+    "node_modules",
+    "out",
+    "broadcast",
+    "cache"
+  ],
+  "detectors_to_exclude": [
+    "naming-convention",
+    "solc-version",
+    "external-function",
+    "low-level-calls"
+  ],
+  "detectors_to_run": [
+    "reentrancy-eth",
+    "reentrancy-no-eth", 
+    "arbitrary-send-eth",
+    "controlled-delegatecall",
+    "unchecked-transfer",
+    "incorrect-equality",
+    "locked-ether",
+    "shadowing-state",
+    "suicidal",
+    "uninitialized-state",
+    "uninitialized-storage",
+    "arbitrary-send-erc20",
+    "assembly"
+  ],
+  "checklist": false,
+  "exclude_informational": true,
+  "exclude_low": false,
+  "exclude_medium": false,
+  "exclude_high": false,
+  "json": "slither-report.json",
+  "solc_remaps": [
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "forge-std/=lib/forge-std/src/",
+    "solady/=lib/solady/src/"
+  ],
+  "foundry_compile": true,
+  "fail_on": {
+    "high": true,
+    "medium": true,
+    "low": false,
+    "informational": false,
+    "optimization": false
+  }
+}

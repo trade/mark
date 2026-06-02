@@ -1,65 +1,45 @@
 version: 2
 updates:
-  - package-ecosystem: 'github-actions'
+    - package-ecosystem: 'github-actions'
     directory: '/'
     target-branch: 'dev'
     schedule:
       interval: 'weekly'
-      day: 'monday'
-      time: '03:00'
-      timezone: 'UTC'
     open-pull-requests-limit: 5
-    labels:
-      - 'dependencies'
-      - 'ci'
+    labels: ['dependencies', 'ci']
     commit-message:
       prefix: 'chore(deps)'
 
-  - package-ecosystem: 'npm'
+    - package-ecosystem: 'npm'
     directory: '/circuits'
     target-branch: 'dev'
     schedule:
       interval: 'weekly'
-      day: 'monday'
-      time: '03:45'
-      timezone: 'UTC'
     open-pull-requests-limit: 3
-    labels:
-      - 'dependencies'
-      - 'circuits'
-      - 'security'
+    labels: ['dependencies', 'circuits', 'security']
     commit-message:
       prefix: 'chore(deps)'
 
-  - package-ecosystem: 'npm'
+    - package-ecosystem: 'npm'
     directory: '/'
     target-branch: 'dev'
     schedule:
       interval: 'weekly'
-      day: 'monday'
-      time: '03:30'
-      timezone: 'UTC'
     open-pull-requests-limit: 10
-    labels:
-      - 'dependencies'
-      - 'frontend'
-      - 'security'
-    allow:
-      - dependency-type: 'direct'
-      - dependency-type: 'indirect'
+    labels: ['dependencies', 'frontend', 'security']
     groups:
       frontend-minor-patch:
-        update-types:
-          - 'minor'
-          - 'patch'
+        update-types: ['minor', 'patch']
     commit-message:
       prefix: 'chore(deps)'
-    ignore:
-      # Transitive deps from @eth-optimism/super-cli (dev/deploy tool, not runtime).
-      # No upstream fix available — re-evaluate when super-cli bumps these packages.
-      - dependency-name: '@hono/node-server'
-        versions: ['<= 1.13.8']
-      - dependency-name: 'drizzle-orm'
-        versions: ['<= 0.38.4']
-      - dependency-name: '@stablelib/ed25519'
-        versions: ['<= 1.0.3']
+    # DELETE the ignore block after you remove super-cli
+
+  # ADD THIS: Updates for Foundry libs
+    - package-ecosystem: 'git-submodule'
+    directory: '/'
+    target-branch: 'dev'
+    schedule:
+      interval: 'weekly'
+    labels: ['dependencies', 'contracts']
+    commit-message:
+      prefix: 'chore(deps)'
