@@ -27,6 +27,7 @@ test/
 
 # Generated code
 contracts/src/pool/verifier/
+contracts/src/crypto/generated/
 circuits/build/
 
 # Docs
