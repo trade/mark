@@ -24,6 +24,9 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `frontend-checks / Frontend Checks (Node 24)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
+  - `circomspect / Circom Static Analysis`
+  - `zk-proof-tests / ZK Circuit Tests`
+  - `reorg-sim / 1-Block Reorg Simulation`
 - Optional additional checks (recommended but not globally required):
   - `Contracts Unit + Invariant`
   - `Contracts Env Guard`
@@ -53,6 +56,9 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
   - `frontend-checks / Frontend Checks (Node 24)`
+  - `circomspect / Circom Static Analysis`
+  - `zk-proof-tests / ZK Circuit Tests`
+  - `reorg-sim / 1-Block Reorg Simulation`
 - Optional additional checks (recommended but not globally required):
   - `Contracts Unit + Invariant`
   - `Contracts Env Guard`
