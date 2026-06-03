@@ -181,7 +181,10 @@ DEV_CHECKS_JSON='[
   "slither-core / Slither Core Contracts",
   "frontend-checks / Frontend Checks (Node 24)",
   "Detect Secrets Drift",
-  "Release Gate Container"
+  "Release Gate Container",
+  "circomspect / Circom Static Analysis",
+  "zk-proof-tests / Proof Soundness + Completeness",
+  "reorg-sim / L2 Reorg Double-Spend Test"
 ]'
 MAIN_CHECKS_JSON='[
   "Analyze (javascript-typescript)",
@@ -195,7 +198,10 @@ MAIN_CHECKS_JSON='[
   "Detect Secrets Drift",
   "Release Gate Container",
   "Validate Release PR Checklist",
-  "Validate Release Evidence"
+  "Validate Release Evidence",
+  "circomspect / Circom Static Analysis",
+  "zk-proof-tests / Proof Soundness + Completeness",
+  "reorg-sim / L2 Reorg Double-Spend Test"
 ]'
 
 MAINTAINERS_TEAM_SLUG="maintainers"

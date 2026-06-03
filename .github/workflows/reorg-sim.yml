@@ -1,0 +1,92 @@
+name: reorg-sim
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/src/pool/**'
+      - 'contracts/test/**/*Reorg*.t.sol'
+      - 'contracts/test/**/*reorg*.t.sol'
+      - '.github/workflows/reorg-sim.yml'
+  push:
+    branches: [dev, main]
+    paths: ['contracts/src/pool/**']
+  schedule:
+    - cron: '0 4 * * *' # Nightly at 4am UTC
+
+permissions:
+  contents: read
+
+jobs:
+  reorg-test:
+    name: 1-Block Reorg Simulation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Skip on forks without secrets access
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.1.7
+        with:
+          submodules: recursive
+
+      - name: Install mise
+        uses: jdx/mise-action@63a424527440f26bb8463e396d1e4e5e9f57a3a2 # v2.0.0
+        with:
+          install: true
+          cache: true
+
+      - name: Setup
+        run: mise install
+
+      - name: Check for RPC secret
+        id: check-rpc
+        run: |
+          if [ -z "${{ secrets.OP_SEPOLIA_RPC }}" ]; then
+            echo "::warning::OP_SEPOLIA_RPC secret not available"
+            echo "has_secret=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_secret=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run reorg double-spend test
+        if: steps.check-rpc.outputs.has_secret == 'true'
+        run: |
+          set -euo pipefail
+          cd contracts
+
+          echo "Running reorg simulation against OP Sepolia fork..."
+
+          # Run reorg tests once. Capture output and exit code separately.
+          # --match-pattern is case-insensitive for test function names.
+          OUTPUT=$(forge test --match-pattern 'testReorg.*' --fork-url "${{ secrets.OP_SEPOLIA_RPC }}" --fork-block-number 18000000 -vvv 2>&1) && STATUS=0 || STATUS=$?
+
+          echo "$OUTPUT"
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Reorg test failed with exit code $STATUS. NULLIFIER REPLAY DETECTED."
+            echo "This indicates a critical vulnerability: 1-block L2 reorg can cause double-spend."
+            exit 1
+          fi
+
+          # Additional check: ensure no FAILURES string appeared in output
+          if echo "$OUTPUT" | grep -q "FAILURES"; then
+            echo "::error::Reorg test output contains FAILURES. NULLIFIER REPLAY DETECTED."
+            exit 1
+          fi
+
+          echo "✓ Reorg tests passed."
+        env:
+          OP_SEPOLIA_RPC: ${{ secrets.OP_SEPOLIA_RPC }}
+
+      - name: Skip reorg test (no secret)
+        if: steps.check-rpc.outputs.has_secret != 'true'
+        run: |
+          echo "::warning::Skipping reorg test — OP_SEPOLIA_RPC secret not available"
+          echo "This is expected for PRs from forks. Nightly scheduled runs will execute this test."
+
+      - name: Check for pool drain
+        if: failure()
+        run: |
+          echo "::error::REORG TEST FAILED — Double spend possible. Nullifier logic broken."
+          echo "This indicates a critical vulnerability: 1-block L2 reorg can cause double-spend."
+          exit 1
