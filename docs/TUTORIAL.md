@@ -224,4 +224,4 @@ You've successfully:
 This demonstrates the core MARK Protocol flow: private, verifiable transfers between chains using zero-knowledge technology and Superchain infrastructure.
 
 ---
-*Last updated: 2025-06-01*
+*Last updated: 2026-06-02*
