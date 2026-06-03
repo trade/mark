@@ -68,8 +68,8 @@ Use this matrix as the merge baseline.
 - `Contracts Production Mode Smoke`
 - `slither-core / Slither Core Contracts`
 - `circomspect / Circom Static Analysis`
-- `zk-proof-tests / Proof Soundness + Completeness`
-- `reorg-sim / L2 Reorg Double-Spend Test`
+- `zk-proof-tests / ZK Circuit Tests`
+- `reorg-sim / 1-Block Reorg Simulation`
 - `frontend-checks / Frontend Checks (Node 24)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
@@ -85,8 +85,8 @@ Use this matrix as the merge baseline.
 - `Contracts Production Mode Smoke`
 - `slither-core / Slither Core Contracts`
 - `circomspect / Circom Static Analysis`
-- `zk-proof-tests / Proof Soundness + Completeness`
-- `reorg-sim / L2 Reorg Double-Spend Test`
+- `zk-proof-tests / ZK Circuit Tests`
+- `reorg-sim / 1-Block Reorg Simulation`
 - `frontend-checks / Frontend Checks (Node 24)`
 - `Validate Release PR Checklist`
 - `Validate Release Evidence`
@@ -113,9 +113,11 @@ Apply these repository settings:
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
   - `circomspect / Circom Static Analysis`
-  - `zk-proof-tests / Proof Soundness + Completeness`
-  - `reorg-sim / L2 Reorg Double-Spend Test`
+  - `zk-proof-tests / ZK Circuit Tests`
+  - `reorg-sim / 1-Block Reorg Simulation`
   - `frontend-checks / Frontend Checks (Node 24)`
+  - `Detect Secrets Drift`
+  - `Release Gate Container`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
 - Require at least 1-2 approvals.
@@ -134,9 +136,11 @@ Apply these repository settings:
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
   - `circomspect / Circom Static Analysis`
-  - `zk-proof-tests / Proof Soundness + Completeness`
-  - `reorg-sim / L2 Reorg Double-Spend Test`
+  - `zk-proof-tests / ZK Circuit Tests`
+  - `reorg-sim / 1-Block Reorg Simulation`
   - `frontend-checks / Frontend Checks (Node 24)`
+  - `Detect Secrets Drift`
+  - `Release Gate Container`
 
 Notes:
 

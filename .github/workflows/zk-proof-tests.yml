@@ -2,13 +2,12 @@ name: zk-proof-tests
 
 on:
   pull_request:
-    paths:
-      - 'circuits/**'
-      - 'contracts/src/pool/verifier/**'
-      - '.github/workflows/zk-proof-tests.yml'
   push:
     branches: [dev, main]
-    paths: ['circuits/**']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -22,21 +21,42 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.1.7
         with:
+          fetch-depth: 0
           submodules: recursive
 
+      - name: Check for circuit/verifier changes
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          BASE="origin/${{ github.base_ref }}"
+          CHANGED=$(git diff --name-only "$BASE"...HEAD | grep -cE '(circuits/|contracts/src/pool/verifier/)' || true)
+          if [ "$CHANGED" -gt 0 ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          else
+            echo "run=false" >> $GITHUB_OUTPUT
+            echo "No circuit/verifier files changed, skipping ZK proof tests"
+          fi
+
       - name: Install mise
+        if: steps.check.outputs.run == 'true'
         uses: jdx/mise-action@63a424527440f26bb8463e396d1e4e5e9f57a3a2 # v2.0.0
         with:
           install: true
           cache: true
 
       - name: Setup project
+        if: steps.check.outputs.run == 'true'
         run: mise run setup
 
       - name: Compile circuits + export verifiers
+        if: steps.check.outputs.run == 'true'
         run: mise run circuit
 
       - name: Test completeness
+        if: steps.check.outputs.run == 'true'
         run: |
           cd circuits
           # Checks: valid witness -> valid proof -> verifier returns true
@@ -44,6 +64,7 @@ jobs:
           pnpm run test:completeness
 
       - name: Test soundness
+        if: steps.check.outputs.run == 'true'
         run: |
           cd circuits
           # Checks: invalid witness -> proof generation fails OR verifier returns false
@@ -52,6 +73,7 @@ jobs:
           pnpm run test:soundness
 
       - name: Forge test Solidity verifier
+        if: steps.check.outputs.run == 'true'
         run: |
           cd contracts
           # Test the exported Solidity verifier contract integrates correctly

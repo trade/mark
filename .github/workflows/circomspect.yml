@@ -2,13 +2,12 @@ name: circomspect
 
 on:
   pull_request:
-    paths:
-      - 'circuits/**/*.circom'
-      - 'circuits/**/*.js'
-      - '.github/workflows/circomspect.yml'
   push:
     branches: [dev, main]
-    paths: ['circuits/**/*.circom']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -23,43 +22,52 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.1.7
+        with:
+          fetch-depth: 0
+
+      - name: Check for circuit changes
+        id: check
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          BASE="origin/${{ github.base_ref }}"
+          CHANGED=$(git diff --name-only "$BASE"...HEAD | grep -cE '\.(circom|js)$' || true)
+          if [ "$CHANGED" -gt 0 ]; then
+            echo "run=true" >> $GITHUB_OUTPUT
+          else
+            echo "run=false" >> $GITHUB_OUTPUT
+            echo "No circuit files changed, skipping circomspect"
+          fi
 
       - name: Install mise
+        if: steps.check.outputs.run == 'true'
         uses: jdx/mise-action@63a424527440f26bb8463e396d1e4e5e9f57a3a2 # v2.0.0
         with:
           install: true
           cache: true
 
       - name: Setup toolchain
+        if: steps.check.outputs.run == 'true'
         run: mise install
 
       - name: Run circomspect
+        if: steps.check.outputs.run == 'true'
         run: |
           set -euo pipefail
-          
-          # Fails on unconstrained signals, unused signals, non-deterministic circuits
-          # These are silent exploits in ZK — must be treated as errors
           echo "Running circomspect static analysis..."
-          
-          # Use --error to fail on issues, not just --warn
           circomspect circuits/ \
             --error unused_signals \
             --error unconstrained_signals \
             --error non_deterministic_circuits \
             --sarif circomspect.sarif \
             2>&1 | tee circomspect-output.log
-          
-          echo "Circomspect passed — no circuit vulnerabilities found"
+          echo "Circomspect passed, no circuit vulnerabilities found"
 
       - name: Upload SARIF to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@8f596b4ae3cb3c588a5c46780b86dd53c0c6389 # v3.25.15
+        if: always() && steps.check.outputs.run == 'true'
+        uses: github/codeql-action/upload-sarif@51313611dfbc5bd21517390ab8e8517fd8363fb1 # v3.25.15
         with:
           sarif_file: circomspect.sarif
           category: circomspect
-
-      - name: Fail on circomspect findings
-        if: failure()
-        run: |
-          echo "::error::Circomspect found circuit vulnerabilities. See SARIF upload and logs."
-          exit 1
