@@ -43,10 +43,9 @@ rules:
     severity: ERROR
     message: "MARK-HIGH: block.timestamp in withdraw path is nondeterministic. Breaks ZK proof."
     pattern: block.timestamp
-    pattern-inside: |
-      function withdraw(...) {
-        ...
-      }
+    paths:
+      include:
+        - contracts/src/withdraw/**
 
   # === Circom Rules ===
   - id: mark-unconstrained-circom-signal
