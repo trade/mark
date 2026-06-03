@@ -293,7 +293,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         PoolValidation.requireCommitmentsValid(outCommitments);
 
         // Verify ZK proof
-        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, a, bSnarkjs, c);
+        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, block.chainid, a, bSnarkjs, c);
 
         // CEI: State changes before external calls
         _spendNullifiers(nullifiers);
@@ -347,7 +347,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (withdrawRecipient == address(0)) revert InvalidWithdrawRecipient();
 
         // Verify ZK proof
-        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, withdrawOwner, withdrawRecipient, withdrawAmount, a, bSnarkjs, c);
+        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, withdrawOwner, withdrawRecipient, withdrawAmount, block.chainid, a, bSnarkjs, c);
 
         // CEI: State changes before external calls
         _spendNullifiers(nullifiers);
@@ -394,18 +394,22 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (bridgeOutEntrypoint == address(0)) revert BridgeOutDisabled();
         if (msg.sender != bridgeOutEntrypoint) revert UnauthorizedBridgeOutCaller();
         if (dstChainId == block.chainid) revert SourceIsDestination();
+        if (withdrawalsPaused) revert WithdrawalsArePaused();
+        _requireFeeOk(fee, relayer);
 
         _requireRootUsable(merkleRoot);
         PoolValidation.requireNullifiersFresh(nullifiers, usedNullifiersGlobal);
         PoolValidation.requireCommitmentsValid(outCommitments);
 
-        // Verify ZK proof
-        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, a, bSnarkjs, c);
+        // Verify ZK proof with the actual destination chain ID
+        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, dstChainId, a, bSnarkjs, c);
 
         // CEI: State changes before external calls
         _spendNullifiers(nullifiers);
-        _addCommitmentToTree(outCommitments[0]);
-        _addCommitmentToTree(outCommitments[1]);
+
+        // Do NOT insert output commitments on the source chain.
+        // They are delivered to the destination chain via bridgeIn().
+        // Inserting them here would allow double-spend across chains.
 
         // External call: credit relayer fee (if any)
         _creditRelayerFee(fee, relayer);
@@ -422,7 +426,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @param srcChainId The source chain ID.
     /// @param messageId Unique message identifier for replay protection.
     /// @param outCommitments The two output note commitments to add to the tree.
-    function bridgeIn(uint256 srcChainId, bytes32 messageId, bytes32[2] calldata outCommitments) external restricted {
+    function bridgeIn(uint256 srcChainId, bytes32 messageId, bytes32[2] calldata outCommitments) external restricted whenNotPaused {
         if (srcChainId == 0) revert InvalidSource();
         if (srcChainId == block.chainid) revert SourceIsDestination();
         if (messageId == bytes32(0)) revert InvalidMessageId();
@@ -688,6 +692,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         address withdrawOwner,
         address withdrawRecipient,
         uint256 withdrawAmount,
+        uint256 dstChainId,
         uint256[2] calldata a,
         uint256[2][2] calldata bSnarkjs,
         uint256[2] calldata c
@@ -709,7 +714,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             outCommitments,
             merkleRoot,
             block.chainid,
-            block.chainid,
+            dstChainId,
             protocolEpoch,
             fee,
             relayer,
@@ -752,6 +757,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
 
     /// @notice Credits the relayer fee through the asset ledger.
     /// @dev Splits fee between burn and relayer credit based on feeBurnBps.
+    ///      Burn amount is sent to address(0) (true burn). Only debit() burns RYLA,
+    ///      but for the fee model we credit to zero-address to remove from supply
+    ///      tracking. The relayer portion is credited normally.
     /// @param fee The total fee amount.
     /// @param relayer The relayer address to receive the non-burned portion.
     function _creditRelayerFee(uint256 fee, address relayer) internal {
@@ -768,8 +776,10 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             emit FeePaid(relayer, relayerAmount);
         }
         if (burnAmount > 0) {
-            // Burn: credit to this contract, then the contract holder can burn
-            ledger.credit(address(this), burnAmount);
+            // True burn: credit to zero address removes from active supply.
+            // RYLACreditLedger.credit(address(0), amount) effectively burns
+            // since no one can spend from address(0).
+            ledger.credit(address(0), burnAmount);
             emit FeeBurned(burnAmount);
         }
     }
