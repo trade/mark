@@ -393,6 +393,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     ) external whenNotPaused nonReentrant {
         if (bridgeOutEntrypoint == address(0)) revert BridgeOutDisabled();
         if (msg.sender != bridgeOutEntrypoint) revert UnauthorizedBridgeOutCaller();
+        if (dstChainId == 0) revert InvalidDestination();
         if (dstChainId == block.chainid) revert SourceIsDestination();
         if (withdrawalsPaused) revert WithdrawalsArePaused();
         _requireFeeOk(fee, relayer);
@@ -757,9 +758,11 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
 
     /// @notice Credits the relayer fee through the asset ledger.
     /// @dev Splits fee between burn and relayer credit based on feeBurnBps.
-    ///      Burn amount is sent to address(0) (true burn). Only debit() burns RYLA,
-    ///      but for the fee model we credit to zero-address to remove from supply
-    ///      tracking. The relayer portion is credited normally.
+    ///      The relayer portion is credited via ledger.credit (mints RYLA to relayer).
+    ///      The burn portion is NOT credited to any address -- it is simply not minted,
+    ///      effectively removing it from supply. We track _totalBurned for accounting.
+    ///      RYLACreditLedger.credit() always calls TOKEN.mint(), so we cannot use it
+    ///      for burns (mint to address(0) reverts in RYLA.mint).
     /// @param fee The total fee amount.
     /// @param relayer The relayer address to receive the non-burned portion.
     function _creditRelayerFee(uint256 fee, address relayer) internal {
@@ -776,10 +779,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             emit FeePaid(relayer, relayerAmount);
         }
         if (burnAmount > 0) {
-            // True burn: credit to zero address removes from active supply.
-            // RYLACreditLedger.credit(address(0), amount) effectively burns
-            // since no one can spend from address(0).
-            ledger.credit(address(0), burnAmount);
+            // Do NOT call ledger.credit(address(0), ...) -- RYLA.mint reverts on zero address.
+            // The burn is implicit: the fee was collected but only relayerAmount is minted.
+            // The burnAmount is effectively removed from supply.
             emit FeeBurned(burnAmount);
         }
     }
