@@ -1,0 +1,61 @@
+# Dependency Review configuration
+# https://github.com/actions/dependency-review-action#configuration
+#
+# This file is referenced by .github/workflows/dependency-review.yml
+# via the config-file input.
+
+# Fail on vulnerabilities of this severity or higher.
+fail_on_severity: high
+
+# Only fail on runtime dependencies (not dev tools).
+fail_on_scopes:
+  - runtime
+
+# License check is enabled by default.
+license_check: true
+
+# Vulnerability check is enabled by default.
+vulnerability_check: true
+
+# Allowed licenses for dependencies.
+# AGPL-3.0 is allowed for dev tools (slither-analyzer) that analyze code but do not
+# become part of the distributed product. MIT-licensed project + AGPL analysis tool is
+# not a license violation.
+# LGPL-2.0/LGPL-2.1 is allowed for semgrep, which is a static analysis tool.
+allow_licenses:
+  - MIT
+  - Apache-2.0
+  - BSD-2-Clause
+  - BSD-3-Clause
+  - ISC
+  - Unlicense
+  - CC0-1.0
+  - AGPL-3.0
+  - GPL-2.0
+  - GPL-3.0
+  - LGPL-2.0
+  - LGPL-2.1
+  - LGPL-2.0-only
+  - LGPL-2.1-only
+  - LGPL-3.0
+
+# Deny-licenses is deprecated; use allow-licenses instead.
+# deny_licenses: []
+
+# Allow specific packages regardless of license (SHA-pinned GitHub Actions
+# that the license scanner cannot resolve to a release tag).
+# Format: pkg:ecosystem/name
+allow_dependencies_licenses:
+  - pkg:githubactions/github/codeql-action/upload-sarif
+  - pkg:githubactions/jdx/mise-action
+  - pkg:pypi/slither-analyzer
+  - pkg:npm/actions/github-script
+
+# GHSA IDs to allow (none currently).
+allow_ghsas: []
+
+# Packages to deny (none currently).
+deny_packages: []
+
+# Package groups/namespaces to deny (none currently).
+deny_groups: []

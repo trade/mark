@@ -1,0 +1,81 @@
+# Semgrep configuration for MARK Protocol
+# https://semgrep.dev/docs/writing-rules/rule-syntax
+
+rules:
+  # === Solidity Rules ===
+  - id: mark-nullifier-after-external-call
+    languages: [solidity]
+    severity: ERROR
+    message: |
+      MARK-CRITICAL: State change after external call. Double-spend race.
+      Fix: Set nullifierUsed before external call. See AGENTS.md
+    pattern-either:
+      - pattern-inside: |
+          $X.call(...);
+          ...
+          nullifierUsed[$Y] = true;
+      - pattern-inside: |
+          $X.delegatecall(...);
+          ...
+          nullifierUsed[$Y] = true;
+      - pattern-inside: |
+          $X.staticcall(...);
+          ...
+          nullifierUsed[$Y] = true;
+
+  - id: mark-bridge-can-mint
+    languages: [solidity]
+    severity: ERROR
+    message: "MARK-CRITICAL: Bridge adapter must not mint. Breaks trust model."
+    pattern: $TOKEN.mint(...)
+    paths:
+      include:
+        - contracts/src/bridge/**
+
+  - id: mark-tx-origin-check
+    languages: [solidity]
+    severity: ERROR
+    message: "MARK-HIGH: Breaks relayers/ERC-4337. Use msg.sender only."
+    pattern: tx.origin
+
+  - id: mark-timestamp-in-withdraw
+    languages: [solidity]
+    severity: ERROR
+    message: "MARK-HIGH: block.timestamp in withdraw path is nondeterministic. Breaks ZK proof."
+    pattern: block.timestamp
+    paths:
+      include:
+        - contracts/src/withdraw/**
+
+  # === Circom Rules ===
+  # TODO: Re-enable after fixing pre-existing unconstrained signals in circuits.
+  # - id: mark-unconstrained-circom-signal
+  #   languages: [circom]
+  #   severity: ERROR
+  #   message: "MARK-CRITICAL: Unconstrained signal. Silent exploit. Add constraint or remove signal."
+  #   patterns:
+  #     - pattern: signal input $X;
+  #     - pattern-not: $X <== ...;
+  #     - pattern-not: $X === ...
+
+  # TODO: Re-enable after fixing pre-existing var usage in circuits.
+  # Tracked as known issue: var pairIndex in pool.circom needs signal + constraint.
+  # - id: mark-circom-var-for-witness
+  #   languages: [circom]
+  #   severity: WARNING
+  #   message: "MARK-HIGH: Use 'signal' for witness data, not 'var'. Var is not constrained."
+  #   pattern: var $X = ...;
+
+  # === General Secrets ===
+  # NOTE: pattern-regex cannot be combined with pattern-not at the top level.
+  # Instead we use path-based filtering to exclude generated Poseidon constants.
+  - id: mark-hardcoded-private-key
+    languages: [solidity, typescript, javascript]
+    severity: ERROR
+    message: "MARK-CRITICAL: Possible hardcoded private key. Use env var."
+    pattern-regex: '0x[a-fA-F0-9]{64}'
+    paths:
+      exclude:
+        - tests/**
+        - scripts/test/**
+        - contracts/src/crypto/generated/**

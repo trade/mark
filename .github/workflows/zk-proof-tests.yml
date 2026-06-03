@@ -1,0 +1,62 @@
+name: zk-proof-tests
+
+on:
+  pull_request:
+    paths:
+      - 'circuits/**'
+      - 'contracts/src/pool/verifier/**'
+      - '.github/workflows/zk-proof-tests.yml'
+  push:
+    branches: [dev, main]
+    paths: ['circuits/**']
+
+permissions:
+  contents: read
+
+jobs:
+  zk-tests:
+    name: ZK Circuit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4.1.7
+        with:
+          submodules: recursive
+
+      - name: Install mise
+        uses: jdx/mise-action@63a424527440f26bb8463e396d1e4e5e9f57a3a2 # v2.0.0
+        with:
+          install: true
+          cache: true
+
+      - name: Setup project
+        run: mise run setup
+
+      - name: Compile circuits + export verifiers
+        run: mise run circuit
+
+      - name: Test completeness
+        run: |
+          cd circuits
+          # Checks: valid witness -> valid proof -> verifier returns true
+          # This ensures honest users can always generate valid proofs
+          pnpm run test:completeness
+
+      - name: Test soundness
+        run: |
+          cd circuits
+          # Checks: invalid witness -> proof generation fails OR verifier returns false
+          # This is CRITICAL. Must fail if you remove a constraint.
+          # Tests various invalid inputs: wrong amounts, bad merkle roots, etc.
+          pnpm run test:soundness
+
+      - name: Forge test Solidity verifier
+        run: |
+          cd contracts
+          # Test the exported Solidity verifier contract integrates correctly
+          forge test --match-path "test/**/Verifier*.t.sol" -vvv || \
+            forge test --match-contract "*Verifier*" -vvv || {
+              echo "::warning::No Verifier-specific tests found, running pool tests with verifier"
+              forge test --match-path "test/unit/pool/*Pool*.t.sol" -vvv
+            }

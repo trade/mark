@@ -76,4 +76,5 @@ abstract contract PoolErrors {
     // Generic
     error NoStateChange();
     error InvalidRelayer();
+    error ZeroAddress();
 }

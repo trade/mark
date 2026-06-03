@@ -67,6 +67,9 @@ Use this matrix as the merge baseline.
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Contracts Production Mode Smoke`
 - `slither-core / Slither Core Contracts`
+- `circomspect / Circom Static Analysis`
+- `zk-proof-tests / Proof Soundness + Completeness`
+- `reorg-sim / L2 Reorg Double-Spend Test`
 - `frontend-checks / Frontend Checks (Node 24)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
@@ -81,6 +84,9 @@ Use this matrix as the merge baseline.
 - `Contracts Release Check (Dry-Run + Execute Smoke)`
 - `Contracts Production Mode Smoke`
 - `slither-core / Slither Core Contracts`
+- `circomspect / Circom Static Analysis`
+- `zk-proof-tests / Proof Soundness + Completeness`
+- `reorg-sim / L2 Reorg Double-Spend Test`
 - `frontend-checks / Frontend Checks (Node 24)`
 - `Validate Release PR Checklist`
 - `Validate Release Evidence`
@@ -106,6 +112,9 @@ Apply these repository settings:
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
+  - `circomspect / Circom Static Analysis`
+  - `zk-proof-tests / Proof Soundness + Completeness`
+  - `reorg-sim / L2 Reorg Double-Spend Test`
   - `frontend-checks / Frontend Checks (Node 24)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
@@ -124,6 +133,9 @@ Apply these repository settings:
   - `Contracts Release Check (Dry-Run + Execute Smoke)`
   - `Contracts Production Mode Smoke`
   - `slither-core / Slither Core Contracts`
+  - `circomspect / Circom Static Analysis`
+  - `zk-proof-tests / Proof Soundness + Completeness`
+  - `reorg-sim / L2 Reorg Double-Spend Test`
   - `frontend-checks / Frontend Checks (Node 24)`
 
 Notes:

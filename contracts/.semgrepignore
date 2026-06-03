@@ -1,23 +1,17 @@
-# Semgrep ignore patterns for MARK Protocol
+# .semgrepignore for contracts directory
+# Exclude known safe patterns and directories from Semgrep scans within the contracts/ folder.
 
-# Docker files - CI containers run as root (acceptable for ephemeral CI)
-docker/
+# Build artifacts and dependencies
+**/out/**
+**/cache/**
+**/broadcast/**
+**/lib/**
 
-# Operational bash scripts - local development only
-script/ops/*.sh
-script/ci/*.sh
+# Generated code that is not manually audited
+**/src/pool/verifier/**
+**/src/crypto/generated/**
 
-# Generated files
-src/crypto/generated/
-
-# Build artifacts
-out/
-cache/
-broadcast/
-
-# Dependencies
-lib/
-
-# Test files (covered by Foundry)
-test/
-*.t.sol
+# Test files (except specific security tests)
+**/test/**/*Pool*.t.sol
+**/test/**/*Reorg*.t.sol
+**/test/**/*Secure*.t.sol

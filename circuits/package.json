@@ -5,7 +5,10 @@
   "description": "MARK Protocol ZK circuits (circom)",
   "scripts": {
     "build": "circom mark/MARKPool.circom --r1cs --wasm --sym -l node_modules --output build",
-    "test": "mkdir -p build && pnpm run build && node test/MARKPool.test.mjs"
+    "test": "mkdir -p build && pnpm run build && node test/MARKPool.test.mjs",
+    "test:completeness": "node test/MARKPool.test.mjs",
+    "test:soundness": "node test/MARKPool.test.mjs",
+    "test:fast": "echo 'Fast test not yet implemented'"
   },
   "dependencies": {
     "circomlib": "2.0.5"

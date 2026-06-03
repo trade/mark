@@ -1,0 +1,105 @@
+name: slither-ci
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/**/*.sol'
+      - 'contracts/slither.config.json'
+      - '.github/workflows/slither-ci.yml'
+  push:
+    branches: [dev, main]
+    paths: ['contracts/**/*.sol']
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  slither:
+    name: Slither Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
+        with:
+          submodules: recursive
+
+      - name: Install mise
+        uses: jdx/mise-action@63a424527440f26bb8463e396d1e4e5e9f57a3a2 # v2.0.0
+        with:
+          install: true
+          cache: true
+
+      - name: Setup project
+        run: mise install
+
+      - name: Run Slither
+        id: slither
+        run: |
+          cd contracts
+          uv run slither . --config-file slither.config.json --json slither-report.json 2>&1 | tee slither-output.log
+        shell: bash
+
+      - name: Upload report on failure
+        if: failure() && steps.slither.outcome == 'failure'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: slither-report
+          path: contracts/slither-report.json
+
+      - name: Post PR comment and fail on findings
+        if: failure() && steps.slither.outcome == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'contracts/slither-report.json';
+
+            if (!fs.existsSync(path)) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '## ❌ Slither Analysis Failed\n\nSlither failed to generate a report. Check the workflow logs for compilation errors or configuration issues.'
+              });
+              core.setFailed('Slither failed without generating report');
+              return;
+            }
+
+            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const findings = (report.results?.detectors || [])
+              .filter(d => d.impact === 'High' || d.impact === 'Medium');
+
+            if (findings.length === 0) {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: '## ⚠️ Slither Infrastructure Issue\n\nSlither encountered an error. Check workflow logs.'
+              });
+              core.setFailed('Slither infrastructure failure');
+              return;
+            }
+
+            const md = findings.map(d => {
+              const loc = d.elements?.[0]?.source_mapping;
+              const file = loc?.filename_relative || 'unknown';
+              const line = loc?.lines?.[0] || '?';
+              return `### ${d.impact}: ${d.check}\n**${file}:${line}**\n> ${d.description}`;
+            }).join('\n\n---\n\n');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔍 Slither Security Findings\n\n**${findings.length} High/Medium severity issue(s) found**\n\n${md}\n\n[View full report](${context.payload.pull_request.html_url}/checks)`
+            });
+            core.setFailed(`Slither found ${findings.length} security issues`);
+
+      - name: Fail job if Slither failed
+        if: failure() && steps.slither.outcome == 'failure'
+        run: |
+          echo "::error::Slither analysis failed - see previous steps for details"
+          exit 1

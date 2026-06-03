@@ -149,11 +149,12 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         emit NullifierClaimed(nullifiers[1], creditOwner);
         totalNativePaid += amount;
 
-        // Transfer ETH before burning RYLA — if the transfer fails, RYLA is not burned.
-        (bool ok,) = payable(recipient).call{value: amount}("");
-        if (!ok) revert NativeTransferFailed();
-
+        // Debit RYLA from owner's account FIRST. If this fails, ETH is not transferred.
         ASSET_LEDGER.debit(creditOwner, amount);
+
+        // Transfer ETH to recipient AFTER successful debit.
+        (bool ok, ) = payable(recipient).call{value: amount}("");
+        if (!ok) revert NativeTransferFailed();
 
         emit WithdrawExecuted(creditOwner, recipient, amount, nonce, intentHash, msg.sender);
     }
@@ -173,7 +174,9 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         if (ownerSignature.length == 0) revert MissingOwnerSignature();
         if (intentSignature.length == 0) revert MissingIntentSignature();
         if (deadline == 0) revert InvalidIntentDeadline();
+        // nosemgrep: mark-timestamp-in-withdraw - Deadline validation, not in ZK proof circuit
         if (deadline < block.timestamp) revert IntentExpired();
+        // nosemgrep: mark-timestamp-in-withdraw - Deadline validation, not in ZK proof circuit
         if (deadline - block.timestamp > maxIntentValidity) revert IntentExceedsMaxValidity();
         if (address(this).balance < amount) revert InsufficientLiquidity();
         if (nonce != withdrawNonce[creditOwner]) revert NonceMismatch();

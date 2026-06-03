@@ -1,0 +1,44 @@
+# .semgrepignore — MARK Protocol
+# Exclude from semgrep scans
+
+# Build artifacts
+node_modules/
+dist/
+out/
+cache/
+broadcast/
+build/
+coverage/
+.venv/
+*.zkey
+*.ptau
+*.wtns
+
+# Vendored deps — we don't fix bugs in these
+lib/
+contracts/lib/
+
+# Test files — we allow bad patterns in tests
+test/
+**/test/**
+**/*.test.ts
+**/*.test.sol
+**/script/**
+
+# Generated code
+contracts/src/pool/verifier/
+contracts/src/crypto/generated/
+circuits/build/
+
+# Docs
+*.md
+docs/
+
+# Lockfiles — semgrep has special rules for these
+pnpm-lock.yaml
+uv.lock
+package-lock.json
+
+# Env files
+.env
+.env.*

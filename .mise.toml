@@ -1,20 +1,147 @@
-# MARK Protocol - Tool Version Management
-# https://mise.jdx.dev/configuration.html
+#.mise.toml — MARK Protocol toolchain
 
 [tools]
-# Core dependencies (required)
-node = "24"
+node = "24.3.0"
 pnpm = "9.0.2"
-
-# Foundry toolkit (forge, cast, anvil)
-foundry = "latest"
-
-# Secrets detection
+foundry = "nightly"
+python = "3.12"
+uv = "0.5.4"
 gitleaks = "8.30.1"
+go = "1.22.5"
+rust = "1.80.0"
 
 [env]
-# Load environment variables from .env if it exists
-_.file = ".env"
+_.python.venv = { path = ".venv", create = true }
+FOUNDRY_PROFILE = "ci"
+OP_SEPOLIA_RPC = "https://sepolia.optimism.io"  # Override with your own RPC in ~/.mise.local.toml
+FOUNDRY_COMPILER_SETTINGS = "nightly"
 
-# Project-specific environment
-MARK_PROJECT_ROOT = "{{config_root}}"
+[tasks.setup]
+description = "Full project setup: deps + toolchains + circuits"
+run = [
+  "uv venv",
+  "uv pip install slither-analyzer==0.11.5 semgrep pytest",
+  "pnpm install",
+  "cd contracts && forge build",
+  "cargo install --git https://github.com/iden3/circom.git --tag v2.2.3 --locked",
+  "cargo install circomspect",
+  "cd circuits && pnpm install"
+]
+
+# === Frontend Tasks ===
+[tasks.dev]
+description = "Start full dev stack: anvil + frontend"
+run = "pnpm dev"
+depends = ["anvil"] # auto-starts anvil in background if not running
+
+[tasks.frontend]
+description = "Start frontend only at http://localhost:5173"
+run = "pnpm dev:frontend"
+
+[tasks.build]
+description = "Build frontend for production"
+run = "pnpm build"
+
+[tasks.typecheck]
+description = "TypeScript type check"
+run = "pnpm typecheck"
+
+[tasks.lint]
+description = "Lint JS/TS + Solidity"
+run = "pnpm lint"
+
+# === Blockchain Tasks ===
+[tasks.anvil]
+description = "Start Anvil fork of OP Sepolia"
+run = "anvil --fork-url $OP_SEPOLIA_RPC --fork-block-number 18000000 --port 8545 --block-time 2"
+env = { ANVIL_IP_ADDR = "0.0.0.0" }
+
+[tasks.deploy-local]
+description = "Deploy contracts to local anvil"
+run = "cd contracts && forge script script/Deploy.s.sol --rpc-url http://localhost:8545 --broadcast"
+
+# === Circuit Tasks ===
+[tasks.circuit]
+description = "Compile ALL circuits + export Solidity verifiers"
+run = [
+  "cd circuits",
+  "mkdir -p build",
+  "for f in *.circom; do name=${f%.circom}; echo \"Compiling $name\"; circom $f --r1cs --wasm --sym -o build/; snarkjs groth16 setup build/$name.r1cs pot12_final.ptau build/$name.zkey; snarkjs zkey export solidityverifier build/$name.zkey ../contracts/src/pool/verifier/${name}Verifier.sol; done"
+]
+
+[tasks.circomspect]
+description = "Static analysis for all circuits"
+run = "circomspect circuits/ --error unused_signals,unconstrained_signals,non_deterministic_circuits"
+
+# === Testing/CI Tasks ===
+[tasks.test]
+description = "Run all tests: contracts + circuits + frontend"
+run = [
+  "cd contracts && forge test -vv",
+  "cd circuits && pnpm test",
+  "pnpm test" # vitest for frontend
+]
+
+[tasks.ci-fast]
+description = "Fast CI checks before push to feat/*"
+run = [
+  "pnpm typecheck",
+  "pnpm lint",
+  "gitleaks detect --no-git --verbose",
+  "uvx semgrep scan --config=auto --config=./.semgrep.yml --error",
+  "cd contracts && forge test --no-match-test invariant",
+  "cd circuits && pnpm run test:fast"
+]
+
+[tasks.ci-full]
+description = "Full CI before PR to dev/main"
+run = [
+  "mise run ci-fast",
+  "cd contracts && forge test --match-test invariant",
+  "mise run circomspect",
+  "cd circuits && pnpm run test:soundness && pnpm run test:completeness",
+  "mise run reorg-sim"
+]
+
+[tasks.reorg-sim]
+description = "Test 1-block reorg double-spend protection"
+run = "cd contracts && forge test --match-test testReorgDoubleSpend --fork-url $OP_SEPOLIA_RPC -vvv"
+
+[tasks.zk-proof-tests]
+description = "ZK proof soundness and completeness tests"
+run = [
+  "cd circuits && pnpm run test:soundness",
+  "cd circuits && pnpm run test:completeness"
+]
+
+[tasks.slither]
+description = "Run Slither static analysis"
+run = "cd contracts && uv run slither . --config-file slither.config.json"
+
+[tasks.semgrep]
+description = "Run Semgrep with MARK custom rules"
+run = "uvx semgrep scan --config=auto --config=p/security-audit --config=./.semgrep.yml --error"
+
+[tasks.clean]
+description = "Nuke all build artifacts + caches. Use when stuff is weird."
+run = [
+  "echo 'Cleaning contracts...'",
+  "rm -rf contracts/out contracts/cache contracts/broadcast",
+  "echo 'Cleaning circuits...'",
+  "rm -rf circuits/build circuits/node_modules",
+  "echo 'Cleaning frontend...'",
+  "rm -rf node_modules dist packages/*/dist",
+  "echo 'Cleaning python...'",
+  "rm -rf .venv",
+  "echo 'Cleaning mise...'",
+  "mise cache clear",
+  "echo 'Done. Run mise run setup to rebuild.'"
+]
+
+[tasks."clean:contracts"]
+description = "Clean contracts only"
+run = "rm -rf contracts/out contracts/cache contracts/broadcast"
+
+[tasks."clean:circuits"]
+description = "Clean circuits + zkeys only"
+run = "rm -rf circuits/build"
