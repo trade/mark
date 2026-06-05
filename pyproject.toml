@@ -19,7 +19,7 @@ dependencies = [
   "semgrep==1.90.0",
 
   # For circuit test orchestration if you write python tests
-  "pytest==8.3.3",
+  "pytest==9.0.3",
   "pytest-xdist==3.6.1", # parallel tests
 ]
 
