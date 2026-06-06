@@ -220,11 +220,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
 
     /// @notice Emitted when a bridge-out operation is initiated.
     event BridgeOut(
-        uint256 indexed dstChainId,
-        bytes32 indexed nullifier0,
-        bytes32 indexed nullifier1,
-        uint256 fee,
-        address relayer
+        uint256 indexed dstChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1, uint256 fee, address relayer
     );
 
     /// @notice Emitted when a bridge-in operation completes.
@@ -293,7 +289,21 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         PoolValidation.requireCommitmentsValid(outCommitments);
 
         // Verify ZK proof
-        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, block.chainid, a, bSnarkjs, c);
+        _verifyProof(
+            PROOF_TYPE_TRANSFER,
+            merkleRoot,
+            nullifiers,
+            outCommitments,
+            fee,
+            relayer,
+            address(0),
+            address(0),
+            0,
+            block.chainid,
+            a,
+            bSnarkjs,
+            c
+        );
 
         // CEI: State changes before external calls
         _spendNullifiers(nullifiers);
@@ -347,7 +357,21 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (withdrawRecipient == address(0)) revert InvalidWithdrawRecipient();
 
         // Verify ZK proof
-        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, withdrawOwner, withdrawRecipient, withdrawAmount, block.chainid, a, bSnarkjs, c);
+        _verifyProof(
+            PROOF_TYPE_TRANSFER,
+            merkleRoot,
+            nullifiers,
+            outCommitments,
+            fee,
+            relayer,
+            withdrawOwner,
+            withdrawRecipient,
+            withdrawAmount,
+            block.chainid,
+            a,
+            bSnarkjs,
+            c
+        );
 
         // CEI: State changes before external calls
         _spendNullifiers(nullifiers);
@@ -403,7 +427,21 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         PoolValidation.requireCommitmentsValid(outCommitments);
 
         // Verify ZK proof with the actual destination chain ID
-        _verifyProof(PROOF_TYPE_TRANSFER, merkleRoot, nullifiers, outCommitments, fee, relayer, address(0), address(0), 0, dstChainId, a, bSnarkjs, c);
+        _verifyProof(
+            PROOF_TYPE_TRANSFER,
+            merkleRoot,
+            nullifiers,
+            outCommitments,
+            fee,
+            relayer,
+            address(0),
+            address(0),
+            0,
+            dstChainId,
+            a,
+            bSnarkjs,
+            c
+        );
 
         // CEI: State changes before external calls
         _spendNullifiers(nullifiers);
@@ -427,7 +465,11 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @param srcChainId The source chain ID.
     /// @param messageId Unique message identifier for replay protection.
     /// @param outCommitments The two output note commitments to add to the tree.
-    function bridgeIn(uint256 srcChainId, bytes32 messageId, bytes32[2] calldata outCommitments) external restricted whenNotPaused {
+    function bridgeIn(uint256 srcChainId, bytes32 messageId, bytes32[2] calldata outCommitments)
+        external
+        restricted
+        whenNotPaused
+    {
         if (srcChainId == 0) revert InvalidSource();
         if (srcChainId == block.chainid) revert SourceIsDestination();
         if (messageId == bytes32(0)) revert InvalidMessageId();
@@ -640,11 +682,11 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @param recipient The intended withdrawal recipient.
     /// @param amount The withdrawal amount.
     /// @return The binding hash: keccak256(WITHDRAW_DOMAIN || owner || recipient || amount).
-    function computeWithdrawBindingHash(
-        address owner,
-        address recipient,
-        uint256 amount
-    ) public pure returns (bytes32) {
+    function computeWithdrawBindingHash(address owner, address recipient, uint256 amount)
+        public
+        pure
+        returns (bytes32)
+    {
         return keccak256(abi.encode(WITHDRAW_BINDING_DOMAIN, owner, recipient, amount));
     }
 

@@ -16,13 +16,12 @@ mkdir -p "$INSTALL_DIR"
 # Parse args
 CHECK_ONLY=false
 case "${1:-}" in
-  --check)  CHECK_ONLY=true ;;
-  --help|-h)
+  --check) CHECK_ONLY=true ;;
+  --help | -h)
     sed -n '2,8p' "$0" | sed 's/^# \?//'
     exit 0
     ;;
-  "")
-    ;;
+  "") ;;
   *)
     echo "Unknown option: $1" >&2
     echo "Usage: $0 [--check|--help]" >&2
@@ -31,25 +30,31 @@ case "${1:-}" in
 esac
 
 # Helper functions
-info()    { echo -e "[\033[1;34mINFO\033[0m]  $*"; }
+info() { echo -e "[\033[1;34mINFO\033[0m]  $*"; }
 success() { echo -e "[\033[1;32mOK\033[0m]    $*"; }
 warning() { echo -e "[\033[1;33mWARN\033[0m]  $*"; }
-error()   { echo -e "[\033[1;31mERROR\033[0m] $*" >&2; }
-skip()    { echo -e "[\033[1;36mSKIP\033[0m]  $*"; }
+error() { echo -e "[\033[1;31mERROR\033[0m] $*" >&2; }
+skip() { echo -e "[\033[1;36mSKIP\033[0m]  $*"; }
 
 # ---- Detect OS/Arch -------------------------------------------------
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
 case "$ARCH" in
-  x86_64)    ARCH_LABEL="x64" ;;
-  aarch64|arm64) ARCH_LABEL="arm64" ;;
-  *) error "Unsupported architecture: $ARCH"; exit 1 ;;
+  x86_64) ARCH_LABEL="x64" ;;
+  aarch64 | arm64) ARCH_LABEL="arm64" ;;
+  *)
+    error "Unsupported architecture: $ARCH"
+    exit 1
+    ;;
 esac
 
 case "$OS" in
   darwin) OS_LABEL="macos" ;;
-  linux)  OS_LABEL="linux" ;;
-  *) error "Unsupported OS: $OS"; exit 1 ;;
+  linux) OS_LABEL="linux" ;;
+  *)
+    error "Unsupported OS: $OS"
+    exit 1
+    ;;
 esac
 
 info "Detected: ${OS_LABEL}-${ARCH_LABEL}"
@@ -60,9 +65,9 @@ OK=()
 WARN=()
 FAIL=()
 
-record_ok()    { OK+=("$1"); }
-record_warn()  { WARN+=("$1"); }
-record_fail()  { FAIL+=("$1"); }
+record_ok() { OK+=("$1"); }
+record_warn() { WARN+=("$1"); }
+record_fail() { FAIL+=("$1"); }
 
 # ---- mise (installs and manages Node.js) ---------------------------
 info "Checking mise..."

@@ -3,6 +3,7 @@
 // Run: node setup.mjs
 //
 // Powers of tau: pot15 (2^15 = 32768 >= 26387*2 wires required by MARKPool(20,2,2))
+// Using pre-computed ptau from circomlib perpetual ceremony.
 
 import { randomBytes } from 'crypto';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'fs';
@@ -14,17 +15,15 @@ mkdirSync('build', { recursive: true });
 const entropy1 = randomBytes(32).toString('hex');
 const entropy2 = randomBytes(32).toString('hex');
 
-console.log('Step 1: Powers of Tau (pot15)...');
-await powersOfTau.newAccumulator('bn128', 15, 'build/pot15_0000.ptau');
+// Skip steps 1-3: Use pre-computed pot15_final.ptau from circomlib ceremony
+// Downloaded from: https://github.com/iden3/circomlib/blob/master/circuits/pot15_final.ptau
+console.log('Using pre-computed pot15_final.ptau...');
+if (!existsSync('build/pot15_final.ptau')) {
+  console.error('Error: build/pot15_final.ptau not found. Download from circomlib repo.');
+  process.exit(1);
+}
 
-console.log('Step 2: Contribute to Powers of Tau...');
-await powersOfTau.contribute(
-  'build/pot15_0000.ptau',
-  'build/pot15_final.ptau',
-  'MARK Protocol',
-  entropy1
-);
-
+console.log('Step 1-3: Skipped (using pre-computed powers of tau)');
 console.log('Step 3: Prepare phase 2...');
 await powersOfTau.preparePhase2('build/pot15_final.ptau', 'build/pot15_phase2.ptau');
 

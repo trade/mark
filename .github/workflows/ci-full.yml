@@ -1,0 +1,33 @@
+name: CI Full
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 2 * * *' # Daily at 2:30am UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  ci-fast:
+    name: CI Fast (All Fast Checks)
+    uses: ./.github/workflows/ci-fast.yml
+    secrets: inherit
+
+  contracts-core-full:
+    name: Contracts Core (With Invariants)
+    needs: [ci-fast]
+    uses: ./.github/workflows/_reusable-contracts-core.yml
+    with:
+      run_invariant: 'true'
+
+  release-gate:
+    name: Release Gate Container
+    needs: [ci-fast]
+    uses: ./.github/workflows/contracts-release-gate.yml
+    secrets:
+      DOCKER_REGISTRY_TOKEN: ${{ secrets.GHCR_PAT }}
