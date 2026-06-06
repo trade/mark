@@ -1,0 +1,55 @@
+name: Reusable Contracts Core
+
+on:
+  workflow_call:
+    inputs:
+      run_invariant:
+        description: 'Run invariant tests'
+        required: false
+        default: 'false'
+        type: string
+
+jobs:
+  contracts-core:
+    name: Contracts Core
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
+        with:
+          cache: true
+          cache-key: foundry-${{ runner.os }}
+
+      - name: Enforce architecture boundaries
+        run: make architecture-guard
+
+      - name: Enforce test/script layering boundaries
+        run: make layering-guard
+
+      - name: Enforce MARKPool bytecode size budget
+        run: make size-guard
+
+      - name: Run deterministic test suite
+        run: forge test -vv
+
+      - name: Run production lock invariants
+        run: make test-production-lock
+
+      - name: Check gas snapshot
+        run: make gas-check
+
+      - name: Run invariant tests
+        if: ${{ inputs.run_invariant == 'true' }}
+        run: |
+          forge test --match-contract MARKPoolInvariants -vv
+          forge test --match-contract MARKSettlementInvariants -vv
+          forge test --match-contract MARKBridgeInvariants -vv

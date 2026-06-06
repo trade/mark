@@ -12,23 +12,20 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Dismiss stale pull request approvals when new commits are pushed`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Analyze (javascript-typescript)`
-  - `gitleaks / Gitleaks Scan`
+  - `Typecheck + Lint`
+  - `Gitleaks Scan`
   - `Detect Secrets Drift`
   - `Release Gate Container`
   - `Dependency Review`
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Contracts Production Mode Smoke`
-  - `slither-core / Slither Core Contracts`
-  - `frontend-checks / Frontend Checks (Node 24)`
+  - `Contracts Core (Unit + Invariant) / Contracts Core`
+  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
+  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
+  - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
-  - `circomspect / Circom Static Analysis`
-  - `zk-proof-tests / ZK Circuit Tests`
-  - `reorg-sim / 1-Block Reorg Simulation`
 - Optional additional checks (recommended but not globally required):
-  - `Contracts Unit + Invariant`
+  - `Contracts Core (With Invariants)` — runs in `ci-full` after `ci-fast`
   - `Contracts Env Guard`
   - `Contracts Evidence Manifest`
   - `Governance Policy Guard`
@@ -46,21 +43,18 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Require a pull request before merging`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
-  - `Analyze (javascript-typescript)`
-  - `gitleaks / Gitleaks Scan`
+  - `Typecheck + Lint`
+  - `Gitleaks Scan`
   - `Detect Secrets Drift`
   - `Release Gate Container`
   - `Dependency Review`
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Contracts Production Mode Smoke`
-  - `slither-core / Slither Core Contracts`
-  - `frontend-checks / Frontend Checks (Node 24)`
-  - `circomspect / Circom Static Analysis`
-  - `zk-proof-tests / ZK Circuit Tests`
-  - `reorg-sim / 1-Block Reorg Simulation`
+  - `Contracts Core (Unit + Invariant) / Contracts Core`
+  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
+  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
+  - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
 - Optional additional checks (recommended but not globally required):
-  - `Contracts Unit + Invariant`
+  - `Contracts Core (With Invariants)`
   - `Contracts Env Guard`
   - `Governance Policy Guard`
 - Governance policy PR rule:
@@ -69,7 +63,7 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
   - Strict model: also restrict direct push to maintainers only
   - Fast model: allow maintainer direct push for emergency dev iteration
 
-## 4) Configure `production` environment
+## 3) Configure `production` environment
 
 GitHub path: `Settings -> Environments -> New environment`
 
@@ -85,14 +79,14 @@ Notes:
 - `contracts-mainnet-readiness.yml` already binds to `environment: production`.
 - The workflow already enforces `main` branch execution.
 
-## 5) Restrict release tagging
+## 4) Restrict release tagging
 
 GitHub path: `Settings -> Rules -> Rulesets` (or tag protection in legacy settings)
 
 - Protect tag pattern: `v*`
 - Restrict create/update/delete tag permissions to maintainers/release managers.
 
-## 6) Validation run (one-time)
+## 5) Validation run (one-time)
 
 1. Open a small PR to `dev` changing docs only.
 2. Confirm required checks run and pass.
@@ -106,13 +100,13 @@ GitHub path: `Settings -> Rules -> Rulesets` (or tag protection in legacy settin
    - run succeeds
    - readiness artifact uploads
 
-## 7) Ongoing operational rule
+## 6) Ongoing operational rule
 
 - No production deployment from `dev`.
 - Production readiness + deployment sign-off only from `main`.
 - Any emergency `main` hotfix must be back-merged into `dev` immediately after release.
 
-## 8) Optional automation (API)
+## 7) Optional automation (API)
 
 You can apply most settings via script:
 
@@ -139,7 +133,7 @@ What this script applies:
 - optional production required reviewers by user ID
 - optional direct-push restrictions via `*_PUSH_ALLOW_*` allowlists
 
-## 9) Verify active protections
+## 8) Verify active protections
 
 Run the verification script with a repo-admin token:
 
@@ -150,4 +144,4 @@ export GH_PAT=<github_token_with_repo_admin_scope>
 ./scripts/github/verify-governance.sh
 ```
 
-Expected output: both branches (`dev`, `main`) report `PASS` and required checks include CodeQL (`Analyze (javascript-typescript)`), `gitleaks / Gitleaks Scan`, and `Dependency Review`.
+Expected output: both branches (`dev`, `main`) report `PASS` and required checks include `Typecheck + Lint`, `Gitleaks Scan`, and `Dependency Review`.

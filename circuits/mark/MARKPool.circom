@@ -12,9 +12,11 @@ template MARKPool(depth, nIn, nOut) {
     //   DOMAIN_VERSION:         1  — protocol version tag
     //   DOMAIN_NOTE_COMMITMENT: 11 — note commitment hash domain
     //   DOMAIN_NULLIFIER:       12 — nullifier hash domain
+    //   DOMAIN_DST_CHAIN:       13 — destination chain ID domain (for output commitments)
     var DOMAIN_VERSION = 1;
     var DOMAIN_NOTE_COMMITMENT = 11;
     var DOMAIN_NULLIFIER = 12;
+    var DOMAIN_DST_CHAIN = 13;
 
     // Private inputs (notes to spend)
     signal input inAmount[nIn];
@@ -117,13 +119,16 @@ template MARKPool(depth, nIn, nOut) {
     merkleRootNonZero.out === 0;
 
     // 3) Output commitments — bound to dstChainId to prevent cross-chain replay
+    // Use 5-input Poseidon with domain-separated dstChainId (NOT addition to blinding)
     component outCommit[nOut];
     for (i = 0; i < nOut; i++) {
-        outCommit[i] = Poseidon(4);
+        outCommit[i] = Poseidon(5);
         outCommit[i].inputs[0] <== DOMAIN_VERSION * 100 + DOMAIN_NOTE_COMMITMENT;
         outCommit[i].inputs[1] <== outAmount[i];
         outCommit[i].inputs[2] <== outSecret[i];
-        outCommit[i].inputs[3] <== outBlinding[i] + dstChainId;
+        outCommit[i].inputs[3] <== outBlinding[i];
+        // Domain-separated dstChainId prevents cross-chain commitment reuse
+        outCommit[i].inputs[4] <== dstChainId + DOMAIN_DST_CHAIN * 100;
         computedOutCommitment[i] <== outCommit[i].out;
         computedOutCommitment[i] === outCommitment[i];
     }
@@ -164,8 +169,19 @@ template MARKPool(depth, nIn, nOut) {
     component feeBits = Num2Bits(64);
     feeBits.in <== fee;
 
-    component relayerBits = Num2Bits(160);
-    relayerBits.in <== relayer;
+    // FIX: Constrain relayer to fit in 160 bits (addresses are 160 bits)
+    // Contract encodes as uint256(uint160(relayer)), so relayer must be < 2^160
+    // Use LessThan to check: relayer < 2^160
+    // RELAYER_MAX = 2^160 is a 161-bit number, so we need LessThan(161)
+    component relayerUpperBound = LessThan(161);
+    // 2^160 as constant
+    var RELAYER_MAX = 1;
+    for (var k = 0; k < 160; k++) {
+        RELAYER_MAX = RELAYER_MAX * 2;
+    }
+    relayerUpperBound.in[0] <== relayer;
+    relayerUpperBound.in[1] <== RELAYER_MAX;
+    relayerUpperBound.out === 1;
 
     component withdrawRecipientBits = Num2Bits(160);
     withdrawRecipientBits.in <== withdrawRecipient;

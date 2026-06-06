@@ -28,23 +28,18 @@ This repository uses a two-track branch model:
 
 ## CI and Deployment Policy
 
-- `contracts-ci` runs on pushes to `dev` and `main`, and on all PRs into protected branches.
-- `contracts-slither` runs on pushes to `dev` and `main`, and on all PRs into protected branches.
-- `contracts-env-guard` runs on pushes to `dev` and `main`, and on PRs touching contracts.
-- `secrets-drift-guard` runs on all PRs into `dev` and `main`.
-- `secrets-scan` (gitleaks) runs on PRs/pushes to detect accidental secret commits early.
-- `scripts-ci` runs shellcheck on repository automation scripts to reduce operational breakage risk.
-- `frontend-ci` runs on pushes to `dev` and `main`, and on all PRs into protected branches.
+- `ci-fast` runs on pushes to `dev` and `main`, and on all PRs into protected branches.
+- `ci-full` runs on pushes to `dev` and `main`, on PRs, on schedule, and manual dispatch — includes invariants + release gate.
+- `governance` validates required-check consistency across:
+  - `scripts/github/apply-governance.sh`
+  - `BRANCHING.md`
+  - `.github/PRODUCTION_GOVERNANCE_CHECKLIST.md`
 - `contracts-staging-rehearsal` is automatically triggered on push to `dev`.
-- `contracts-release-gate-container` runs release gate in a pinned container on pushes to `dev`/`main` and manual dispatch.
+- `contracts-release-gate` runs release gate in a pinned container on pushes to `dev`/`main` and manual dispatch.
 - `contracts-mainnet-readiness` is production-gated:
   - manual only (`workflow_dispatch`)
   - enforced to run from `main` branch
   - tied to `production` environment
-- `governance-policy-guard` validates required-check consistency across:
-  - `scripts/github/apply-governance.sh`
-  - `BRANCHING.md`
-  - `.github/PRODUCTION_GOVERNANCE_CHECKLIST.md`
 - GitHub settings implementation checklist:
   - `.github/PRODUCTION_GOVERNANCE_CHECKLIST.md`
 - Review/PR governance files:
@@ -58,36 +53,30 @@ Use this matrix as the merge baseline.
 
 ### PRs into `dev`
 
-- `Analyze (javascript-typescript)`
-- `gitleaks / Gitleaks Scan`
+- `Typecheck + Lint`
+- `Gitleaks Scan`
 - `Detect Secrets Drift`
-- `Release Gate Container`
 - `Dependency Review`
-- `Contracts Unit + Invariant`
-- `Contracts Release Check (Dry-Run + Execute Smoke)`
-- `Contracts Production Mode Smoke`
-- `slither-core / Slither Core Contracts`
-- `circomspect / Circom Static Analysis`
-- `zk-proof-tests / ZK Circuit Tests`
-- `reorg-sim / 1-Block Reorg Simulation`
-- `frontend-checks / Frontend Checks (Node 24)`
+- `Release Gate Container`
+- `Contracts Core (Unit + Invariant) / Contracts Core`
+- `Contracts Security (Semgrep + Slither) / Semgrep Scan`
+- `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+- `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
+- `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `main` (release candidate)
 
-- `Analyze (javascript-typescript)`
-- `gitleaks / Gitleaks Scan`
+- `Typecheck + Lint`
+- `Gitleaks Scan`
 - `Detect Secrets Drift`
-- `Release Gate Container`
 - `Dependency Review`
-- `Contracts Unit + Invariant`
-- `Contracts Release Check (Dry-Run + Execute Smoke)`
-- `Contracts Production Mode Smoke`
-- `slither-core / Slither Core Contracts`
-- `circomspect / Circom Static Analysis`
-- `zk-proof-tests / ZK Circuit Tests`
-- `reorg-sim / 1-Block Reorg Simulation`
-- `frontend-checks / Frontend Checks (Node 24)`
+- `Release Gate Container`
+- `Contracts Core (Unit + Invariant) / Contracts Core`
+- `Contracts Security (Semgrep + Slither) / Semgrep Scan`
+- `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+- `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
+- `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
 - `Validate Release PR Checklist`
 - `Validate Release Evidence`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
@@ -105,17 +94,14 @@ Apply these repository settings:
 
 - Require pull request before merge.
 - Require status checks:
-  - `Analyze (javascript-typescript)`
-  - `gitleaks / Gitleaks Scan`
+  - `Typecheck + Lint`
+  - `Gitleaks Scan`
   - `Dependency Review`
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Contracts Production Mode Smoke`
-  - `slither-core / Slither Core Contracts`
-  - `circomspect / Circom Static Analysis`
-  - `zk-proof-tests / ZK Circuit Tests`
-  - `reorg-sim / 1-Block Reorg Simulation`
-  - `frontend-checks / Frontend Checks (Node 24)`
+  - `Contracts Core (Unit + Invariant) / Contracts Core`
+  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
+  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
+  - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
   - `Detect Secrets Drift`
   - `Release Gate Container`
   - `Validate Release PR Checklist`
@@ -128,23 +114,24 @@ Apply these repository settings:
 
 - Require pull request before merge (or allow maintainers direct push if desired).
 - Require status checks:
-  - `Analyze (javascript-typescript)`
-  - `gitleaks / Gitleaks Scan`
+  - `Typecheck + Lint`
+  - `Gitleaks Scan`
   - `Dependency Review`
-  - `Contracts Unit + Invariant`
-  - `Contracts Release Check (Dry-Run + Execute Smoke)`
-  - `Contracts Production Mode Smoke`
-  - `slither-core / Slither Core Contracts`
-  - `circomspect / Circom Static Analysis`
-  - `zk-proof-tests / ZK Circuit Tests`
-  - `reorg-sim / 1-Block Reorg Simulation`
-  - `frontend-checks / Frontend Checks (Node 24)`
+  - `Contracts Core (Unit + Invariant) / Contracts Core`
+  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
+  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
+  - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
   - `Detect Secrets Drift`
   - `Release Gate Container`
+- Require at least 1-2 approvals.
+- Dismiss stale approvals on new commits.
+- Restrict direct push.
 
 Notes:
 
 - Do not add `Validate Governance Policy Consistency` as a global required branch-protection check because it is intentionally path-filtered; require it only on governance-touching PRs.
+- `Contracts Core (With Invariants)` runs in `ci-full` after `ci-fast` passes — not a required branch protection check to avoid timeout on PRs.
 
 3. Protect tags
 

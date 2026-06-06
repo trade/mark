@@ -27,11 +27,11 @@ infer_repo_from_remote() {
   local remote
   remote="$(git remote get-url origin)"
   if [[ "$remote" =~ ^git@github.com:([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"
+    echo "${BASH_REMATCH[1]%.git}"
     return
   fi
   if [[ "$remote" =~ ^https://github.com/([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"
+    echo "${BASH_REMATCH[1]%.git}"
     return
   fi
   echo "Could not infer GH_REPO from origin: $remote" >&2
@@ -49,32 +49,33 @@ auth_headers=(
   -H "X-GitHub-Api-Version: 2022-11-28"
 )
 
+# Required status check contexts. These must mirror apply-governance.sh exactly and
+# match the check names GitHub reports. Jobs in ci-fast.yml that call a reusable
+# workflow are reported under the compound name "<caller job name> / <callee job name>".
 require_checks_dev=(
-  "Analyze (javascript-typescript)"
+  "Typecheck + Lint"
+  "Gitleaks Scan"
   "Dependency Review"
-  "Contracts Unit + Invariant"
-  "Contracts Release Check (Dry-Run + Execute Smoke)"
-  "Contracts Production Mode Smoke"
-  "gitleaks / Gitleaks Scan"
-  "slither-core / Slither Core Contracts"
-  "frontend-checks / Frontend Checks (Node 20)"
-  "frontend-checks / Frontend Checks (Node 22)"
   "Detect Secrets Drift"
   "Release Gate Container"
+  "Contracts Core (Unit + Invariant) / Contracts Core"
+  "Contracts Security (Semgrep + Slither) / Semgrep Scan"
+  "Contracts Security (Semgrep + Slither) / Slither Core Contracts"
+  "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
+  "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
 )
 
 require_checks_main=(
-  "Analyze (javascript-typescript)"
+  "Typecheck + Lint"
+  "Gitleaks Scan"
   "Dependency Review"
-  "Contracts Unit + Invariant"
-  "Contracts Release Check (Dry-Run + Execute Smoke)"
-  "Contracts Production Mode Smoke"
-  "gitleaks / Gitleaks Scan"
-  "slither-core / Slither Core Contracts"
-  "frontend-checks / Frontend Checks (Node 20)"
-  "frontend-checks / Frontend Checks (Node 22)"
   "Detect Secrets Drift"
   "Release Gate Container"
+  "Contracts Core (Unit + Invariant) / Contracts Core"
+  "Contracts Security (Semgrep + Slither) / Semgrep Scan"
+  "Contracts Security (Semgrep + Slither) / Slither Core Contracts"
+  "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
+  "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
   "Validate Release PR Checklist"
   "Validate Release Evidence"
 )
@@ -102,7 +103,7 @@ check_branch() {
     return 1
   fi
 
-  if [[ "$require_stale" == "true" ]]; then
+  if [[ "$require_stale" == "true" && "$expected_approvals" != "0" ]]; then
     local stale
     stale="$(jq -r '.required_pull_request_reviews.dismiss_stale_reviews // false' <<<"$json")"
     if [[ "$stale" != "true" ]]; then
@@ -118,10 +119,16 @@ check_branch() {
     return 1
   fi
 
-  local push_team
-  push_team="$(jq -r '.restrictions.teams[]?.slug // empty' <<<"$json" | head -1)"
-  if [[ "$push_team" != "maintainers" ]]; then
-    echo "  FAIL: push restrictions do not include maintainers team for ${branch} (got: ${push_team:-none})" >&2
+  # apply-governance.sh's build_restrictions() supports either a team-based restriction
+  # (default: maintainers) or a user-based one (MAIN_PUSH_ALLOW_USERS/DEV_PUSH_ALLOW_USERS).
+  # Accept either, but require that some push restriction is configured.
+  local push_restricted
+  push_restricted="$(jq -r '
+    (((.restrictions.teams // []) | map(.slug) | index("maintainers")) != null)
+    or (((.restrictions.users // []) | length) > 0)
+  ' <<<"$json")"
+  if [[ "$push_restricted" != "true" ]]; then
+    echo "  FAIL: push restrictions must include the maintainers team or explicit users for ${branch}" >&2
     return 1
   fi
 
@@ -142,7 +149,6 @@ check_branch() {
 
 # All branches use 0 required approvals — sole maintainer cannot approve own PRs.
 check_branch dev false 0 "${require_checks_dev[@]}"
-check_branch canary false 0 "${require_checks_dev[@]}"
 check_branch main true 0 "${require_checks_main[@]}"
 
 echo "[verify] governance baseline active for ${GH_REPO}"

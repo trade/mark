@@ -22,7 +22,9 @@ runs:
 
     - name: Setup pnpm (corepack)
       shell: bash
+      env:
+        PNPM_VERSION: ${{ inputs.pnpm-version }}
       run: |
         corepack enable
-        corepack prepare pnpm@${{ inputs.pnpm-version }} --activate
+        corepack prepare "pnpm@${PNPM_VERSION}" --activate
         pnpm --version
