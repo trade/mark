@@ -153,7 +153,7 @@ contract MARKWithdrawAdapter is AccessManaged, Pausable, ReentrancyGuard, MARKWi
         ASSET_LEDGER.debit(creditOwner, amount);
 
         // Transfer ETH to recipient AFTER successful debit.
-        (bool ok, ) = payable(recipient).call{value: amount}("");
+        (bool ok,) = payable(recipient).call{value: amount}("");
         if (!ok) revert NativeTransferFailed();
 
         emit WithdrawExecuted(creditOwner, recipient, amount, nonce, intentHash, msg.sender);

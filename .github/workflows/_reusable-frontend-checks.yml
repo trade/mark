@@ -1,12 +1,11 @@
 name: Reusable Frontend Checks
-
 on:
   workflow_call:
     inputs:
       node_versions:
         description: JSON array of Node versions
         required: false
-        default: '["24"]'
+        default: '[ "24" ]'
         type: string
       pnpm_version:
         description: pnpm version used by corepack
@@ -32,19 +31,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-        continue-on-error: true
-        id: checkout-attempt-1
-
-      - name: Retry checkout on failure
-        if: steps.checkout-attempt-1.outcome == 'failure'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          submodules: recursive
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-          clean: false
+          fetch-depth: 0
 
       - name: Setup Node + pnpm
         uses: ./.github/actions/setup-node-pnpm

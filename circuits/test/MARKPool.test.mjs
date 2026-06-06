@@ -68,6 +68,7 @@ async function expectFail(label, input) {
 const DOMAIN_VERSION = 1n;
 const DOMAIN_NOTE_COMMITMENT = 11n;
 const DOMAIN_NULLIFIER = 12n;
+const DOMAIN_DST_CHAIN = 13n;
 const DOMAIN_COMMITMENT = DOMAIN_VERSION * 100n + DOMAIN_NOTE_COMMITMENT;
 const DOMAIN_NULLIFIER_TAG = DOMAIN_VERSION * 100n + DOMAIN_NULLIFIER;
 
@@ -84,8 +85,9 @@ function makeNullifier(note, chainId) {
   return poseidonHash(DOMAIN_NULLIFIER_TAG, note.secret, note.commitment, chainId);
 }
 
+// NEW: Output commitment uses 5-input Poseidon with domain-separated dstChainId
 function makeOutCommitment(amount, secret, blinding, dstChainId) {
-  return poseidonHash(DOMAIN_COMMITMENT, amount, secret, blinding + dstChainId);
+  return poseidonHash(DOMAIN_COMMITMENT, amount, secret, blinding, dstChainId + DOMAIN_DST_CHAIN * 100n);
 }
 
 // Base valid inputs: 2-in 2-out transact, no withdrawal
@@ -212,6 +214,29 @@ await expectFail('zero input amount', {
 await expectFail('wrong output commitment', {
   ...validBase,
   outCommitment: [outC0 + 1n, outC1],
+});
+
+// NEW: Test relayer upper bound constraint (relayer must be < 2^160)
+await expectFail('relayer exceeds 160 bits', {
+  ...validBase,
+  relayer: 2n ** 160n, // exactly 2^160 should fail
+});
+await expectFail('relayer exceeds 160 bits (larger)', {
+  ...validBase,
+  relayer: 2n ** 161n,
+});
+await expectPass('relayer at max valid value (2^160 - 1)', {
+  ...validBase,
+  relayer: 2n ** 160n - 1n,
+});
+
+// NEW: Test cross-chain commitment reuse fails (domain-separated dstChainId)
+const otherChainId = 11155111n; // Different chain (e.g., OP Mainnet)
+const outC0_otherChain = makeOutCommitment(out0Amount, out0Secret, out0Blinding, otherChainId);
+await expectFail('cross-chain commitment replay (dstChainId mismatch)', {
+  ...validBase,
+  outCommitment: [outC0_otherChain, outC1], // commitment computed for otherChainId
+  dstChainId: CHAIN_ID, // but proof uses CHAIN_ID
 });
 
 console.log('\nAll tests passed.');

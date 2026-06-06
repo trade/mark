@@ -1,0 +1,62 @@
+name: Reusable Contracts Security
+
+on:
+  workflow_call:
+    inputs:
+      run_slither:
+        description: 'Run Slither static analysis'
+        required: false
+        default: 'true'
+        type: string
+      run_semgrep:
+        description: 'Run Semgrep scan'
+        required: false
+        default: 'true'
+        type: string
+
+jobs:
+  semgrep:
+    name: Semgrep Scan
+    if: ${{ inputs.run_semgrep == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup mise
+        uses: jdx/mise-action@691e684984939740113c1a3ae421e8a58f5b33cb # v2.0.0
+        with:
+          install: true
+          cache: true
+
+      - name: Run Semgrep
+        run: uvx semgrep scan --config .semgrep.yml --error contracts/ circuits/
+
+  slither-core:
+    name: Slither Core Contracts
+    if: ${{ inputs.run_slither == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+
+      - name: Setup mise
+        uses: jdx/mise-action@691e684984939740113c1a3ae421e8a58f5b33cb # v2.0.0
+        with:
+          install: true
+          cache: true
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
+
+      - name: Build contracts
+        working-directory: contracts
+        run: forge build
+
+      - name: Run Slither on MARK core contracts
+        working-directory: contracts
+        run: uv run slither . --config-file slither.config.json
