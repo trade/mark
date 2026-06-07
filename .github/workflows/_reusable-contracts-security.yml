@@ -51,7 +51,9 @@ jobs:
           cache: true
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
+        uses: foundry-rs/foundry-toolchain@c09b6c89edd7a04a5a1070d10e5fe8b85b4c0ae2 # v1.7.1
+        with:
+          version: '1.7.1'
 
       - name: Build contracts
         working-directory: contracts

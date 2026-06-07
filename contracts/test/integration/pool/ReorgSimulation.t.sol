@@ -52,35 +52,8 @@ contract ReorgSimulationTest is Test {
     uint256[2] internal C;
 
     function setUp() public {
-        // Only run if fork URL is provided
-        string memory rpcUrl = vm.envOr("OP_SEPOLIA_RPC", string(""));
-        if (bytes(rpcUrl).length == 0) {
-            // Skip test if no RPC URL - not a failure
-            return;
-        }
-
-        uint256 forkId = vm.createFork(rpcUrl);
-        vm.selectFork(forkId);
-
-        verifier = new MockVerifier();
-
-        vm.startPrank(admin);
-        token = new RYLA(admin);
-        accessManager = new AccessManager(admin);
-        address poseidon = deployCode("PoseidonT3.sol:PoseidonT3");
-        pool = new MARKPool(address(accessManager), address(verifier), poseidon);
-        ledger = new RYLACreditLedger(address(token), address(pool));
-
-        bytes4[] memory selectors = new bytes4[](1);
-        selectors[0] = pool.setAssetLedger.selector;
-        accessManager.setTargetFunctionRole(address(pool), selectors, 1);
-        accessManager.grantRole(1, admin, 0);
-        vm.warp(block.timestamp + 1);
-
-        pool.setAssetLedger(address(ledger));
-        token.setMinter(address(ledger), true);
-        token.setBurner(address(ledger), true);
-        vm.stopPrank();
+        // Fork setup moved to individual test functions
+        // This test requires OP_SEPOLIA_RPC env var to be set
     }
 
     /// @notice Test that a 1-block reorg does not allow double-spend.
@@ -95,12 +68,18 @@ contract ReorgSimulationTest is Test {
     ///      This test validates Reorg Safety invariant: 1-block L2 reorg cannot
     ///      cause double-spend or deanonymize.
     function testReorgDoubleSpendProtection() public {
-        string memory rpcUrl = vm.envOr("OP_SEPOLIA_RPC", string(""));
-        if (bytes(rpcUrl).length == 0) {
-            // Skip test if no RPC URL - not a failure
+        string[] memory urls = vm.envOr("OP_SEPOLIA_RPC", ",", new string[](0));
+        if (urls.length == 0) {
             console.log("Skipping testReorgDoubleSpendProtection: OP_SEPOLIA_RPC not set");
             return;
         }
+        string memory rpcUrl = urls[0];
+
+        // Setup fork
+        uint256 forkId = vm.createFork(rpcUrl);
+        vm.selectFork(forkId);
+
+        _setupPool();
 
         // Initial root and state
         bytes32 initialRoot = pool.getMerkleRoot();
@@ -158,11 +137,17 @@ contract ReorgSimulationTest is Test {
     ///      Merkle tree state to a previous point. No amount/recipient/owner
     ///      data is ever stored on-chain.
     function testReorgDoesNotDeanonymize() public {
-        string memory rpcUrl = vm.envOr("OP_SEPOLIA_RPC", string(""));
-        if (bytes(rpcUrl).length == 0) {
+        string[] memory urls = vm.envOr("OP_SEPOLIA_RPC", ",", new string[](0));
+        if (urls.length == 0) {
             console.log("Skipping testReorgDoesNotDeanonymize: OP_SEPOLIA_RPC not set");
             return;
         }
+        string memory rpcUrl = urls[0];
+
+        uint256 forkId = vm.createFork(rpcUrl);
+        vm.selectFork(forkId);
+
+        _setupPool();
 
         // The privacy invariant: only nullifierHash and commitmentHash are emitted
         // No amounts, recipients, or owners are ever on-chain
@@ -180,11 +165,17 @@ contract ReorgSimulationTest is Test {
     ///      the history of roots. After a reorg simulation (state revert),
     ///      the queue should reflect the pre-reorg state.
     function testRootQueueAfterReorg() public {
-        string memory rpcUrl = vm.envOr("OP_SEPOLIA_RPC", string(""));
-        if (bytes(rpcUrl).length == 0) {
+        string[] memory urls = vm.envOr("OP_SEPOLIA_RPC", ",", new string[](0));
+        if (urls.length == 0) {
             console.log("Skipping testRootQueueAfterReorg: OP_SEPOLIA_RPC not set");
             return;
         }
+        string memory rpcUrl = urls[0];
+
+        uint256 forkId = vm.createFork(rpcUrl);
+        vm.selectFork(forkId);
+
+        _setupPool();
 
         bytes32 initialRoot = pool.getMerkleRoot();
         uint256 initialTail = pool.rootQueueTail();
@@ -200,5 +191,28 @@ contract ReorgSimulationTest is Test {
         // Note: Actual reorg testing would require Anvil's `anvil_setChainState`
         // or similar. This test verifies the state transitions work correctly
         // and the invariants hold.
+    }
+
+    /// @notice Internal helper to deploy pool and ledger on fork
+    function _setupPool() internal {
+        verifier = new MockVerifier();
+
+        vm.startPrank(admin);
+        token = new RYLA(admin);
+        accessManager = new AccessManager(admin);
+        address poseidon = deployCode("PoseidonT3.sol:PoseidonT3");
+        pool = new MARKPool(address(accessManager), address(verifier), poseidon);
+        ledger = new RYLACreditLedger(address(token), address(pool));
+
+        bytes4[] memory selectors = new bytes4[](1);
+        selectors[0] = pool.setAssetLedger.selector;
+        accessManager.setTargetFunctionRole(address(pool), selectors, 1);
+        accessManager.grantRole(1, admin, 0);
+        vm.warp(block.timestamp + 1);
+
+        pool.setAssetLedger(address(ledger));
+        token.setMinter(address(ledger), true);
+        token.setBurner(address(ledger), true);
+        vm.stopPrank();
     }
 }
