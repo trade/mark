@@ -16,4 +16,10 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 # Slither analyzer is required by mainnet-readiness/release hardening checks.
 RUN python3 -m pip install --no-cache-dir slither-analyzer==0.11.5
 
+# Create non-root user for CI execution
+RUN useradd --create-home --shell /bin/bash appuser \
+  && chown -R appuser:appuser /repo 2>/dev/null || true
+
+USER appuser
+
 WORKDIR /repo/contracts

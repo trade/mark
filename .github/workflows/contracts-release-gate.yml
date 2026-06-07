@@ -2,6 +2,10 @@ name: Contracts Release Gate (Containerized)
 
 on:
   pull_request:
+  workflow_call:
+    secrets:
+      DOCKER_REGISTRY_TOKEN:
+        required: false
   workflow_dispatch:
     inputs:
       gate_mode:
@@ -18,7 +22,7 @@ on:
       - dev
     paths:
       - 'contracts/**'
-      - '.github/workflows/contracts-release-gate-container.yml'
+      - '.github/workflows/contracts-release-gate.yml'
 
 permissions:
   contents: read

@@ -5,8 +5,8 @@ set -euo pipefail
 # - branch protection for dev and main
 # - creates/updates production environment
 #
-# All branches use 0 required approvals. The sole maintainer cannot approve
-# their own PRs, so CI gates are the enforcement mechanism.
+# Solo maintainer: PR reviews disabled (required_pull_request_reviews: null).
+# CI gates are the enforcement mechanism.
 # Direct pushes are restricted to the trade/maintainers team on all branches.
 #
 # Required env:
@@ -14,6 +14,10 @@ set -euo pipefail
 # Optional env:
 #   GH_REPO=owner/repo (default: inferred from git remote origin)
 #   PRODUCTION_REVIEWER_IDS=12345,67890   # GitHub user IDs
+#   MAIN_REVIEW_COUNT=2
+#   DEV_REVIEW_COUNT=1
+#   MAIN_PUSH_ALLOW_USERS=iap
+#   DEV_PUSH_ALLOW_USERS=iap
 
 if ! command -v curl >/dev/null 2>&1; then
   echo "curl is required" >&2
@@ -37,11 +41,11 @@ infer_repo_from_remote() {
   #   git@github.com:owner/repo.git
   #   https://github.com/owner/repo.git
   if [[ "$remote" =~ ^git@github.com:([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"
+    echo "${BASH_REMATCH[1]%.git}"
     return
   fi
   if [[ "$remote" =~ ^https://github.com/([^/]+/[^/]+)(\.git)?$ ]]; then
-    echo "${BASH_REMATCH[1]}"
+    echo "${BASH_REMATCH[1]%.git}"
     return
   fi
   echo "Could not infer GH_REPO from origin: $remote" >&2
@@ -55,7 +59,7 @@ repo="${GH_REPO##*/}"
 api="https://api.github.com/repos/${owner}/${repo}"
 
 auth_headers=(
-  -H "Authorization: Bearer ${GH_PAT}"
+  -H "Authorization: Bearer $GH_PAT"
   -H "Accept: application/vnd.github+json"
   -H "X-GitHub-Api-Version: 2022-11-28"
 )
@@ -69,34 +73,59 @@ apply_branch_protection() {
   local restrictions_json="$4"
 
   local payload
-  payload="$(
-    jq -n \
-      --argjson review_count "$review_count" \
-      --argjson checks "$checks_json" \
-      --argjson restrictions "${restrictions_json}" \
-      '{
-        required_status_checks: {
-          strict: true,
-          checks: ($checks | map({ context: . }))
-        },
-        enforce_admins: true,
-        required_pull_request_reviews: {
-          dismissal_restrictions: {},
-          dismiss_stale_reviews: true,
-          require_code_owner_reviews: false,
-          required_approving_review_count: $review_count,
-          require_last_push_approval: false
-        },
-        restrictions: $restrictions,
-        required_linear_history: false,
-        allow_force_pushes: false,
-        allow_deletions: false,
-        block_creations: false,
-        required_conversation_resolution: true,
-        lock_branch: false,
-        allow_fork_syncing: false
-      }'
-  )"
+  # Disable PR reviews entirely for solo maintainer (review_count=0 means no review requirement)
+  if [[ "$review_count" == "0" ]]; then
+    payload="$(
+      jq -n \
+        --argjson checks "$checks_json" \
+        --argjson restrictions "${restrictions_json}" \
+        '{
+          required_status_checks: {
+            strict: true,
+            checks: ($checks | map({ context: . }))
+          },
+          enforce_admins: true,
+          required_pull_request_reviews: null,
+          restrictions: $restrictions,
+          required_linear_history: false,
+          allow_force_pushes: false,
+          allow_deletions: false,
+          block_creations: false,
+          required_conversation_resolution: true,
+          lock_branch: false,
+          allow_fork_syncing: false
+        }'
+    )"
+  else
+    payload="$(
+      jq -n \
+        --argjson review_count "$review_count" \
+        --argjson checks "$checks_json" \
+        --argjson restrictions "${restrictions_json}" \
+        '{
+          required_status_checks: {
+            strict: true,
+            checks: ($checks | map({ context: . }))
+          },
+          enforce_admins: true,
+          required_pull_request_reviews: {
+            dismissal_restrictions: {},
+            dismiss_stale_reviews: true,
+            require_code_owner_reviews: false,
+            required_approving_review_count: $review_count,
+            require_last_push_approval: false
+          },
+          restrictions: $restrictions,
+          required_linear_history: false,
+          allow_force_pushes: false,
+          allow_deletions: false,
+          block_creations: false,
+          required_conversation_resolution: true,
+          lock_branch: false,
+          allow_fork_syncing: false
+        }'
+    )"
+  fi
 
   echo "  - protecting branch: ${branch}"
   local tmp_body
@@ -170,50 +199,64 @@ ensure_environment() {
   return 1
 }
 
-# Baseline checks for dev and main.
+# Build restrictions from env vars or default to trade/maintainers team
+build_restrictions() {
+  local push_allow_users="${1:-}"
+  local push_allow_teams="${2:-maintainers}"
+
+  if [[ -n "${push_allow_users}" ]]; then
+    jq -cn --arg users "${push_allow_users}" '{users: ($users | split(",") | map(gsub("^\\s+|\\s+$";"")) | map(select(. != ""))), teams: [], apps: []}'
+  elif [[ -n "${push_allow_teams}" ]]; then
+    jq -cn --arg team "${push_allow_teams}" '{users: [], teams: [$team], apps: []}'
+  else
+    echo '{}'
+  fi
+}
+
+# Required status check contexts. These must exactly match the check names GitHub
+# reports on PRs to the branch. Jobs in ci-fast.yml that call a reusable workflow are
+# reported under the compound name "<caller job name> / <callee job name>", so they are
+# listed that way below; direct jobs use their plain job name.
 DEV_CHECKS_JSON='[
-  "Analyze (javascript-typescript)",
+  "Typecheck + Lint",
+  "Gitleaks Scan",
   "Dependency Review",
-  "Contracts Unit + Invariant",
-  "Contracts Release Check (Dry-Run + Execute Smoke)",
-  "Contracts Production Mode Smoke",
-  "gitleaks / Gitleaks Scan",
-  "slither-core / Slither Core Contracts",
-  "frontend-checks / Frontend Checks (Node 24)",
   "Detect Secrets Drift",
   "Release Gate Container",
-  "circomspect / Circom Static Analysis",
-  "zk-proof-tests / ZK Circuit Tests",
-  "reorg-sim / 1-Block Reorg Simulation"
+  "Contracts Core (Unit + Invariant) / Contracts Core",
+  "Contracts Security (Semgrep + Slither) / Semgrep Scan",
+  "Contracts Security (Semgrep + Slither) / Slither Core Contracts",
+  "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
+  "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
 ]'
 MAIN_CHECKS_JSON='[
-  "Analyze (javascript-typescript)",
+  "Typecheck + Lint",
+  "Gitleaks Scan",
   "Dependency Review",
-  "Contracts Unit + Invariant",
-  "Contracts Release Check (Dry-Run + Execute Smoke)",
-  "Contracts Production Mode Smoke",
-  "gitleaks / Gitleaks Scan",
-  "slither-core / Slither Core Contracts",
-  "frontend-checks / Frontend Checks (Node 24)",
   "Detect Secrets Drift",
   "Release Gate Container",
+  "Contracts Core (Unit + Invariant) / Contracts Core",
+  "Contracts Security (Semgrep + Slither) / Semgrep Scan",
+  "Contracts Security (Semgrep + Slither) / Slither Core Contracts",
+  "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
+  "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)",
   "Validate Release PR Checklist",
-  "Validate Release Evidence",
-  "circomspect / Circom Static Analysis",
-  "zk-proof-tests / ZK Circuit Tests",
-  "reorg-sim / 1-Block Reorg Simulation"
+  "Validate Release Evidence"
 ]'
 
-MAINTAINERS_TEAM_SLUG="maintainers"
-MAINTAINERS_RESTRICTIONS_JSON="$(
-  jq -cn --arg team "${owner}/${MAINTAINERS_TEAM_SLUG}" '{users: [], teams: [$team], apps: []}'
-)"
+MAIN_REVIEW_COUNT="${MAIN_REVIEW_COUNT:-0}"
+DEV_REVIEW_COUNT="${DEV_REVIEW_COUNT:-0}"
 
-# main: strict, restricted to trade/maintainers team
-apply_branch_protection "main" "0" "$MAIN_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
+MAIN_PUSH_ALLOW_USERS="${MAIN_PUSH_ALLOW_USERS:-}"
+DEV_PUSH_ALLOW_USERS="${DEV_PUSH_ALLOW_USERS:-}"
 
-# dev: integration track, restricted to trade/maintainers team
-apply_branch_protection "dev" "0" "$DEV_CHECKS_JSON" "$MAINTAINERS_RESTRICTIONS_JSON"
+# main: strict
+MAIN_RESTRICTIONS_JSON="$(build_restrictions "${MAIN_PUSH_ALLOW_USERS}")"
+apply_branch_protection "main" "$MAIN_REVIEW_COUNT" "$MAIN_CHECKS_JSON" "$MAIN_RESTRICTIONS_JSON"
+
+# dev: integration track
+DEV_RESTRICTIONS_JSON="$(build_restrictions "${DEV_PUSH_ALLOW_USERS}")"
+apply_branch_protection "dev" "$DEV_REVIEW_COUNT" "$DEV_CHECKS_JSON" "$DEV_RESTRICTIONS_JSON"
 
 # Ensure production environment exists
 echo "  - ensuring environment: production"

@@ -20,7 +20,7 @@ FOUNDRY_COMPILER_SETTINGS = "nightly"
 description = "Full project setup: deps + toolchains + circuits"
 run = [
   "uv venv",
-  "uv pip install slither-analyzer==0.11.5 semgrep pytest",
+  "uv pip install pytest",
   "pnpm install",
   "cd contracts && forge build",
   "cargo install --git https://github.com/iden3/circom.git --tag v2.2.3 --locked",

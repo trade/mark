@@ -100,21 +100,21 @@ jobs:
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
 
-      - name: Deploy MARKPoolVerifier
+      - name: Deploy Groth16Verifier
         env:
           PRIVATE_KEY: ${{ secrets.MARK_STAGING_DEPLOYER_PRIVATE_KEY }}
         run: |
           set -euo pipefail
-          VERIFIER=$(forge create src/pool/verifier/MARKPoolVerifier.sol:MARKPoolVerifier \
+          VERIFIER=$(forge create src/pool/verifier/MARKPoolVerifier.sol:Groth16Verifier \
             --rpc-url "$RPC_URL" \
             --private-key "$PRIVATE_KEY" \
             --broadcast \
             --json | jq -r '.deployedTo')
           if [ -z "$VERIFIER" ] || [ "$VERIFIER" = "null" ]; then
-            echo "Failed to deploy MARKPoolVerifier" >&2
+            echo "Failed to deploy Groth16Verifier" >&2
             exit 1
           fi
-          echo "MARKPoolVerifier: $VERIFIER"
+          echo "Groth16Verifier: $VERIFIER"
           echo "MARK_POOL_VERIFIER=$VERIFIER" >> "$GITHUB_ENV"
 
       - name: Run pool release script

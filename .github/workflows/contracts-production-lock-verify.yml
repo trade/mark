@@ -1,5 +1,4 @@
 name: Contracts Production Lock Verify
-
 on:
   workflow_dispatch:
     inputs:
@@ -75,10 +74,17 @@ jobs:
 
       - name: Write verification summary
         if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_WORKFLOW: ${{ github.workflow }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
         run: |
           mkdir -p broadcast
           jq -n \
-            --arg status "${{ job.status }}" \
+            --arg status "$JOB_STATUS" \
             --arg rpcUrl "$RPC_URL" \
             --arg token "$MARK_RYLA_TOKEN" \
             --arg module "$MARK_SETTLEMENT_MODULE" \
@@ -86,11 +92,11 @@ jobs:
             --arg owner "$MARK_RYLA_OWNER" \
             --arg operator "$MARK_SETTLEMENT_OPERATOR" \
             --arg attester "$MARK_SETTLEMENT_ATTESTER" \
-            --arg commit "${{ github.sha }}" \
-            --arg runId "${{ github.run_id }}" \
-            --arg ref "${{ github.ref_name }}" \
-            --arg workflow "${{ github.workflow }}" \
-            --arg runNumber "${{ github.run_number }}" \
+            --arg commit "$GITHUB_SHA" \
+            --arg runId "$GITHUB_RUN_ID" \
+            --arg ref "$GITHUB_REF_NAME" \
+            --arg workflow "$GITHUB_WORKFLOW" \
+            --arg runNumber "$GITHUB_RUN_NUMBER" \
             '{
               workflow: $workflow,
               status: $status,

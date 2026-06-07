@@ -30,7 +30,7 @@ rules:
     pattern: $TOKEN.mint(...)
     paths:
       include:
-        - contracts/src/bridge/**
+        - '**/contracts/src/bridge/**'
 
   - id: mark-tx-origin-check
     languages: [solidity]
@@ -45,7 +45,7 @@ rules:
     pattern: block.timestamp
     paths:
       include:
-        - contracts/src/withdraw/**
+        - '**/contracts/src/withdraw/**'
 
   # === Circom Rules ===
   # TODO: Re-enable after fixing pre-existing unconstrained signals in circuits.
@@ -76,6 +76,6 @@ rules:
     pattern-regex: '0x[a-fA-F0-9]{64}'
     paths:
       exclude:
-        - tests/**
-        - scripts/test/**
-        - contracts/src/crypto/generated/**
+        - '**/tests/**'
+        - '**/scripts/test/**'
+        - '**/contracts/src/crypto/generated/**'
