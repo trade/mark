@@ -44,9 +44,9 @@ contract RYLACreditLedger is ICreditLedger {
     }
 
     /// @notice Sets the adapter address once. Callable only by the deployer (OWNER).
-    /// @dev The adapter may be set while it is still unset (zero) — e.g. retrying after a
-    ///      deploy transaction that failed to persist the initial set. Once a non-zero
-    ///      adapter is set it is permanent: there is no mechanism to reset ADAPTER to zero.
+    /// @dev Can only be called while ADAPTER == address(0) (fresh deployment or retry
+    ///      after failed deploy). Once a non-zero adapter is set it is permanent —
+    ///      there is no mechanism to reset ADAPTER to zero.
     /// @param adapter_ The new adapter address.
     function setAdapter(address adapter_) external {
         if (msg.sender != OWNER) revert Unauthorized();
