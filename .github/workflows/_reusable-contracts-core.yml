@@ -28,6 +28,7 @@ jobs:
         with:
           cache: true
           cache-key: foundry-${{ runner.os }}
+          version: '1.7.1'
 
       - name: Enforce architecture boundaries
         run: make architecture-guard
