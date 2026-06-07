@@ -58,11 +58,10 @@ jobs:
       run_invariant: 'false'
 
   contracts-security:
-    name: Contracts Security (Semgrep + Slither)
+    name: Contracts Security (Semgrep)
     uses: ./.github/workflows/_reusable-contracts-security.yml
     with:
       run_semgrep: 'true'
-      run_slither: 'true'
 
   circuits-core:
     name: Circuits Core (Build + Tests + Circomspect)
