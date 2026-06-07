@@ -1,0 +1,50 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic", "syntax", "style"],
+  "triggerOnUpdates": true,
+  "triggerOnDrafts": false,
+  "includeBranches": ["main", "dev"],
+  "excludeAuthors": ["dependabot[bot]"],
+  "statusCheck": true,
+  "ignorePatterns": "contracts/lib/**\ncontracts/out/**\ncontracts/cache/**\ncontracts/broadcast/**\ncontracts/coverage/**\ncircuits/build/**\ncircuits/utxo/**\n**/*.zkey\n**/*.ptau\n**/*.wtns\nnode_modules/**\ndist/**\ndist-ssr/**\npublic/**\nsupersim-logs/**\npnpm-lock.yaml\n**/*.generated.*",
+  "instructions": "MARK is privacy-first settlement infrastructure on the Optimism Superchain using ZK-SNARKs (Circom/Groth16) and UTXO accounting. Prioritize security, ZK-circuit soundness, and cross-chain correctness over style nits. Respect the domain layering enforced by the Makefile guards and the contracts/circuits/frontend separation. Per repo policy: commits must be signed and all GitHub Actions must be pinned to a full-length commit SHA.",
+  "customContext": {
+    "rules": [
+      {
+        "rule": "Enforce checks-effects-interactions ordering, explicit access control, and reentrancy protection. Flag unchecked external calls, unbounded loops, and reliance on block.timestamp for critical logic. Preserve MARKPool's <24KB bytecode size and the architecture/layering guards defined in the Makefile.",
+        "scope": ["contracts/src/**/*.sol"]
+      },
+      {
+        "rule": "Verify ZK-circuit soundness: every signal must be fully constrained (no under-constrained or unused signals), and nullifier/commitment logic must prevent double-spends. Be cautious with witness generation and trusted-setup artifacts.",
+        "scope": ["circuits/**/*.circom"]
+      },
+      {
+        "rule": "All GitHub Actions must be pinned to a full-length commit SHA (org allowlist policy). Flag any action referenced by a tag or branch (e.g. @v4 or @main).",
+        "scope": [".github/workflows/**", ".github/actions/**"]
+      },
+      {
+        "rule": "Never expose private keys, mnemonics, or secrets in client code. Validate wagmi/viem usage, chain-id handling, and on-chain interaction error handling.",
+        "scope": ["src/**/*.{ts,tsx}"]
+      },
+      {
+        "rule": "These scripts handle governance and release orchestration. Flag hardcoded credentials, missing auth headers, and destructive operations that lack confirmation guards.",
+        "scope": ["scripts/**"]
+      }
+    ],
+    "files": [
+      {
+        "path": "docs/ARCHITECTURE.md",
+        "description": "System architecture and domain boundaries"
+      },
+      {
+        "path": "docs/THREAT_MODEL.md",
+        "description": "Security threat model for the protocol"
+      },
+      {
+        "path": "docs/BRANCHING.md",
+        "description": "Branching, signing, and contribution workflow"
+      }
+    ]
+  }
+}
+
