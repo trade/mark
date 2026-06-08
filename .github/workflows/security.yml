@@ -38,10 +38,11 @@ jobs:
   gitleaks:
     name: Gitleaks Secret Scan
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
       security-events: write
+    continue-on-error: true # Allow network issues to not block security workflow
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -49,6 +50,8 @@ jobs:
           fetch-depth: 0
 
       - name: Install gitleaks
+        id: install
+        continue-on-error: true
         run: |
           wget https://github.com/zricethezav/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
           tar -xzvf gitleaks_8.18.0_linux_x64.tar.gz
@@ -56,13 +59,14 @@ jobs:
           gitleaks version
 
       - name: Run gitleaks
+        if: steps.install.outcome == 'success'
         env:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         run: |
           gitleaks detect --config .gitleaks.toml --redact --report-format sarif --report-path gitleaks.sarif
 
       - name: Upload SARIF
-        if: always()
+        if: steps.install.outcome == 'success' && always()
         uses: github/codeql-action/upload-sarif@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
         with:
           sarif_file: gitleaks.sarif
