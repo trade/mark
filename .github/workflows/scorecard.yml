@@ -1,3 +1,7 @@
+# DEPRECATED: This workflow has been consolidated into security.yml
+# Use .github/workflows/security.yml instead
+# This file is kept for backwards compatibility but will be removed in a future update
+
 # OpenSSF Scorecard
 # https://github.com/ossf/scorecard-action
 #
@@ -8,7 +12,7 @@
 # It does NOT run on every PR to avoid noise -- the dependency-review workflow
 # handles per-PR supply chain checks.
 
-name: OpenSSF Scorecard
+name: OpenSSF Scorecard (DEPRECATED)
 
 on:
   push:
@@ -23,29 +27,11 @@ permissions:
   id-token: write         # Required for OIDC token (result publishing)
 
 jobs:
-  scorecard:
-    name: OpenSSF Scorecard Analysis
+  deprecated-notice:
+    name: Deprecated Workflow
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-
-      - name: Run OpenSSF Scorecard
-        uses: ossf/scorecard-action@99c09fe975337306107572b4fdf4db224cf8e2f2 # v2.4.3
-        with:
-          results_file: scorecard-results.sarif
-          results_format: sarif
-          publish_results: true
-          # Upload results to GitHub Security tab
-          # Token is auto-generated via OIDC (id-token: write permission above)
-
-      - name: Upload SARIF to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
-        with:
-          sarif_file: scorecard-results.sarif
-          category: scorecard
+      - name: Deprecation Notice
+        run: |
+          echo "::warning::This workflow is deprecated. OpenSSF Scorecard is now part of the unified security.yml workflow."
+          echo "::warning::Please update your branch protection rules and references to use security.yml instead."

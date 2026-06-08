@@ -1,4 +1,8 @@
-name: Governance
+# DEPRECATED: This workflow has been consolidated into security.yml
+# Use .github/workflows/security.yml instead
+# This file is kept for backwards compatibility but will be removed in a future update
+
+name: Governance (DEPRECATED)
 on:
   pull_request:
     paths:
@@ -27,30 +31,11 @@ permissions:
   contents: read
 
 jobs:
-  validate-policy:
-    name: Validate Governance Policy Consistency
-    if: github.event_name != 'schedule' # Skip on scheduled runs
+  deprecated-notice:
+    name: Deprecated Workflow
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Run governance policy validator
-        run: bash scripts/ci/validate-governance-policy.sh
-
-  verify-baseline:
-    name: Verify Governance Baseline
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Verify governance protections
-        env:
-          GH_PAT: ${{ secrets.GOVERNANCE_VERIFY_PAT }}
-          GH_REPO: ${{ github.repository }}
+      - name: Deprecation Notice
         run: |
-          if [ -z "${GH_PAT}" ]; then
-            echo "Missing required secret: GOVERNANCE_VERIFY_PAT" >&2
-            exit 1
-          fi
-          ./scripts/github/verify-governance.sh
+          echo "::warning::This workflow is deprecated. Governance validation is now part of the unified security.yml workflow."
+          echo "::warning::Please update your branch protection rules and references to use security.yml instead."

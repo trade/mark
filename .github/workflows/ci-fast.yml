@@ -1,9 +1,11 @@
-name: CI Fast
+# DEPRECATED: This workflow has been replaced by the unified ci.yml
+# Use ci.yml with mode: fast instead
+# This file is kept for backwards compatibility but will be removed in a future update
+
+name: CI Fast (DEPRECATED)
 on:
   pull_request:
-    branches: [dev, main]
-  push:
-    branches: [dev, main]
+    branches: [main]
   workflow_call:
 
 concurrency:
@@ -15,64 +17,11 @@ permissions:
   security-events: write
 
 jobs:
-  secrets:
-    name: Secret Scan (trufflehog)
+  deprecated-notice:
+    name: Deprecated Workflow
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          fetch-depth: 0
-      - name: Run trufflehog
-        uses: trufflesecurity/trufflehog@d411fff7b8879a62509f3fa98c07f247ac089a51 # v3.95.5
-        with:
-          path: ./
-          base: ${{ github.base_ref }}
-          head: ${{ github.sha }}
-          extra_args: --json
-
-  typecheck-lint:
-    name: Typecheck + Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Setup Node + pnpm
-        uses: ./.github/actions/setup-node-pnpm
-        with:
-          node-version: '24.3.0'
-          pnpm-version: '9.0.2'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Typecheck
-        run: pnpm -s typecheck
-      - name: Lint
-        run: pnpm -s lint
-
-  contracts-core:
-    name: Contracts Core (Unit + Invariant)
-    uses: ./.github/workflows/_reusable-contracts-core.yml
-    with:
-      run_invariant: 'false'
-
-  contracts-security:
-    name: Contracts Security (Semgrep)
-    uses: ./.github/workflows/_reusable-contracts-security.yml
-    with:
-      run_semgrep: 'true'
-
-  circuits-core:
-    name: Circuits Core (Build + Tests + Circomspect)
-    uses: ./.github/workflows/_reusable-circuits-core.yml
-    with:
-      run_tests: 'true'
-      run_circomspect: 'true'
-
-  frontend-checks:
-    name: Frontend Checks (Node 24)
-    uses: ./.github/workflows/_reusable-frontend-checks.yml
-    with:
-      node_versions: '[ "24.3.0" ]'
-      pnpm_version: '9.0.2'
+      - name: Deprecation Notice
+        run: |
+          echo "::warning::This workflow is deprecated. CI Fast is now integrated into the unified CI pipeline (ci.yml)."
+          echo "::warning::Please update your branch protection rules and references to use ci.yml with mode: fast instead."

@@ -1,4 +1,8 @@
-name: CodeQL
+# DEPRECATED: This workflow has been consolidated into security.yml
+# Use .github/workflows/security.yml instead
+# This file is kept for backwards compatibility but will be removed in a future update
+
+name: CodeQL (DEPRECATED)
 
 on:
   pull_request:
@@ -24,38 +28,11 @@ permissions:
   security-events: write
 
 jobs:
-  analyze:
-    name: Analyze (${{ matrix.language }})
+  deprecated-notice:
+    name: Deprecated Workflow
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language:
-          - javascript-typescript
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Setup Node + pnpm
-        uses: ./.github/actions/setup-node-pnpm
-        with:
-          node-version: '24.3.0'
-          pnpm-version: '9.0.2'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
-        with:
-          languages: ${{ matrix.language }}
-          queries: security-extended
-
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+      - name: Deprecation Notice
+        run: |
+          echo "::warning::This workflow is deprecated. CodeQL analysis is now part of the unified security.yml workflow."
+          echo "::warning::Please update your branch protection rules and references to use security.yml instead."

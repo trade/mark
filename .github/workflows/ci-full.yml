@@ -1,4 +1,8 @@
-name: CI Full
+# DEPRECATED: This workflow has been replaced by the unified ci.yml
+# Use ci.yml with mode: full instead
+# This file is kept for backwards compatibility but will be removed in a future update
+
+name: CI Full (DEPRECATED)
 on:
   workflow_dispatch:
   schedule:
@@ -13,21 +17,11 @@ permissions:
   security-events: write
 
 jobs:
-  ci-fast:
-    name: CI Fast (All Fast Checks)
-    uses: ./.github/workflows/ci-fast.yml
-    secrets: inherit
-
-  contracts-core-full:
-    name: Contracts Core (With Invariants)
-    needs: [ci-fast]
-    uses: ./.github/workflows/_reusable-contracts-core.yml
-    with:
-      run_invariant: 'true'
-
-  release-gate:
-    name: Release Gate Container
-    needs: [ci-fast]
-    uses: ./.github/workflows/contracts-release-gate.yml
-    secrets:
-      DOCKER_REGISTRY_TOKEN: ${{ secrets.GHCR_PAT }}
+  deprecated-notice:
+    name: Deprecated Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deprecation Notice
+        run: |
+          echo "::warning::This workflow is deprecated. CI Full is now integrated into the unified CI pipeline (ci.yml)."
+          echo "::warning::Please update your branch protection rules and references to use ci.yml with mode: full instead."

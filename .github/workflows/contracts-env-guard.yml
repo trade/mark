@@ -1,4 +1,8 @@
-name: Contracts Env Guard
+# DEPRECATED: This workflow has been consolidated into security.yml
+# Use .github/workflows/security.yml instead
+# This file is kept for backwards compatibility but will be removed in a future update
+
+name: Contracts Env Guard (DEPRECATED)
 
 on:
   pull_request:
@@ -22,45 +26,11 @@ permissions:
   contents: read
 
 jobs:
-  env-guard:
-    name: Contracts Env Guard
+  deprecated-notice:
+    name: Deprecated Workflow
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: contracts
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          submodules: recursive
-
-      - name: Bash syntax checks for ops scripts
+      - name: Deprecation Notice
         run: |
-          find script/ops -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
-
-      - name: Validate rehearsal env profile
-        run: |
-          set -a
-          source config/profiles/staging.env
-          set +a
-          MARK_RELEASE_EXECUTE=true \
-          MARK_SETTLEMENT_PROOF_ENABLED=true \
-          MARK_SETTLEMENT_PRODUCTION_MODE=true \
-          MARK_DEPLOY_ATTESTED_VERIFIER=true \
-          PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000001 \
-          VALIDATE_MODE=rehearsal ./script/ops/validate-prod-env.sh
-
-      - name: Validate dispatch env profile
-        run: |
-          set -a
-          source config/profiles/mainnet.env
-          set +a
-          VALIDATE_MODE=dispatch ./script/ops/validate-prod-env.sh
-
-      - name: Validate verify-lock env profile
-        run: |
-          set -a
-          source config/profiles/mainnet.env
-          set +a
-          VALIDATE_MODE=verify-lock ./script/ops/validate-prod-env.sh
+          echo "::warning::This workflow is deprecated. Contracts environment guard is now part of the unified security.yml workflow."
+          echo "::warning::Please update your branch protection rules and references to use security.yml instead."

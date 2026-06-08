@@ -1,0 +1,302 @@
+# Security CI Pipeline
+# Consolidates all security scanning and governance checks into a single workflow
+# This provides a unified security audit trail and simplifies maintenance
+#
+# Security tools included:
+# - CodeQL (TypeScript/JavaScript analysis)
+# - Dependency Review (supply chain security)
+# - Secret Drift Guard (custom secret detection)
+# - Gitleaks (secret scanning)
+# - Contracts Env Guard (environment validation)
+# - OpenSSF Scorecard (repository security posture)
+# - Governance (policy validation)
+
+name: Security CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
+  schedule:
+    - cron: '30 3 * * 1' # Weekly Monday 3:30am UTC (combined schedule)
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  # Secret Scanning Jobs
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Setup mise
+        uses: jdx/mise-action@691e684984939740113c1a3ae421e8a58f5b33cb # v2.0.0
+        with:
+          install: true
+          cache: true
+
+      - name: Run gitleaks
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        run: |
+          gitleaks detect --config .gitleaks.toml --redact --report-format sarif --report-path gitleaks.sarif
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
+
+  secret-drift-guard:
+    name: Secret Drift Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Scan added lines for secret-like patterns
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin "${BASE_REF}" --depth=1
+          git diff --unified=0 --no-color "origin/${BASE_REF}"...HEAD > /tmp/pr.diff
+
+          # Added lines only (exclude file headers).
+          grep -E '^\+[^+]' /tmp/pr.diff > /tmp/pr.added || true
+
+          # Remove obvious placeholders and known non-secret examples.
+          grep -Ev 'YOUR_PRIVATE_KEY|0x0000000000000000000000000000000000000000|gho_\*+|github\.com/cli/cli/releases|PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000001|0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80' /tmp/pr.added > /tmp/pr.added.filtered || true
+
+          # High-signal patterns.
+          if grep -Ein \
+            -e 'ghp_[A-Za-z0-9]{20,}' \
+            -e 'github_pat_[A-Za-z0-9_]{20,}' \
+            -e 'AKIA[0-9A-Z]{16}' \
+            -e '-----BEGIN (RSA|EC|OPENSSH|DSA|PRIVATE) KEY-----' \
+            -e '(MNEMONIC|SEED_PHRASE|PRIVATE_KEY)[[:space:]]*[:=][[:space:]]*[^[:space:]]{12,}' \
+            /tmp/pr.added.filtered > /tmp/secret.hits; then
+            echo "Potential secret material detected in added lines:"
+            cat /tmp/secret.hits
+            exit 1
+          fi
+
+          echo "No secret-like drift detected in added lines."
+
+  # Dependency Security Jobs
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          config-file: './.github/dependency-review-config.yml'
+          fail-on-severity: high
+          fail-on-scopes: runtime
+          warn-only: false
+          comment-summary-in-pr: always
+
+  # Code Analysis Jobs  
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    if: |
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.commits[0].modified, 'src/') ||
+      contains(github.event.commits[0].modified, 'contracts/src/') ||
+      contains(github.event.commits[0].modified, 'contracts/script/') ||
+      contains(github.event.commits[0].modified, '.github/workflows/codeql.yml') ||
+      contains(github.event.commits[0].modified, '.github/workflows/security.yml')
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - javascript-typescript
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Setup Node + pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: '24.3.0'
+          pnpm-version: '9.0.2'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@7211b7c8077ea37d8641b6271f6a365a22a5fbfa # v4
+
+  # Contract Environment Validation
+  contracts-env-guard:
+    name: Contracts Environment Guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'schedule' ||
+      contains(github.event.commits[0].modified, 'contracts/') ||
+      contains(github.event.commits[0].modified, '.github/workflows/contracts-env-guard.yml') ||
+      contains(github.event.commits[0].modified, '.github/workflows/security.yml')
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+
+      - name: Bash syntax checks for ops scripts
+        run: |
+          find script/ops -type f -name '*.sh' -print0 | xargs -0 -n1 bash -n
+
+      - name: Validate rehearsal env profile
+        run: |
+          set -a
+          source config/profiles/staging.env
+          set +a
+          MARK_RELEASE_EXECUTE=true \
+          MARK_SETTLEMENT_PROOF_ENABLED=true \
+          MARK_SETTLEMENT_PRODUCTION_MODE=true \
+          MARK_DEPLOY_ATTESTED_VERIFIER=true \
+          PRIVATE_KEY=0x0000000000000000000000000000000000000000000000000000000000000001 \
+          VALIDATE_MODE=rehearsal ./script/ops/validate-prod-env.sh
+
+      - name: Validate dispatch env profile
+        run: |
+          set -a
+          source config/profiles/mainnet.env
+          set +a
+          VALIDATE_MODE=dispatch ./script/ops/validate-prod-env.sh
+
+      - name: Validate verify-lock env profile
+        run: |
+          set -a
+          source config/profiles/mainnet.env
+          set +a
+          VALIDATE_MODE=verify-lock ./script/ops/validate-prod-env.sh
+
+  # Repository Security Posture
+  scorecard:
+    name: OpenSSF Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run OpenSSF Scorecard
+        uses: ossf/scorecard-action@99c09fe975337306107572b4fdf4db224cf8e2f2 # v2.4.3
+        with:
+          results_file: scorecard-results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@afb54ba388a7dca6ecae48f608c4ff05ff4cc77a # v3.25.15
+        with:
+          sarif_file: scorecard-results.sarif
+          category: scorecard
+
+  # Governance Validation
+  governance-validate-policy:
+    name: Governance Policy Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    if: |
+      github.event_name != 'schedule' && (
+        github.event_name == 'workflow_dispatch' ||
+        contains(github.event.commits[0].modified, 'scripts/github/apply-governance.sh') ||
+        contains(github.event.commits[0].modified, 'docs/BRANCHING.md') ||
+        contains(github.event.commits[0].modified, '.github/PRODUCTION_GOVERNANCE_CHECKLIST.md') ||
+        contains(github.event.commits[0].modified, '.github/workflows/governance.yml') ||
+        contains(github.event.commits[0].modified, '.github/workflows/security.yml')
+      )
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Run governance policy validator
+        run: bash scripts/ci/validate-governance-policy.sh
+
+  governance-verify-baseline:
+    name: Governance Baseline Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Verify governance protections
+        env:
+          GH_PAT: ${{ secrets.GOVERNANCE_VERIFY_PAT }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ -z "${GH_PAT}" ]; then
+            echo "Missing required secret: GOVERNANCE_VERIFY_PAT" >&2
+            exit 1
+          fi
+          ./scripts/github/verify-governance.sh

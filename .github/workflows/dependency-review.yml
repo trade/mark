@@ -1,4 +1,8 @@
-name: Dependency Review
+# DEPRECATED: This workflow has been consolidated into security.yml
+# Use .github/workflows/security.yml instead
+# This file is kept for backwards compatibility but will be removed in a future update
+
+name: Dependency Review (DEPRECATED)
 
 on:
   pull_request:
@@ -7,21 +11,14 @@ on:
       - main
 
 jobs:
-  dependency-review:
-    name: Dependency Review
+  deprecated-notice:
+    name: Deprecated Workflow
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Review dependency changes
-        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
-        with:
-          config-file: './.github/dependency-review-config.yml'
-          fail-on-severity: high
-          fail-on-scopes: runtime
-          warn-only: false
-          comment-summary-in-pr: always
+      - name: Deprecation Notice
+        run: |
+          echo "::warning::This workflow is deprecated. Dependency review is now part of the unified security.yml workflow."
+          echo "::warning::Please update your branch protection rules and references to use security.yml instead."

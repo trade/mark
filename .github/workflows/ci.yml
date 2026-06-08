@@ -1,0 +1,140 @@
+# Unified CI Pipeline
+# Replaces ci-fast.yml and ci-full.yml with a single parameterized workflow
+# 
+# Modes:
+# - fast: Quick checks for PRs (typecheck, lint, core tests, basic security)
+# - full: Complete validation including invariant tests and release gates
+
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_call:
+    inputs:
+      mode:
+        description: 'CI mode: fast or full'
+        required: false
+        default: 'fast'
+        type: choice
+        options:
+          - fast
+          - full
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'CI mode: fast or full'
+        required: false
+        default: 'fast'
+        type: choice
+        options:
+          - fast
+          - full
+  schedule:
+    - cron: '30 2 * * *' # Daily at 2:30am UTC (full mode)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+  security-events: write
+
+env:
+  MODE: ${{ inputs.mode || (github.event_name == 'schedule' && 'full') || 'fast' }}
+
+jobs:
+  secrets:
+    name: Secret Scan (Trufflehog)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Run trufflehog
+        uses: trufflesecurity/trufflehog@d411fff7b8879a62509f3fa98c07f247ac089a51 # v3.95.5
+        with:
+          path: ./
+          base: ${{ github.base_ref }}
+          head: ${{ github.sha }}
+          extra_args: --json
+
+  typecheck-lint:
+    name: Typecheck + Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Setup Node + pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: '24.3.0'
+          pnpm-version: '9.0.2'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Typecheck
+        run: pnpm -s typecheck
+      - name: Lint
+        run: pnpm -s lint
+
+  contracts-core:
+    name: Contracts Core (Unit + Invariant)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    uses: ./.github/workflows/reusable/reusable-contracts.yml
+    with:
+      run_invariant: ${{ env.MODE == 'full' && 'true' || 'false' }}
+
+  contracts-security:
+    name: Contracts Security (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    uses: ./.github/workflows/reusable/reusable-contracts-security.yml
+    with:
+      run_semgrep: 'true'
+
+  circuits-core:
+    name: Circuits Core (Build + Tests + Circomspect)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    uses: ./.github/workflows/reusable/reusable-circuits.yml
+    with:
+      run_tests: 'true'
+      run_circomspect: 'true'
+      check_changes: 'true'
+      base_ref: ${{ github.base_ref }}
+      event_name: ${{ github.event_name }}
+
+  frontend-checks:
+    name: Frontend Checks (Node 24)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    uses: ./.github/workflows/reusable/reusable-frontend.yml
+    with:
+      node_versions: '[ "24.3.0" ]'
+      pnpm_version: '9.0.2'
+
+  # Full-mode only jobs
+  contracts-core-full:
+    name: Contracts Core (With Invariants)
+    needs: [typecheck-lint]
+    if: env.MODE == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    uses: ./.github/workflows/reusable/reusable-contracts.yml
+    with:
+      run_invariant: 'true'
+
+  release-gate:
+    name: Release Gate Container
+    needs: [typecheck-lint]
+    if: env.MODE == 'full'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    uses: ./.github/workflows/contracts-release-gate.yml
+    secrets:
+      DOCKER_REGISTRY_TOKEN: ${{ secrets.GHCR_PAT }}
