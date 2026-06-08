@@ -48,17 +48,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup mise
-        uses: jdx/mise-action@691e684984939740113c1a3ae421e8a58f5b33cb # v2.0.0
-        with:
-          install: true
-          cache: true
-
-      - name: Run gitleaks
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2.3.7
         env:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        run: |
-          gitleaks detect --config .gitleaks.toml --redact --report-format sarif --report-path gitleaks.sarif
+        with:
+          config_file: .gitleaks.toml
+          format: sarif
+          output_file: gitleaks.sarif
 
       - name: Upload SARIF
         if: always()
