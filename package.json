@@ -31,8 +31,8 @@
     "review:quick": "./scripts/review.sh --quick"
   },
   "dependencies": {
-    "@radix-ui/react-separator": "^1.1.8",
-    "@radix-ui/react-slot": "^1.2.4",
+    "@radix-ui/react-separator": "^1.1.9",
+    "@radix-ui/react-slot": "^1.2.5",
     "@tailwindcss/vite": "^4.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -45,7 +45,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@eth-optimism/super-cli": "^0.0.13",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.2",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
@@ -54,11 +54,11 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^15.15.0",
     "lefthook": "^2.1.9",
-    "mprocs": "^0.9.5",
+    "mprocs": "^0.9.6",
     "prettier": "^3.8.3",
     "supersim": "0.1.0-alpha.45",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.60.0",
+    "typescript-eslint": "^8.60.1",
     "vite": "6.4.2"
   },
   "engines": {
