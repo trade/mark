@@ -48,14 +48,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@83373cf2f8c4db6e24b41c1a9b086bb9619e9cd3
+      - name: Install gitleaks
+        run: |
+          wget https://github.com/zricethezav/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
+          tar -xzvf gitleaks_8.18.0_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+          gitleaks version
+
+      - name: Run gitleaks
         env:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        with:
-          config_file: .gitleaks.toml
-          format: sarif
-          output_file: gitleaks.sarif
+        run: |
+          gitleaks detect --config .gitleaks.toml --redact --report-format sarif --report-path gitleaks.sarif
 
       - name: Upload SARIF
         if: always()
