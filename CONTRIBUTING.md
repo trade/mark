@@ -36,8 +36,8 @@ This policy protects the project and community from potential security risks.
 
 3. **Run CI locally before submitting**
    - All contributors must verify their changes pass CI
-   - Run full test suite: `pnpm review` (includes lint, typecheck, circuits, contracts)
-   - Quick mode: `pnpm review:quick`
+   - Run full CI fast pipeline: `mise run ci-fast`
+   - Quick mode: `mise run ci-fast` (runs all checks in ~10 min)
    - Provide CI verification in PR description
 
 4. **Verify your identity (for code contributions)**
@@ -83,7 +83,7 @@ Install all prerequisites via mise (tool versions pinned in `.mise.toml`):
 git clone https://github.com/trade/mark.git
 cd mark
 
-# Install and activate all tools via mise (Node, pnpm, Foundry, gitleaks)
+# Install and activate all tools via mise (Node, pnpm, Foundry)
 mise trust
 mise install
 
@@ -96,7 +96,6 @@ All tool versions are pinned in `.mise.toml`. Run `mise install` after every `gi
 Tools managed by mise:
 - **Node.js 24** + **pnpm 9.0.2** — toolchain
 - **Foundry** (forge, cast, anvil) — Solidity development
-- **gitleaks** — secrets detection
 
 The bootstrap script (`./scripts/bootstrap.sh`) remains available as a
 convenience wrapper that also installs mise itself if missing.
@@ -119,7 +118,6 @@ If you prefer to install tools manually, the prerequisites are:
 - **Node.js 24**: `mise use -g node@24`
 - **pnpm 9.x**: `mise use -g pnpm@9.0.2`
 - **Foundry**: `mise use -g foundry@latest`
-- **gitleaks**: `mise use -g gitleaks@8.30.1`
 - **uv**: `curl -LsSf https://astral.sh/uv/install.sh | sh` — Python package manager
 - **slither**: `uv pip install slither-analyzer==0.11.5`
 - **semgrep**: `uv pip install semgrep`
