@@ -36,8 +36,7 @@ This policy protects the project and community from potential security risks.
 
 3. **Run CI locally before submitting**
    - All contributors must verify their changes pass CI
-   - Run full CI fast pipeline: `mise run ci-fast`
-   - Quick mode: `mise run ci-fast` (runs all checks in ~10 min)
+   - Run full CI fast pipeline: `mise run ci-fast` (typecheck, lint, semgrep, contracts core, circuits core — ~10 min)
    - Provide CI verification in PR description
 
 4. **Verify your identity (for code contributions)**
