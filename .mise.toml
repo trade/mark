@@ -71,7 +71,7 @@ run = [
 
 [tasks.circomspect]
 description = "Static analysis for all circuits"
-run = "circomspect circuits/ -l ERROR -L node_modules/.pnpm/circomlib@2.0.5/node_modules"
+run = "cd circuits && circomspect . -l ERROR -L node_modules"
 
 # === Testing/CI Tasks ===
 [tasks.test]
