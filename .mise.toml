@@ -105,7 +105,7 @@ run = [
 
 [tasks.reorg-sim]
 description = "Test 1-block reorg double-spend protection"
-run = "cd contracts && forge test --match-test testReorgDoubleSpend --fork-url $OP_SEPOLIA_RPC -vvv"
+run = "cd contracts && forge test --match-test testReorgDoubleSpendProtection --fork-url $OP_SEPOLIA_RPC -vvv"
 
 [tasks.zk-proof-tests]
 description = "ZK proof soundness and completeness tests"
