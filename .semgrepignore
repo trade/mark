@@ -18,12 +18,13 @@ coverage/
 lib/
 contracts/lib/
 
-# Test files — we allow bad patterns in tests
+# Test files — semgrep allows bad patterns in tests by design
 test/
 **/test/**
 **/*.test.ts
 **/*.test.sol
 **/script/**
+circuits/scripts/
 
 # Generated code
 contracts/src/pool/verifier/

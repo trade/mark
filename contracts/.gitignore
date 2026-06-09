@@ -8,8 +8,8 @@ out/
 # Coverage output
 coverage/
 
-# Docs
-docs/
+# Generated docs (forge doc output)
+docs/api/
 
 # Dotenv file
 .env

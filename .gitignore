@@ -17,6 +17,12 @@ dist-ssr
 .env.*
 *.env
 
+# Python virtualenv
+.venv/
+
+# mise local overrides (personal RPC URLs, tool version overrides)
+.mise.local.toml
+
 # Local dev runtime output
 supersim-logs/
 

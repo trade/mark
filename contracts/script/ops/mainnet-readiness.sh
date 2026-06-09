@@ -50,7 +50,7 @@ run_predeploy_checks() {
     src/bridge/MARKBridgeAdapter.sol \
     src/settlement/MARKSettlementModule.sol \
     src/settlement/verifier/AttestedSettlementVerifier.sol \
-    --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/" \
+    --solc-remaps "@interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/openzeppelin-contracts/" \
     --exclude-dependencies \
     --filter-paths "lib|test|script|out|cache" \
     --fail-medium
