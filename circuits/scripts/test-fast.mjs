@@ -8,6 +8,8 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const wasm = path.join(root, 'build/MARKPool_js/MARKPool.wasm');
 
 function run(cmd, args) {
+  // nosemgrep:security.detect-child-process.detect-child-process
+  // Safe: only called with hardcoded 'pnpm'/'node' and controlled args
   const r = spawnSync(cmd, args, { cwd: root, stdio: 'inherit', shell: false });
   if (r.status !== 0) process.exit(r.status ?? 1);
 }

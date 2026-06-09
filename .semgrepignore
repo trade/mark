@@ -24,6 +24,7 @@ test/
 **/*.test.ts
 **/*.test.sol
 **/script/**
+circuits/scripts/
 
 # Generated code
 contracts/src/pool/verifier/
