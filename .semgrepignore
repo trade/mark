@@ -18,7 +18,7 @@ coverage/
 lib/
 contracts/lib/
 
-# Test files — we allow bad patterns in tests
+# Test files — semgrep allows bad patterns in tests by design
 test/
 **/test/**
 **/*.test.ts

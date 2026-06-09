@@ -28,7 +28,6 @@ dependencies = [
 dev-dependencies = [
   # Extra tools for local dev only, not CI
   "ipython==8.28.0", # for debugging
-  "pre-commit==4.0.1",
 ]
 
 # Slither config so it matches AGENTS.md rules

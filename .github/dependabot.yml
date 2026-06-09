@@ -1,16 +1,38 @@
 # .github/dependabot.yml
-# Minimal Dependabot configuration: pulls new patch/minor npm changes weekly.
-# Adjust schedule or add more ecosystems as required.
-
 version: 2
 updates:
+  # Root npm workspace (frontend + tooling)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
     groups:
-      node: &node
+      node:
         patterns:
           - "*"
     labels:
+      - "security"
+
+  # Circuits workspace — separate package.json not covered by root entry
+  - package-ecosystem: "npm"
+    directory: "/circuits"
+    schedule:
+      interval: "weekly"
+    # snarkjs major bumps break trusted-setup compatibility with deployed contracts.
+    # Only allow patch/minor; major bumps require manual review.
+    ignore:
+      - dependency-name: "snarkjs"
+        update-types: ["version-update:semver-major"]
+    labels:
+      - "security"
+      - "circuits"
+
+  # GitHub Actions — keep SHA-pinned actions updated automatically
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "dev"
+    labels:
+      - "ci"
       - "security"
