@@ -1,6 +1,6 @@
 # MARK
 
-[![Gitleaks](https://github.com/trade/mark/workflows/Secrets%20Scan/badge.svg)](https://github.com/trade/mark/actions/workflows/secrets-scan.yml)
+[![TruffleHog](https://github.com/trade/mark/actions/workflows/ci-fast.yml/badge.svg)](https://github.com/trade/mark/actions/workflows/ci-fast.yml)
 
 Privacy-first settlement infrastructure leveraging zero-knowledge technologies for secure, private, and scalable transactions. Built for EVM-compatible blockchains, with native support for the Optimism Superchain.
 
@@ -21,20 +21,25 @@ cd mark
 # Or just check what's installed:
 # ./scripts/bootstrap.sh --check
 
-pnpm i && pnpm dev
+pnpm i
+# Terminal 1: Start local Anvil (OP Sepolia fork)
+mise run anvil
+# Terminal 2: Deploy contracts to local Anvil
+mise run deploy-local
+# Terminal 3: Start frontend dev server
+pnpm dev:frontend
 ```
 
 Alternatively, run `./scripts/bootstrap.sh` on its own first to see which tools it installs.
-
-Visit http://localhost:5173 to see the MARK dashboard running on a local Superchain (1 L1 + 2 L2 chains).
+Visit http://localhost:5173 to see the MARK dashboard running on local Anvil (OP Sepolia fork).
 
 **Missing prerequisites?** See [Getting Started](./CONTRIBUTING.md#getting-started) for installation instructions, or run `./scripts/bootstrap.sh` to install them all at once.
 
 ### What Just Happened?
 
 - ✅ Installed dependencies (contracts + frontend)
-- ✅ Started local Superchain (supersim)
-- ✅ Deployed MARK contracts to L2A and L2B
+- ✅ Started local Anvil (OP Sepolia fork)
+- ✅ Deployed MARK contracts to local Anvil
 - ✅ Launched frontend dev server
 
 **Next steps**: Try the [tutorial](./docs/TUTORIAL.md) or explore the [architecture](./docs/ARCHITECTURE.md).
@@ -42,13 +47,10 @@ Visit http://localhost:5173 to see the MARK dashboard running on a local Superch
 ### Local Verification (Recommended Before PR)
 
 ```bash
-pnpm typecheck
-pnpm lint
-pnpm -s circuits:test
-pnpm -s contracts:ci-fast
+mise run ci-fast
 ```
 
-`circuits:test` runs the MARKPool witness tests. `contracts:ci-fast` runs architecture/layering guards, core contract tests, and the `MARKPool` bytecode size budget guard.
+`mise run ci-fast` runs the full CI fast pipeline: typecheck, lint, secret scan (trufflehog), contracts core (unit + architecture/layering/size guards), circuits core (build + tests + circomspect), and frontend checks.
 
 ## Documentation
 
