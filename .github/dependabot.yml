@@ -1,44 +1,16 @@
+# .github/dependabot.yml
+# Minimal Dependabot configuration: pulls new patch/minor npm changes weekly.
+# Adjust schedule or add more ecosystems as required.
+
 version: 2
 updates:
-    - package-ecosystem: 'github-actions'
-      directory: '/'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      open-pull-requests-limit: 5
-      labels: ['dependencies', 'ci']
-      commit-message:
-        prefix: 'chore(deps)'
-
-    - package-ecosystem: 'npm'
-      directory: '/circuits'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      open-pull-requests-limit: 3
-      labels: ['dependencies', 'circuits', 'security']
-      commit-message:
-        prefix: 'chore(deps)'
-
-    - package-ecosystem: 'npm'
-      directory: '/'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      open-pull-requests-limit: 10
-      labels: ['dependencies', 'frontend', 'security']
-      groups:
-        frontend-minor-patch:
-          update-types: ['minor', 'patch']
-      commit-message:
-        prefix: 'chore(deps)'
-    # DELETE the ignore block after you remove super-cli
-
-    - package-ecosystem: 'git-submodule'
-      directory: '/'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      labels: ['dependencies', 'contracts']
-      commit-message:
-        prefix: 'chore(deps)'
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      node: &node
+        patterns:
+          - "*"
+    labels:
+      - "security"
