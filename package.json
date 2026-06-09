@@ -17,7 +17,7 @@
     "contracts:evidence-manifest": "cd contracts && make generate-evidence-manifest",
     "circuits:build": "pnpm --filter @mark/circuits run build",
     "circuits:test": "pnpm --filter @mark/circuits run test",
-    "check": "pnpm -s typecheck && pnpm -s lint && pnpm -s circuits:test && mise run ci-fast",
+    "check": "mise run ci-fast",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint --fix .",
