@@ -30,6 +30,8 @@ allow_licenses:
   - ISC
   - Unlicense
   - CC0-1.0
+  - CC-BY-4.0
+  - BlueOak-1.0.0
   - AGPL-3.0
   - GPL-2.0
   - GPL-3.0
@@ -50,6 +52,7 @@ allow_dependencies_licenses:
   - pkg:githubactions/jdx/mise-action
   - pkg:pypi/slither-analyzer
   - pkg:npm/actions/github-script
+  - pkg:npm/supersim
 
 # GHSA IDs to allow (none currently).
 allow_ghsas: []
