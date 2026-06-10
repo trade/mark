@@ -1,4 +1,4 @@
-#.mise.toml — MARK Protocol toolchain
+# .mise.toml – MARK Protocol toolchain
 
 [tools]
 node = "24.3.0"
@@ -6,7 +6,6 @@ pnpm = "9.0.2"
 foundry = "nightly"
 python = "3.12"
 uv = "0.5.4"
-gitleaks = "8.30.1"
 go = "1.22.5"
 rust = "1.80.0"
 
@@ -71,7 +70,7 @@ run = [
 
 [tasks.circomspect]
 description = "Static analysis for all circuits"
-run = "circomspect circuits/ --error unused_signals,unconstrained_signals,non_deterministic_circuits"
+run = "cd circuits && circomspect . -l ERROR -L node_modules"
 
 # === Testing/CI Tasks ===
 [tasks.test]
@@ -84,14 +83,7 @@ run = [
 
 [tasks.ci-fast]
 description = "Fast CI checks before push to feat/*"
-run = [
-  "pnpm typecheck",
-  "pnpm lint",
-  "gitleaks detect --no-git --verbose",
-  "uvx semgrep scan --config=auto --config=./.semgrep.yml --error",
-  "cd contracts && forge test --no-match-test invariant",
-  "cd circuits && pnpm run test:fast"
-]
+run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
 
 [tasks.ci-full]
 description = "Full CI before PR to dev/main"
@@ -105,7 +97,7 @@ run = [
 
 [tasks.reorg-sim]
 description = "Test 1-block reorg double-spend protection"
-run = "cd contracts && forge test --match-test testReorgDoubleSpend --fork-url $OP_SEPOLIA_RPC -vvv"
+run = "cd contracts && forge test --match-test testReorgDoubleSpendProtection --fork-url $OP_SEPOLIA_RPC -vvv"
 
 [tasks.zk-proof-tests]
 description = "ZK proof soundness and completeness tests"

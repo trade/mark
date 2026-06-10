@@ -95,7 +95,7 @@ slither-install:
 	@uv pip install --system slither-analyzer==0.11.5
 
 # Slither analysis configuration (defined at top level for use in recipe)
-SLITHER_REMAPS := @interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/createx/lib/openzeppelin-contracts/
+SLITHER_REMAPS := @interop-lib/=lib/interop-lib/src/ @openzeppelin/=lib/openzeppelin-contracts/
 SLITHER_BASE_EXCLUDES := naming-convention,timestamp
 
 slither-core:

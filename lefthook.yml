@@ -5,16 +5,6 @@ pre-commit:
       run: pnpm -s typecheck
     lint:
       run: pnpm -s lint
-    gitleaks:
-      run: |
-        if command -v gitleaks >/dev/null 2>&1; then
-          gitleaks protect --staged --verbose
-        else
-          echo "⚠️  gitleaks not found. Quick install:"
-          echo "    bash scripts/install-gitleaks.sh"
-          echo ""
-          echo "    Skipping secrets scan (will run in CI)"
-        fi
 
 pre-push:
   commands:

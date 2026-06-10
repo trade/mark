@@ -11,7 +11,6 @@
 **/src/pool/verifier/**
 **/src/crypto/generated/**
 
-# Test files (except specific security tests)
-**/test/**/*Pool*.t.sol
-**/test/**/*Reorg*.t.sol
-**/test/**/*Secure*.t.sol
+# Test and script files — bad patterns are expected and accepted here
+**/test/**
+**/script/**

@@ -7,13 +7,13 @@ ERRORS=0
 
 # Check circuits package manager
 if [ -f "circuits/pnpm-lock.yaml" ]; then
-  if grep -E "^[[:space:]]+(run:).*\bnpm (ci|install)\b" .github/workflows/circuits-ci.yml >/dev/null; then
-    echo "❌ circuits-ci.yml uses npm but circuits/ uses pnpm"
+  if grep -E "^[[:space:]]+(run:).*\bnpm (ci|install)\b" .github/workflows/_reusable-circuits-core.yml >/dev/null; then
+    echo "ERROR: _reusable-circuits-core.yml uses npm but circuits/ uses pnpm"
     ERRORS=$((ERRORS + 1))
   fi
 elif [ -f "circuits/package-lock.json" ]; then
-  if grep -E "^[[:space:]]+(run:).*\bpnpm install\b" .github/workflows/circuits-ci.yml >/dev/null; then
-    echo "❌ circuits-ci.yml uses pnpm but circuits/ uses npm"
+  if grep -E "^[[:space:]]+(run:).*\bpnpm install\b" .github/workflows/_reusable-circuits-core.yml >/dev/null; then
+    echo "ERROR: _reusable-circuits-core.yml uses pnpm but circuits/ uses npm"
     ERRORS=$((ERRORS + 1))
   fi
 fi
@@ -25,15 +25,15 @@ WORKFLOWS=$(find .github/workflows -name "*.yml" -exec grep -l "node-version:" {
 for workflow in $WORKFLOWS; do
   WORKFLOW_NODE=$(grep "node-version:" "$workflow" | head -1 | sed -nE "s/.*node-version:[[:space:]]*['\"]?([0-9.]+).*/\1/p")
   if [ -n "$WORKFLOW_NODE" ] && [ "$WORKFLOW_NODE" != "$MISE_NODE" ]; then
-    echo "❌ $(basename "$workflow"): Node $WORKFLOW_NODE (expected $MISE_NODE)"
+    echo "ERROR: $(basename "$workflow"): Node $WORKFLOW_NODE (expected $MISE_NODE)"
     ERRORS=$((ERRORS + 1))
   fi
 done
 
 if [ $ERRORS -gt 0 ]; then
   echo ""
-  echo "❌ Found $ERRORS workflow validation error(s)"
+  echo "ERROR: Found $ERRORS workflow validation error(s)"
   exit 1
 fi
 
-echo "✅ All workflows validated"
+echo "OK: All workflows validated"

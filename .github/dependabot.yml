@@ -1,44 +1,38 @@
+# .github/dependabot.yml
 version: 2
 updates:
-    - package-ecosystem: 'github-actions'
-      directory: '/'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      open-pull-requests-limit: 5
-      labels: ['dependencies', 'ci']
-      commit-message:
-        prefix: 'chore(deps)'
+  # Root npm workspace (frontend + tooling)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      node:
+        patterns:
+          - "*"
+    labels:
+      - "security"
 
-    - package-ecosystem: 'npm'
-      directory: '/circuits'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      open-pull-requests-limit: 3
-      labels: ['dependencies', 'circuits', 'security']
-      commit-message:
-        prefix: 'chore(deps)'
+  # Circuits workspace — separate package.json not covered by root entry
+  - package-ecosystem: "npm"
+    directory: "/circuits"
+    schedule:
+      interval: "weekly"
+    # snarkjs major bumps break trusted-setup compatibility with deployed contracts.
+    # Only allow patch/minor; major bumps require manual review.
+    ignore:
+      - dependency-name: "snarkjs"
+        update-types: ["version-update:semver-major"]
+    labels:
+      - "security"
+      - "circuits"
 
-    - package-ecosystem: 'npm'
-      directory: '/'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      open-pull-requests-limit: 10
-      labels: ['dependencies', 'frontend', 'security']
-      groups:
-        frontend-minor-patch:
-          update-types: ['minor', 'patch']
-      commit-message:
-        prefix: 'chore(deps)'
-    # DELETE the ignore block after you remove super-cli
-
-    - package-ecosystem: 'git-submodule'
-      directory: '/'
-      target-branch: 'dev'
-      schedule:
-        interval: 'weekly'
-      labels: ['dependencies', 'contracts']
-      commit-message:
-        prefix: 'chore(deps)'
+  # GitHub Actions — keep SHA-pinned actions updated automatically
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "dev"
+    labels:
+      - "ci"
+      - "security"

@@ -2,7 +2,7 @@ build/
 node_modules/
 *.zkey
 *.ptau
-witness.wtns
+*.wtns
 
 # Prototype files (superseded by circuits/mark/MARKPool.circom)
 utxo/

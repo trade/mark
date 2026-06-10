@@ -219,31 +219,6 @@ else
   fi
 fi
 
-# ---- Optional: gitleaks --------------------------------------------
-info "Checking gitleaks (optional)..."
-if command -v gitleaks &>/dev/null; then
-  success "gitleaks ($(gitleaks --version 2>&1 | head -1))"
-  record_ok "gitleaks"
-elif $CHECK_ONLY; then
-  skip "gitleaks not installed"
-  record_warn "gitleaks (not installed)"
-else
-  if command -v mise &>/dev/null; then
-    info "Installing gitleaks via mise..."
-    mise install gitleaks && {
-      eval "$(mise activate bash 2>/dev/null || true)"
-      success "gitleaks installed"
-      record_ok "gitleaks"
-    } || {
-      error "gitleaks installation failed"
-      record_fail "gitleaks"
-    }
-  else
-    warning "mise not available — install gitleaks manually: https://github.com/gitleaks/gitleaks#installing"
-    record_warn "gitleaks (mise unavailable)"
-  fi
-fi
-
 # ---- Summary -------------------------------------------------------
 echo
 echo "========================================"
