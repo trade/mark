@@ -3,11 +3,16 @@ dist/
 build/
 out/
 cache/
-contracts/
-circuits/
-*.sol
-*.toml
-*.yaml
-*.yml
-*.md
+# Solidity & Circom sources – handled by forge fmt / circom tools
+contracts/**/*.sol
+circuits/**/*.circom
+# Generated / compiled artifacts
+*.zkey
+*.ptau
+*.wtns
+*.gas-snapshot
+foundry.lock
+# Lockfiles – Prettier handles them differently
 pnpm-lock.yaml
+uv.lock
+package-lock.json

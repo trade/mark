@@ -34,3 +34,11 @@ supersim-logs/
 *.njsproj
 *.sln
 *.sw?
+
+# Build artifacts & caches
+.turbo/
+.vercel/
+.netlify/
+.nyc_output/
+coverage/
+*.tsbuildinfo
