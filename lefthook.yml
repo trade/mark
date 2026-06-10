@@ -5,6 +5,8 @@ pre-commit:
       run: pnpm -s typecheck
     lint:
       run: pnpm -s lint
+    secrets:
+      run: uvx trufflehog --repo_path . --json file://$(pwd)
 
 pre-push:
   commands:
