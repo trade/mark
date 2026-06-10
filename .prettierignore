@@ -13,6 +13,10 @@ circuits/**/*.circom
 *.gas-snapshot
 foundry.lock
 # Lockfiles – Prettier handles them differently
+# Global ignores (must be kept for YAML/TOML files)
+*.toml
+*.yaml
+*.yml
 pnpm-lock.yaml
 uv.lock
 package-lock.json
