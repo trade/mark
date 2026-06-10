@@ -50,7 +50,7 @@ Visit http://localhost:5173 to see the MARK dashboard running on local Anvil (OP
 mise run ci-fast
 ```
 
-`mise run ci-fast` runs the full CI fast pipeline: typecheck, lint, secret scan (trufflehog), contracts core (unit + architecture/layering/size guards), circuits core (build + tests + circomspect), and frontend checks.
+`mise run ci-fast` runs the local fast pipeline: typecheck, lint, secret scan (trufflehog), semgrep (security), contracts unit tests, and circuits tests.
 
 ## Documentation
 

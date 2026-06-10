@@ -3,7 +3,7 @@
 [tools]
 node = "24.3.0"
 pnpm = "9.0.2"
-foundry = "nightly"
+foundry = "stable"
 python = "3.12"
 uv = "0.5.4"
 go = "1.22.5"
@@ -13,7 +13,6 @@ rust = "1.80.0"
 _.python.venv = { path = ".venv", create = true }
 FOUNDRY_PROFILE = "ci"
 OP_SEPOLIA_RPC = "https://sepolia.optimism.io"  # Override with your own RPC in ~/.mise.local.toml
-FOUNDRY_COMPILER_SETTINGS = "nightly"
 
 [tasks.setup]
 description = "Full project setup: deps + toolchains + circuits"
@@ -83,7 +82,7 @@ run = [
 
 [tasks.ci-fast]
 description = "Fast CI checks before push to feat/*"
-run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
+run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && uvx trufflehog --repo_path . --json file://$(pwd) && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
 
 [tasks.ci-full]
 description = "Full CI before PR to dev/main"
@@ -108,7 +107,7 @@ run = [
 
 [tasks.slither]
 description = "Run Slither static analysis"
-run = "cd contracts && uv run slither . --config-file slither.config.json"
+run = "cd contracts && uv run slither ."
 
 [tasks.semgrep]
 description = "Run Semgrep with MARK custom rules"
