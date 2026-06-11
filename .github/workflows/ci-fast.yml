@@ -41,8 +41,8 @@ jobs:
             echo "Found SARIF: $SARIF_FILE"
             echo "SARIF_FILE=$SARIF_FILE" >> $GITHUB_OUTPUT
           else
-            echo "No SARIF file found, creating empty one"
-            echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"trufflehog"}}, "results":[]}]' > trufflehog-empty.sarif
+            echo "No SARIF file found, creating empty valid one"
+            echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"trufflehog"}}, "results":[]}]}' > trufflehog-empty.sarif
             echo "SARIF_FILE=trufflehog-empty.sarif" >> $GITHUB_OUTPUT
           fi
         id: sarif
