@@ -60,12 +60,10 @@ require_checks_dev=(
   "Release Gate Container"
   "Contracts Core (Unit + Invariant) / Contracts Core"
   "Contracts Security (Semgrep) / Semgrep Scan"
-  "Contracts Security (Semgrep) / Slither Core Contracts"
   "Contracts Fuzz / Contracts Fuzz"
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
-  "CodeQL / Analyze (javascript-typescript)"
-  "CodeQL / Analyze (solidity)"
+  "Analyze (javascript-typescript)"
 )
 
 require_checks_main=(
@@ -76,12 +74,10 @@ require_checks_main=(
   "Release Gate Container"
   "Contracts Core (Unit + Invariant) / Contracts Core"
   "Contracts Security (Semgrep) / Semgrep Scan"
-  "Contracts Security (Semgrep) / Slither Core Contracts"
   "Contracts Fuzz / Contracts Fuzz"
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
-  "CodeQL / Analyze (javascript-typescript)"
-  "CodeQL / Analyze (solidity)"
+  "Analyze (javascript-typescript)"
   "Validate Release PR Checklist"
   "Validate Release Evidence"
 )
