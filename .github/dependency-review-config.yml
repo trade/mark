@@ -22,9 +22,11 @@ vulnerability_check: true
 # become part of the distributed product. MIT-licensed project + AGPL analysis tool is
 # not a license violation.
 # LGPL-2.0/LGPL-2.1 is allowed for semgrep, which is a static analysis tool.
+# Apache-2.0 WITH LLVM-exception is allowed for @bytecodealliance/preview2-shim (WASM tooling dep of prettier-plugin-solidity).
 allow_licenses:
   - MIT
   - Apache-2.0
+  - "Apache-2.0 WITH LLVM-exception"
   - BSD-2-Clause
   - BSD-3-Clause
   - ISC
@@ -53,6 +55,7 @@ allow_dependencies_licenses:
   - pkg:pypi/slither-analyzer
   - pkg:npm/actions/github-script
   - pkg:npm/supersim
+  - pkg:npm/@solidity-parser/parser
 
 # GHSA IDs to allow (none currently).
 allow_ghsas: []
