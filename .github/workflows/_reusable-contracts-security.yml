@@ -63,7 +63,8 @@ jobs:
       - name: Run Slither
         id: slither
         run: |
-          slither . --config-file ../.slither.config.json --sarif slither.sarif 2>&1 | tee slither.log
+          # Run slither, allow non-zero exit (findings = success for SARIF upload)
+          slither . --config-file ../.slither.config.json --sarif slither.sarif 2>&1 | tee slither.log || true
           ls -la slither.sarif || echo "SARIF file not found"
 
       - name: Upload Slither SARIF
