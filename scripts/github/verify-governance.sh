@@ -64,6 +64,8 @@ require_checks_dev=(
   "Contracts Fuzz / Contracts Fuzz"
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
+  "CodeQL / Analyze (javascript-typescript)"
+  "CodeQL / Analyze (solidity)"
 )
 
 require_checks_main=(
@@ -78,6 +80,8 @@ require_checks_main=(
   "Contracts Fuzz / Contracts Fuzz"
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
+  "CodeQL / Analyze (javascript-typescript)"
+  "CodeQL / Analyze (solidity)"
   "Validate Release PR Checklist"
   "Validate Release Evidence"
 )

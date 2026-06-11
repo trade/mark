@@ -228,7 +228,9 @@ DEV_CHECKS_JSON='[
   "Contracts Security (Semgrep) / Slither Core Contracts",
   "Contracts Fuzz / Contracts Fuzz",
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
-  "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
+  "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)",
+  "CodeQL / Analyze (javascript-typescript)",
+  "CodeQL / Analyze (solidity)"
 ]'
 MAIN_CHECKS_JSON='[
   "Typecheck + Lint",
@@ -242,6 +244,8 @@ MAIN_CHECKS_JSON='[
   "Contracts Fuzz / Contracts Fuzz",
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)",
+  "CodeQL / Analyze (javascript-typescript)",
+  "CodeQL / Analyze (solidity)",
   "Validate Release PR Checklist",
   "Validate Release Evidence"
 ]'
