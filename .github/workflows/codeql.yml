@@ -84,17 +84,18 @@ jobs:
       - name: Build contracts
         run: cd contracts && forge build
 
+      - name: Create CodeQL database
+        run: |
+          cd contracts
+          codeql database create codeql-db --language=solidity --source-root=. --command="forge build" 2>&1 | tee codeql-db-create.log
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           languages: solidity
           queries: security-extended
           build-mode: none
-
-      - name: Create CodeQL database
-        run: |
-          cd contracts
-          codeql database create codeql-db --language=solidity --source-root=. --command="forge build" 2>&1 | tee codeql-db-create.log
+          database-directory: ${{ github.workspace }}/contracts/codeql-db
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
