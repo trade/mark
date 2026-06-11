@@ -11,7 +11,6 @@ rust = "1.80.0"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
-FOUNDRY_PROFILE = "ci"
 OP_SEPOLIA_RPC = "https://sepolia.optimism.io"  # Override with your own RPC in ~/.mise.local.toml
 
 [tasks.setup]
