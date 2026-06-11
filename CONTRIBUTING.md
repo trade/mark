@@ -61,6 +61,7 @@ This policy protects the project and community from potential security risks.
 ### Security-Sensitive Changes
 
 These require extra scrutiny:
+
 - Smart contract changes
 - Deployment scripts
 - CI/CD workflows
@@ -93,6 +94,7 @@ pnpm i
 All tool versions are pinned in `.mise.toml`. Run `mise install` after every `git pull` to stay in sync.
 
 Tools managed by mise:
+
 - **Node.js 24** + **pnpm 9.0.2** — toolchain
 - **Foundry** (forge, cast, anvil) — Solidity development
 
@@ -100,6 +102,7 @@ The bootstrap script (`./scripts/bootstrap.sh`) remains available as a
 convenience wrapper that also installs mise itself if missing.
 
 The script also installs (not managed by mise):
+
 - **uv** — Python package manager (for slither, semgrep, and other Python tooling)
 - **super-cli** — OP Superchain deployment CLI
 
@@ -175,6 +178,7 @@ MARK uses a **two-track branch model**:
 ### Feature Development
 
 1. **Create a feature branch from `dev`**:
+
    ```bash
    git checkout dev
    git pull origin dev
@@ -188,6 +192,7 @@ MARK uses a **two-track branch model**:
    - `feature/123` ❌ (use descriptive names)
 
 3. **Make changes and commit**:
+
    ```bash
    git add .
    git commit -m "feat(settlement): add transaction confirmation ui"
@@ -202,6 +207,7 @@ MARK uses a **two-track branch model**:
 ### Before Submitting PR
 
 1. **Run all checks locally**:
+
    ```bash
    # Type checking
    pnpm typecheck
@@ -226,12 +232,14 @@ MARK uses a **two-track branch model**:
    - core contract tests
 
    Override bytecode margin threshold locally if needed:
+
    ```bash
    cd contracts
    MARK_POOL_MIN_SIZE_MARGIN_BYTES=120 make size-guard
    ```
 
 2. **Verify no secrets in code**:
+
    ```bash
    # Check for common patterns (key, password, token, secret)
    git diff HEAD^ HEAD | grep -i "password\|api_key\|private_key"
@@ -257,6 +265,7 @@ MARK uses a **two-track branch model**:
 - **Component files** should be small and focused
 
 Example component:
+
 ```typescript
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -290,6 +299,7 @@ export function SettlementCard({ id, status, onExecute }: SettlementCardProps) {
 - **No cross-domain imports** (enforced by `make architecture-guard`)
 
 Example contract:
+
 ```solidity
 /// @title MARKSettlementModule
 /// @notice Handles cross-chain settlement execution
@@ -310,6 +320,7 @@ contract MARKSettlementModule is ISettlement {
 - **One assertion per test** (or group related assertions with comments)
 
 Example test:
+
 ```solidity
 function testSettlementExecutesWithValidProof() public {
   // Arrange: Set up settlement state
@@ -391,6 +402,7 @@ Before opening a PR, verify:
 ### Creating the PR
 
 1. **Push your branch**:
+
    ```bash
    git push origin feature/your-feature-name
    ```
@@ -437,13 +449,13 @@ Before opening a PR, verify:
 
 ```
 1. Staging rehearsal auto-triggers on push to dev
-   
+
 2. After staging passes, create PR: dev → main
    ↓ (All production gates triggered)
-   
+
 3. After maintainer approval, manual dispatch:
    - Run mainnet readiness workflow from main
-   
+
 4. Tag release: v0.x.0
 ```
 
@@ -505,6 +517,7 @@ pnpm dev
 #### "architecture-guard failed: forbidden import"
 
 This means a contract imported from wrong domain. Check:
+
 - bridge contracts shouldn't import from `src/settlement/`
 - settlement contracts shouldn't import from `src/bridge/`
 - token/errors/interfaces are allowed everywhere
@@ -514,6 +527,7 @@ Fix: Remove the forbidden import, use interfaces instead.
 #### "Slither findings not in report"
 
 Some findings are intentionally excluded. See `contracts/Makefile`:
+
 ```makefile
 --exclude "naming-convention,timestamp,arbitrary-send-erc20,reentrancy-balance,reentrancy-benign"
 ```
@@ -532,24 +546,28 @@ Each exclusion is documented in the codebase. If you disagree with an exclusion,
 ## Best Practices
 
 ### Commits
+
 - ✅ Atomic commits (one logical change per commit)
 - ✅ Descriptive messages (what + why, not just what)
 - ✅ Conventional format (feat/fix/chore/etc.)
 - ❌ "wip", "asdf", "fix stuff" commits
 
 ### Code Review
+
 - ✅ Ask questions if unclear
 - ✅ Suggest improvements, don't demand
 - ✅ Acknowledge good solutions
 - ❌ Personal criticism
 
 ### Testing
+
 - ✅ Test new code before submitting
 - ✅ Add tests for bug fixes
 - ✅ Update tests when changing behavior
 - ❌ "I'll add tests later" (won't happen)
 
 ### Documentation
+
 - ✅ Update docs for API changes
 - ✅ Add comments for complex logic
 - ✅ Include examples

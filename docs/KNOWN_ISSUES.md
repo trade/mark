@@ -107,7 +107,7 @@ This document lists known limitations and intentional design decisions that audi
 
 **Scope:** Development tooling only — `circuits/` and `@eth-optimism/super-cli`
 
-**Description:** 
+**Description:**
 
 1. **circuits/ dependencies**: `circomlibjs >= 0.1.0` depends on `ethers@5`, which pulls in `elliptic@6.6.1` (risky cryptographic primitive implementation — CVE-2025-14505, GHSA-848j-6mx2-7j84, low severity, Dependabot alert #69) and `ws@8.18.0` (uninitialized memory disclosure — CVE-2026-45736, GHSA-58qx-3vcg-4xpx, medium severity). The root pnpm workspace override can force patched transitive versions where compatible, but no non-breaking upstream fix removes the risky dependency chain entirely: the only upstream resolution (`npm audit fix --force`) downgrades `circomlibjs` to `0.0.8`, which is incompatible with Node 24 and breaks `buildPoseidon`.
 
@@ -116,14 +116,17 @@ This document lists known limitations and intentional design decisions that audi
 **Impact:** None — these packages are scoped to local development tooling only. They are never deployed, never handle user input, and never run in CI with untrusted data. The `elliptic` key-exposure vector requires an attacker to obtain both a faulty and a correct signature for the same inputs, which is not possible in this context. The `uuid` buffer bounds issue requires providing a malicious `buf` parameter to v3/v5/v6 functions, which does not occur in the dependency usage.
 
 **Accepted because:** No upstream fix is available without breaking changes. The packages are scoped to:
+
 - `circuits/`: local trusted-setup (`setup.mjs`) and witness tests (`pnpm --filter @mark/circuits test`)
 - `@eth-optimism/super-cli`: local deployment tool (devDependencies)
 
 Resolution is blocked on:
+
 - `circomlibjs` releasing a version that drops the `ethers@5` dependency
 - `@metamask/*` packages updating to `uuid@11.1.1+`
 
-**Resolution path:** 
+**Resolution path:**
+
 1. For circuits: Replace `circomlibjs` with a lightweight Poseidon library that has no `ethers` dependency, such as `poseidon-lite` or `@zk-kit/poseidon-cipher`. Both provide `buildPoseidon`-equivalent functionality without pulling in `ethers@5`. Before switching, verify the Poseidon implementation produces identical field outputs to what `MARKPool.circom` expects — run the full witness test suite (`pnpm --filter @mark/circuits test`) to confirm.
 2. For uuid: Monitor @metamask package updates or add pnpm override if needed before mainnet.
 
@@ -138,6 +141,7 @@ Target this before mainnet promotion.
 **Description:** The pool's cross-chain bridge functions emit public events containing raw output commitments, allowing observers to link transactions across chains. When a user calls `bridgeOut()` on Chain A, the `BridgeOut` event exposes `outCommitments[0]` and `outCommitments[1]`. When the bridge relay calls `bridgeIn()` on Chain B, the `BridgeIn` event exposes the same commitments. An observer monitoring both chains can match these commitments to reconstruct the cross-chain transaction graph, completely breaking the privacy model.
 
 **Attack vector:**
+
 ```
 Chain A: Alice calls bridgeOut() → BridgeOut(dstChainId, commitmentX, commitmentY)
 Chain B: Relay calls bridgeIn() → BridgeIn(srcChainId, commitmentX, commitmentY)
@@ -159,6 +163,7 @@ Result: Observer links Alice's transaction on Chain A to Chain B output
 **Description:** The two-transaction withdrawal flow creates a timing correlation that can link nullifiers to owners. When a user calls `transactWithWithdrawBinding()`, the pool emits `NoteSpent` events revealing the nullifiers. Shortly after (typically within 1-2 blocks), the same user calls `withdrawWithSig()`, which emits `WithdrawExecuted` revealing the owner address. An observer monitoring both events can correlate them by timing to determine which nullifiers belong to which owner.
 
 **Attack vector:**
+
 ```
 Block N:   MARKPool.NoteSpent(nullifier1, nullifier2)
 Block N+1: MARKWithdrawAdapter.WithdrawExecuted(owner=Alice, amount=100)
@@ -194,6 +199,7 @@ Result: Observer infers Alice owns nullifier1 and nullifier2
 **Description:** The pool prunes old Merkle roots after `maxRootAge` (default 30 days, max 30 days). If a user generates a proof using root R at time T, but submits it at time T + 31 days, the proof will be rejected because root R has been pruned. This could lock user funds if they are unable to generate a new proof (e.g., lost witness data, offline for extended period).
 
 **Attack vector:**
+
 ```
 Time T:     User generates proof with root R
 Time T+31d: User submits proof

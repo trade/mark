@@ -42,6 +42,7 @@
 ### Governance & Evidence
 
 For **mainnet only**:
+
 - [ ] Release evidence manifest generated
 - [ ] Manifest verified & signatures valid
 - [ ] Release checklist completed
@@ -71,12 +72,14 @@ git log --oneline -1  # Verify latest commit
 ```
 
 **What this does**:
+
 - Deploys contracts to OP Sepolia L2A
 - Deploys contracts to OP Sepolia L2B
 - Runs post-deployment validation tests
 - Generates evidence artifacts
 
 **Expected output**:
+
 ```
 ✅ Deployment successful
 ✅ All chains have contracts deployed
@@ -97,6 +100,7 @@ Contracts Staging Rehearsal Workflow
 ```
 
 **Check deployment on OP Sepolia**:
+
 ```bash
 # Verify contracts on OP Sepolia explorer
 # https://sepolia-optimism.etherscan.io
@@ -109,6 +113,7 @@ Contracts Staging Rehearsal Workflow
 ```
 
 **Verify contracts with Sourcify (recommended)**:
+
 ```bash
 # Sourcify provides decentralized contract verification
 # https://sourcify.dev
@@ -133,6 +138,7 @@ curl -X POST "https://sourcify.dev/server/verify" \
 ```
 
 **Alternative: Etherscan verification**:
+
 ```bash
 # Etherscan is also supported as secondary verification
 # https://sepolia-optimism.etherscan.io/verifyContract
@@ -153,6 +159,7 @@ MARK_RELEASE_EXECUTE=true MARK_SETTLEMENT_PROOF_ENABLED=true \
 ```
 
 **Expected output**:
+
 ```
 Staging environment validation
 ├─ RPC endpoints reachable ✅
@@ -175,6 +182,7 @@ make generate-evidence-manifest
 ```
 
 **What's in manifest**:
+
 - Deployment timestamps
 - Contract addresses (all chains)
 - Transaction hashes
@@ -221,20 +229,24 @@ gh pr create \
 ```
 
 **PR description should include**:
+
 ```markdown
 ## Release Summary
+
 - Version: v0.1.0
 - Settlement module: Production-ready
 - Bridge adapter: Tested on OP Sepolia
 - Evidence: Available in broadcast/evidence-manifest.json
 
 ## Verification
+
 - [x] All tests passing
 - [x] Staging rehearsal passed
 - [x] Evidence manifest generated
 - [x] Slither findings reviewed
 
 ## Deployment Impact
+
 - [ ] Breaking API changes: None
 - [ ] Database migrations: None
 - [ ] Environment variables: None
@@ -243,6 +255,7 @@ gh pr create \
 #### Step 8: Wait for CI Checks
 
 GitHub Actions will automatically run:
+
 - ✅ Contracts Unit + Invariant tests
 - ✅ Slither core contracts scan
 - ✅ Secrets drift guard
@@ -299,6 +312,7 @@ gh workflow run contracts-mainnet-readiness.yml \
 ```
 
 **What this does**:
+
 - Validates production environment variables
 - Runs full contract test suite against mainnet RPCs
 - Verifies deployment readiness
@@ -318,12 +332,14 @@ Contracts Mainnet Readiness Workflow
 ```
 
 **Check workflow output**:
+
 ```bash
 # View workflow details
 gh run view <RUN_ID> --repo trade/mark
 ```
 
 **If successful**:
+
 ```
 ✅ Production is ready for deployment
 ✅ All safety checks passed
@@ -331,6 +347,7 @@ gh run view <RUN_ID> --repo trade/mark
 ```
 
 **If failed**:
+
 - See [Troubleshooting](#troubleshooting) section
 - DO NOT proceed to deployment
 - Fix issues, create new PR, restart from Step 7
@@ -367,6 +384,7 @@ MARK_RELEASE_EXECUTE=true \
 ```
 
 **What happens**:
+
 1. Deploys RYLA token
 2. Deploys MARKBridgeAdapter
 3. Deploys MARKSettlementModule
@@ -375,6 +393,7 @@ MARK_RELEASE_EXECUTE=true \
 6. Locks production state
 
 **Expected output**:
+
 ```
 Deploying to mainnet...
 ✅ RYLA deployed: 0x1234...
@@ -443,6 +462,7 @@ before ZK-based settlement is active. `AttestedSettlementVerifier` remains the
 fallback until this is complete.
 
 Required environment variables for this step:
+
 - `MAINNET_RPC`
 - `GROTH16_VERIFIER_ADDRESS`
 - `SETTLEMENT_MODULE_ADDRESS`
@@ -532,6 +552,7 @@ echo "✨ All systems operational!"
 ```
 
 Run health checks:
+
 ```bash
 cd contracts
 ./script/ops/health-check.sh
@@ -561,6 +582,7 @@ MARK_RELEASE_EXECUTE=true \
 **If issue found shortly after deployment**:
 
 1. **Pause operations** (if applicable):
+
    ```bash
    cast send $SETTLEMENT_ADDRESS "pause()" \
      --rpc-url $MAINNET_RPC \
@@ -574,6 +596,7 @@ MARK_RELEASE_EXECUTE=true \
    - Initial mitigation
 
 3. **Prepare hotfix PR**:
+
    ```bash
    git checkout dev
    git pull origin dev
@@ -611,6 +634,7 @@ git push origin hotfix/contract-bug-fix
 **Cause**: Deployer account has < 0.5 ETH for gas fees
 
 **Fix**:
+
 ```bash
 # Check balance
 cast balance $DEPLOYER_ADDRESS --rpc-url $MAINNET_RPC
@@ -630,6 +654,7 @@ MARK_RELEASE_EXECUTE=true \
 **Cause**: Tests exceeded 1 hour limit on GitHub Actions
 
 **Fix**:
+
 ```bash
 # Run tests locally to find slow test
 cd contracts && make ci-full
@@ -646,6 +671,7 @@ forge test --gas-report
 **Cause**: Security analysis found a medium/high issue
 
 **Fix**:
+
 ```bash
 cd contracts && make slither-core
 
@@ -666,6 +692,7 @@ cd contracts && make slither-core
 **Cause**: Manifest was modified or corrupted
 
 **Fix**:
+
 ```bash
 cd contracts
 
@@ -684,6 +711,7 @@ git log --oneline broadcast/evidence-manifest.json | head -3
 **Cause**: Environment differences (OP Sepolia vs OP Mainnet)
 
 **Fix**:
+
 ```bash
 # Check environment differences
 diff contracts/config/profiles/staging.env \
@@ -703,6 +731,7 @@ VERBOSE=true gh workflow run contracts-mainnet-readiness.yml --ref main
 **Cause**: Deployed state doesn't match expected production configuration
 
 **Fix**:
+
 ```bash
 cd contracts
 
@@ -726,12 +755,14 @@ git push origin fix/production-lock-config
 ### Monitoring & Observability
 
 1. **Set up alerts** for contract events:
+
    ```bash
    # Watch for SettlementExecuted events
    cast logs "SettlementExecuted(bytes32)" --rpc-url $MAINNET_RPC
    ```
 
 2. **Weekly health checks**:
+
    ```bash
    cd contracts && ./script/ops/health-check.sh
    ```
@@ -749,7 +780,7 @@ After successful mainnet deployment, communicate:
    - Twitter/Discord: "MARK Protocol v0.1.0 live on mainnet!"
    - Blog post: Architecture, features, security audit results
 
-2. **Share evidence**: 
+2. **Share evidence**:
    - Link to deployment evidence manifest
    - Contract addresses on Etherscan
    - Verification instructions for community

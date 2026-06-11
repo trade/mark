@@ -33,6 +33,7 @@
 ## Quick Reference
 
 ### Essential Commands
+
 ```bash
 pnpm dev                          # Start dev environment
 cd contracts && make ci-fast      # Quick checks
@@ -40,11 +41,13 @@ cd contracts && make ci-full      # Full gate
 ```
 
 ### Architecture Rules
+
 - `bridge` ↔ `settlement`: NO cross-imports
 - `pool` ↔ `settlement`: NO cross-imports
 - See [contracts/ARCHITECTURE.md](../contracts/ARCHITECTURE.md) for details
 
 ### Getting Help
+
 - Check [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) first
 - Review [CONTRIBUTING.md](../CONTRIBUTING.md) for standards
 - Open an issue for bugs or questions
