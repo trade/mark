@@ -54,26 +54,26 @@ auth_headers=(
 # workflow are reported under the compound name "<caller job name> / <callee job name>".
 require_checks_dev=(
   "Typecheck + Lint"
-  "Gitleaks Scan"
+  "Secret Scan (trufflehog)"
   "Dependency Review"
   "Detect Secrets Drift"
   "Release Gate Container"
   "Contracts Core (Unit + Invariant) / Contracts Core"
-  "Contracts Security (Semgrep + Slither) / Semgrep Scan"
-  "Contracts Security (Semgrep + Slither) / Slither Core Contracts"
+  "Contracts Security (Semgrep) / Semgrep Scan"
+  "Contracts Security (Semgrep) / Slither Core Contracts"
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
 )
 
 require_checks_main=(
   "Typecheck + Lint"
-  "Gitleaks Scan"
+  "Secret Scan (trufflehog)"
   "Dependency Review"
   "Detect Secrets Drift"
   "Release Gate Container"
   "Contracts Core (Unit + Invariant) / Contracts Core"
-  "Contracts Security (Semgrep + Slither) / Semgrep Scan"
-  "Contracts Security (Semgrep + Slither) / Slither Core Contracts"
+  "Contracts Security (Semgrep) / Semgrep Scan"
+  "Contracts Security (Semgrep) / Slither Core Contracts"
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core"
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
   "Validate Release PR Checklist"

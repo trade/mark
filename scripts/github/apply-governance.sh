@@ -219,25 +219,25 @@ build_restrictions() {
 # listed that way below; direct jobs use their plain job name.
 DEV_CHECKS_JSON='[
   "Typecheck + Lint",
-  "Gitleaks Scan",
+  "Secret Scan (trufflehog)",
   "Dependency Review",
   "Detect Secrets Drift",
   "Release Gate Container",
   "Contracts Core (Unit + Invariant) / Contracts Core",
-  "Contracts Security (Semgrep + Slither) / Semgrep Scan",
-  "Contracts Security (Semgrep + Slither) / Slither Core Contracts",
+  "Contracts Security (Semgrep) / Semgrep Scan",
+  "Contracts Security (Semgrep) / Slither Core Contracts",
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
 ]'
 MAIN_CHECKS_JSON='[
   "Typecheck + Lint",
-  "Gitleaks Scan",
+  "Secret Scan (trufflehog)",
   "Dependency Review",
   "Detect Secrets Drift",
   "Release Gate Container",
   "Contracts Core (Unit + Invariant) / Contracts Core",
-  "Contracts Security (Semgrep + Slither) / Semgrep Scan",
-  "Contracts Security (Semgrep + Slither) / Slither Core Contracts",
+  "Contracts Security (Semgrep) / Semgrep Scan",
+  "Contracts Security (Semgrep) / Slither Core Contracts",
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)",
   "Validate Release PR Checklist",
