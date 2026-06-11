@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Gas snapshot tracking for contract tests (147 measurements, excludes invariants)
 - 5-minute quick start guide in README
 - Comprehensive CI/CD with Slither, CodeQL, and secrets scanning
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Warning comment for public test key in local.env.example (#231)
 
 ### Changed
+
 - Workflow concurrency control added to 4 CI workflows (20-30% CI time reduction)
 - Dynamic pnpm version extraction from package.json (eliminates version drift)
 - Migrated to mise for Node version management (removed .nvmrc)
@@ -44,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Internal Link Check` added to required status checks on `dev` branch
 
 ### Fixed
+
 - Gas snapshot now excludes non-deterministic invariant tests for stable CI
 - Dead links in documentation (4 broken internal links fixed)
 - Typos (British → US English spelling)
@@ -52,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `testDeployMARKSettlementConfiguresAndGrantsRoles` flaky test: added explicit `PRIVATE_KEY` env setup (#245)
 
 ### Removed
+
 - Unused button component from frontend (#233)
 - Stale transfer scripts (`pretransfer-readiness.sh`, `posttransfer-bootstrap.sh`)
 - `.vscode` exception rules from `.gitignore`
@@ -61,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial testnet deployment.
 
 ### Added
+
 - RYLA token (ERC-7802 SuperchainERC20)
 - MARKSettlementModule with ZK proof verification
 - MARKBridgeAdapter for cross-chain transfers
@@ -70,6 +75,7 @@ Initial testnet deployment.
 - Production lock safety mechanism (irreversible proof validation)
 
 ### Deployed to OP Sepolia (chainId: 11155420)
+
 - RYLA: 0xa27360e124B94449249D1E919d3363BfF1c10c02
 - MARKSettlementModule: 0xB1CD6e5B88EF5979AE5306A11302Aa2F19c6Ad59
 - MARKBridgeAdapter: 0x5F3823739E510981A821aC5E99235e36f65cBc71

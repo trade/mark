@@ -7,6 +7,7 @@ This document is intended for security auditors. It describes the trust assumpti
 MARK is a settlement, bridging, and ZK UTXO privacy protocol on the Optimism Superchain. It consists of two independent stacks:
 
 **Settlement stack** (production-bound):
+
 - **RYLA** — ERC-20 credit token with role-gated mint/burn
 - **MARKSettlementModule** — operator-gated settlement boundary; holds MINTER_ROLE and BURNER_ROLE on RYLA
 - **MARKBridgeAdapter** — operator-gated bridge adapter; routes RYLA cross-chain via SuperchainTokenBridge
@@ -14,6 +15,7 @@ MARK is a settlement, bridging, and ZK UTXO privacy protocol on the Optimism Sup
 - **Groth16SettlementVerifier** — Groth16 proof verifier adapter; validates 13-signal ZK proofs for settlement
 
 **Pool stack** (pre-production):
+
 - **MARKPool** — ZK UTXO pool; nullifier registry with Merkle commitment tree; does not hold tokens
 - **RYLACreditLedger** — ICreditLedger adapter; mints RYLA for relayer fees (via pool) and burns RYLA on withdrawal (via adapter)
 - **MARKWithdrawAdapter** — EIP-191 signature-based withdrawal adapter; verifies withdraw bindings and sends ETH to recipients
@@ -43,26 +45,28 @@ External contracts
 Pool stack trust boundaries:
 
 ```
+
 External actors
-  └── Pool Authority (AccessManager admin)
-        ├── grants/revokes restricted selectors on MARKPool and MARKWithdrawAdapter
-        ├── sets verifier on MARKPool (one-time per proof type)
-        └── sets asset ledger on MARKPool (one-time)
+└── Pool Authority (AccessManager admin)
+├── grants/revokes restricted selectors on MARKPool and MARKWithdrawAdapter
+├── sets verifier on MARKPool (one-time per proof type)
+└── sets asset ledger on MARKPool (one-time)
 
-  └── Note owner (end user)
-        ├── submits ZK proofs to MARKPool.transact / transactWithWithdrawBinding
-        └── calls MARKWithdrawAdapter.withdrawWithSig with EIP-191 signatures
+└── Note owner (end user)
+├── submits ZK proofs to MARKPool.transact / transactWithWithdrawBinding
+└── calls MARKWithdrawAdapter.withdrawWithSig with EIP-191 signatures
 
-  └── Relayer (permissionless)
-        └── calls MARKPool.transact on behalf of note owners; receives fee credit via RYLACreditLedger
+└── Relayer (permissionless)
+└── calls MARKPool.transact on behalf of note owners; receives fee credit via RYLACreditLedger
 
-  └── Intent signer (hot key, configured on MARKWithdrawAdapter)
-        └── co-signs withdraw intents; prevents unauthorized withdrawals without owner signature
+└── Intent signer (hot key, configured on MARKWithdrawAdapter)
+└── co-signs withdraw intents; prevents unauthorized withdrawals without owner signature
 
 External contracts
-  └── RYLACreditLedger
-        └── called by MARKPool.credit (relayer fees) and MARKWithdrawAdapter.debit (withdrawals)
-        └── holds MINTER_ROLE and BURNER_ROLE on RYLA
+└── RYLACreditLedger
+└── called by MARKPool.credit (relayer fees) and MARKWithdrawAdapter.debit (withdrawals)
+└── holds MINTER_ROLE and BURNER_ROLE on RYLA
+
 ```
 
 ## Role Compromise Impact
@@ -170,3 +174,4 @@ Mitigations:
 6. `nullifierUsed[nullifier]` is set to `true` before any state changes in `MARKPool.transact*` — nullifiers cannot be replayed even under reentrancy.
 7. `nullifierWithdrawBinding` is written only after nullifiers are consumed — a withdraw binding cannot be created without a valid ZK proof.
 8. `RYLACreditLedger.debit` requires `from` to have approved the ledger for at least `amount` RYLA — the burn cannot proceed without explicit token approval from the note owner.
+```

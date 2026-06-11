@@ -93,6 +93,7 @@ make release-gate
 ```
 
 For remote/mainnet-style verification, run with:
+
 - `RPC_URL` and `PRIVATE_KEY`
 - anchored release artifact via `MARK_RELEASE_VERIFY_ARTIFACT_PATH` or `MARK_RELEASE_ARTIFACT_PATH`
 - signed evidence verification inputs (default-on):
@@ -173,6 +174,7 @@ forge script script/ops/settlement/PreflightMARKDeployment.s.sol --rpc-url $RPC_
 ```
 
 `MARK_PREFLIGHT_MODE` values:
+
 - `1` => checks for `DeployMARKStack.s.sol`
 - `2` => checks for `DeployMARKSettlementModule.s.sol`
 - `3` => checks for `PostDeployMARKSetup.s.sol`
@@ -193,6 +195,7 @@ make smoke-production-mode
 ```
 
 Control behavior with:
+
 - `MARK_RELEASE_EXECUTE=false` for dry-run (no broadcast)
 - `MARK_RELEASE_EXECUTE=true` for execution
 - `MARK_RELEASE_RUN_POSTDEPLOY=true` to run `PostDeployMARKSetup` after deployment
@@ -229,11 +232,13 @@ PRIVATE_KEY=<deployer_pk> \
 ```
 
 Gate mode is controlled by `MARK_MAINNET_GATE_MODE`:
+
 - `predeploy` (default): tests + slither + preflight + dry-run artifact
 - `postdeploy`: verify-only checks against deployed contracts
 - `full`: predeploy checks + postdeploy verify + dry-run artifact
 
 This gate enforces (by mode):
+
 - contract tests pass
 - slither scan pass
 - preflight pass (all modes)
@@ -241,6 +246,7 @@ This gate enforces (by mode):
 - release artifact generation + schema validation
 
 Manual CI entrypoint:
+
 - `.github/workflows/contracts-mainnet-readiness.yml` (`workflow_dispatch`)
 
 ### Post-Deploy Verify
@@ -253,6 +259,7 @@ forge script script/ops/settlement/VerifyMARKDeployment.s.sol --rpc-url $RPC_URL
 ```
 
 Optional strict checks supported by verify script:
+
 - `VERIFY_MARK_BRIDGE_MAX_PER_TX` / `VERIFY_MARK_BRIDGE_DAILY_CAP`
 - Verifier admin check via `VERIFY_MARK_RYLA_OWNER` when `VERIFY_MARK_SETTLEMENT_VERIFIER` is set
 - Verifier attester check via `VERIFY_MARK_SETTLEMENT_ATTESTER`
@@ -266,6 +273,7 @@ make verify-production-lock
 ```
 
 Manual CI entrypoint for post-deploy production checks:
+
 - `.github/workflows/contracts-production-lock-verify.yml` (`workflow_dispatch`)
 
 Dispatch helper (auto-fills workflow inputs from env/artifact):
@@ -294,10 +302,12 @@ make dispatch-release-evidence-sequence
 ```
 
 Notes:
+
 - dispatcher resolves run IDs using `workflow_dispatch` + actor + branch + dispatch timestamp filters (safer under concurrent runs)
 - production dispatch/verify paths enforce `MARK_ENV_STRICT_PLACEHOLDERS=true` to block known placeholder addresses
 
 Required GitHub secrets for this sequence:
+
 - `MARK_STAGING_DEPLOYER_PRIVATE_KEY`
 - `MARK_DEPLOYER_PRIVATE_KEY`
 
@@ -318,6 +328,7 @@ make rehearse-production-lock
 ```
 
 Manual CI entrypoint for staging rehearsal:
+
 - `.github/workflows/contracts-staging-rehearsal.yml` (`workflow_dispatch`)
 
 Promotion checklist generator (links latest successful staging rehearsal + mainnet readiness):
@@ -327,11 +338,13 @@ make generate-promotion-checklist
 ```
 
 Policy defaults:
+
 - freshness window: `72` hours (`FRESHNESS_HOURS`)
 - lineage: mainnet commit must be `identical` or `ahead` vs staging commit
 - strict mode: fails command/workflow when any check fails (`STRICT_PROMOTION_CHECKS=true`)
 
 Manual CI entrypoint:
+
 - `.github/workflows/contracts-promotion-checklist.yml` (`workflow_dispatch`)
 
 Environment safety precheck utility:
@@ -341,15 +354,18 @@ VALIDATE_MODE=rehearsal make validate-prod-env
 ```
 
 Supported modes:
+
 - `rehearsal`
 - `dispatch`
 - `verify-lock`
 
 Canonical env profiles:
+
 - `config/profiles/staging.env`
 - `config/profiles/mainnet.env`
 
 CI env schema guard entrypoint:
+
 - `.github/workflows/contracts-env-guard.yml`
 
 Evidence manifest tooling:
@@ -362,6 +378,7 @@ make verify-evidence-signature
 ```
 
 CI/manual entrypoint:
+
 - `.github/workflows/contracts-evidence-manifest.yml`
 
 ### Deployment Config
@@ -442,6 +459,7 @@ make slither-core
 ```
 
 CI workflow:
+
 - `.github/workflows/contracts-slither.yml`
 
 ## License

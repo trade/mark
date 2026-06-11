@@ -19,34 +19,40 @@ Use this checklist before any `canary -> main` promotion. Local Anvil checks are
 ## Execution Steps
 
 1. Validate environment and config schema:
+
 ```bash
 cd contracts
 VALIDATE_MODE=rehearsal make validate-prod-env
 ```
 
 2. Run local baseline gates (must be green):
+
 ```bash
 make ci-full
 make slither-core
 ```
 
 3. Run staging rehearsal workflow:
+
 - GitHub Actions: `.github/workflows/contracts-staging-rehearsal.yml`
 - Confirm artifacts:
   - `mark-staging-release`
   - `mark-staging-rehearsal`
 
 4. Run post-deploy production-lock verify:
+
 - GitHub Actions: `.github/workflows/contracts-production-lock-verify.yml`
 - Confirm artifact: `mark-production-lock-verify`
 
 5. Run functional rehearsal on staging:
+
 - settlement mint (valid proof path)
 - settlement burn (escrow + burn invariants)
 - bridge flow with destination allowlist and limit checks
 - operator/attester rotation and re-verify (see RUNBOOK.md sections 5 and 6)
 
 6. Generate promotion checklist evidence:
+
 - GitHub Actions: `.github/workflows/contracts-promotion-checklist.yml`
 - Confirm freshness + lineage policy passes.
 
