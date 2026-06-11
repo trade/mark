@@ -25,6 +25,11 @@ jobs:
     with:
       run_invariant: 'true'
 
+  sbom:
+    name: Generate SBOM
+    needs: [ci-fast]
+    uses: ./.github/workflows/_reusable-sbom.yml
+
   release-gate:
     name: Release Gate Container
     needs: [ci-fast]
