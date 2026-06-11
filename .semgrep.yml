@@ -27,7 +27,11 @@ rules:
     languages: [solidity]
     severity: ERROR
     message: "MARK-CRITICAL: Bridge adapter must not mint. Breaks trust model."
-    pattern: $TOKEN.mint(...)
+    pattern-either:
+      - pattern: $TOKEN.mint(...)
+      - pattern: $TOKEN.mintTo(...)
+      - pattern: $TOKEN.safeMint(...)
+      - pattern: _mint(...)
     paths:
       include:
         - '**/contracts/src/bridge/**'
@@ -36,7 +40,29 @@ rules:
     languages: [solidity]
     severity: ERROR
     message: "MARK-HIGH: Breaks relayers/ERC-4337. Use msg.sender only."
-    pattern: tx.origin
+    pattern-either:
+      # Dangerous: tx.origin assigned to variable
+      - pattern: $X = tx.origin
+      # Dangerous: tx.origin passed as function argument (not in require)
+      - pattern: $FUNC(..., tx.origin, ...)
+      # Dangerous: tx.origin used in return
+      - pattern: return tx.origin
+    pattern-not:
+      # Safe: require checks against msg.sender
+      - pattern: require(tx.origin == msg.sender, $...)
+      - pattern: require(tx.origin != msg.sender, $...)
+      - pattern: require(tx.origin == $Y, $...)
+      - pattern: require(tx.origin != $Y, $...)
+      # Safe: direct comparison with msg.sender
+      - pattern: tx.origin == msg.sender
+      - pattern: tx.origin != msg.sender
+      - pattern: msg.sender == tx.origin
+      - pattern: msg.sender != tx.origin
+    paths:
+      exclude:
+        - '**/test/**'
+        - '**/script/**'
+        - '**/lib/**'
 
   - id: mark-timestamp-in-withdraw
     languages: [solidity]
@@ -46,6 +72,26 @@ rules:
     paths:
       include:
         - '**/contracts/src/withdraw/**'
+
+  - id: mark-block-timestamp-in-circuits
+    languages: [circom]
+    severity: ERROR
+    message: "MARK-CRITICAL: block.timestamp in circuit. Breaks proof determinism."
+    pattern: block.timestamp
+    paths:
+      include:
+        - '**/circuits/**'
+        - '**/contracts/src/crypto/**'
+
+  - id: mark-block-number-in-circuits
+    languages: [circom]
+    severity: ERROR
+    message: "MARK-CRITICAL: block.number in circuit. Breaks proof determinism."
+    pattern: block.number
+    paths:
+      include:
+        - '**/circuits/**'
+        - '**/contracts/src/crypto/**'
 
   # === Circom Rules ===
   # TODO: Re-enable after fixing pre-existing unconstrained signals in circuits.

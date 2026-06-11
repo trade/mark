@@ -1,0 +1,28 @@
+{
+  "solc-remaps": [
+    "@interop-lib/=lib/interop-lib/src/",
+    "@openzeppelin/=lib/openzeppelin-contracts/"
+  ],
+  "exclude-dependencies": true,
+  "filter-paths": [
+    "lib",
+    "test",
+    "script",
+    "out",
+    "cache"
+  ],
+  "fail-on": "medium",
+  "exclude": [
+    "naming-convention",
+    "timestamp",
+    "arbitrary-send-erc20",
+    "reentrancy-balance",
+    "reentrancy-benign",
+    "incorrect-return",
+    "assembly",
+    "arbitrary-send-eth",
+    "missing-zero-check",
+    "low-level-calls"
+  ],
+  "sarif": "slither.sarif"
+}

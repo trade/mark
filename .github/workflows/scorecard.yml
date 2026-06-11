@@ -3,14 +3,13 @@
 #
 # Analyzes the security posture of this repository using the OpenSSF Scorecard.
 # Results are posted as a PR comment and uploaded to the Security tab.
-#
-# This runs on pushes to dev/main and weekly on a schedule.
-# It does NOT run on every PR to avoid noise -- the dependency-review workflow
-# handles per-PR supply chain checks.
+# Runs on PRs to dev/main, pushes to dev/main, and weekly on a schedule.
 
 name: OpenSSF Scorecard
 
 on:
+  pull_request:
+    branches: [dev, main]
   push:
     branches: [dev, main]
   schedule:
@@ -21,6 +20,7 @@ permissions:
   contents: read
   security-events: write  # Required for SARIF upload to GitHub Security tab
   id-token: write         # Required for OIDC token (result publishing)
+  pull-requests: write    # Required for PR comment on findings
 
 jobs:
   scorecard:
@@ -40,6 +40,7 @@ jobs:
           results_file: scorecard-results.sarif
           results_format: sarif
           publish_results: true
+          fail-on-severity: critical
           # Upload results to GitHub Security tab
           # Token is auto-generated via OIDC (id-token: write permission above)
 

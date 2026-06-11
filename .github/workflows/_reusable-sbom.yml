@@ -1,0 +1,57 @@
+name: Reusable SBOM
+
+on:
+  workflow_call:
+    inputs:
+      upload_artifact:
+        description: 'Upload SBOM as artifact'
+        required: false
+        default: 'true'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    name: Generate SBOM
+    if: ${{ inputs.upload_artifact == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          submodules: recursive
+
+      - name: Generate SBOM (CycloneDX JSON)
+        uses: anchore/sbom-action@0af9b1c8b7c3d7b5e8d3f3c6e9b8f1a4c7d6e5f2 # v0.18.0
+        id: sbom
+        with:
+          format: cyclonedx-json
+          output-file: sbom.json
+          include-dev: true
+          exclude: test/**,script/**,lib/**,out/**,cache/**,node_modules/**
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom-cyclonedx
+          path: sbom.json
+          retention-days: 30
+
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@0af9b1c8b7c3d7b5e8d3f3c6e9b8f1a4c7d6e5f2 # v0.18.0
+        id: sbom-spdx
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+          include-dev: true
+          exclude: test/**,script/**,lib/**,out/**,cache/**,node_modules/**
+
+      - name: Upload SPDX SBOM artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: sbom-spdx
+          path: sbom.spdx.json
+          retention-days: 30
