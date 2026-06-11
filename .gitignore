@@ -42,3 +42,6 @@ supersim-logs/
 .nyc_output/
 coverage/
 *.tsbuildinfo
+
+# uv lock file (generated, not committed)
+uv.lock
