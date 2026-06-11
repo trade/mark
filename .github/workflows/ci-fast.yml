@@ -30,13 +30,13 @@ jobs:
           path: ./
           base: ${{ github.base_ref }}
           head: ${{ github.sha }}
-          extra_args: --json --output=sarif trufflehog.sarif
+          extra_args: --json --output=sarif ${{ github.workspace }}/trufflehog.sarif
 
       - name: Upload TruffleHog SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@51313611dfbc5bd21517390ab8e8517fd8363fb1 # v3.25.15
         with:
-          sarif_file: trufflehog.sarif
+          sarif_file: ${{ github.workspace }}/trufflehog.sarif
           category: trufflehog
 
   typecheck-lint:

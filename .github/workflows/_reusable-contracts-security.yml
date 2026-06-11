@@ -42,11 +42,17 @@ jobs:
     if: ${{ inputs.run_slither == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: contracts
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: recursive
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
 
       - name: Setup mise
         uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
@@ -54,15 +60,9 @@ jobs:
           install: true
           cache: true
 
-      - name: Install dependencies
-        run: |
-          cd contracts
-          forge install --no-commit
-
       - name: Run Slither
         id: slither
         run: |
-          cd contracts
           slither . --config-file ../.slither.config.json --sarif slither.sarif 2>&1 | tee slither.log
 
       - name: Upload Slither SARIF
