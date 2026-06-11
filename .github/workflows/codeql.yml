@@ -81,24 +81,15 @@ jobs:
         run: |
           cd contracts && forge install --no-commit || echo "forge install failed (may use pinned deps), continuing..."
 
-      - name: Build contracts
-        run: cd contracts && forge build
-
-      - name: Create CodeQL database
-        run: |
-          cd contracts
-          codeql database create codeql-db --language=solidity --source-root=. --command="forge build" 2>&1 | tee codeql-db-create.log
-          ls -la codeql-db/
-          echo "DATABASE_PATH=$PWD/codeql-db" >> $GITHUB_OUTPUT
-        id: db
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           languages: solidity
           queries: security-extended
-          build-mode: none
-          database-directory: ${{ steps.db.outputs.DATABASE_PATH }}
+          build-mode: manual
+
+      - name: Build contracts
+        run: cd contracts && forge build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
