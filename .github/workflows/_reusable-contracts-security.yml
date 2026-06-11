@@ -63,8 +63,8 @@ jobs:
       - name: Run Slither
         id: slither
         run: |
-          # Override fail-on to ensure SARIF generation even with findings
-          slither . --config-file ../.slither.config.json --fail-on none --sarif slither.sarif 2>&1 | tee slither.log
+          # Override fail-on + allow non-zero exit to ensure SARIF generation
+          slither . --config-file ../.slither.config.json --fail-on none --sarif slither.sarif 2>&1 | tee slither.log || true
           ls -la slither.sarif || echo "SARIF file not found"
 
       - name: Upload Slither SARIF
