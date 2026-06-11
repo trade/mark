@@ -58,7 +58,7 @@ jobs:
   analyze-solidity:
     name: Analyze (solidity)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -89,8 +89,14 @@ jobs:
         with:
           languages: solidity
           queries: security-extended
-          build-mode: manual
-          working-directory: contracts
+          build-mode: none
+
+      - name: Create CodeQL database
+        run: |
+          cd contracts
+          codeql database create codeql-db --language=solidity --source-root=. --command="forge build" 2>&1 | tee codeql-db-create.log
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
+        with:
+          database-directory: ${{ github.workspace }}/contracts/codeql-db
