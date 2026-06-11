@@ -19,6 +19,7 @@ Describe the change and why it is needed.
 - [ ] Commits signed with GPG key (for code contributions)
 
 **CI Output** (paste relevant output):
+
 ```
 # Example:
 # ✅ typecheck (2.01 seconds)
