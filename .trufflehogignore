@@ -1,0 +1,2 @@
+# Ignore test/demo credentials in supersim example files
+src/App.tsx

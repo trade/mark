@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
 
       - name: Setup mise
-        uses: jdx/mise-action@691e684984939740113c1a3ae421e8a58f5b33cb # v2.0.0
+        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
         with:
           install: true
           cache: true
@@ -37,10 +37,27 @@ jobs:
       - name: Install circom
         run: |
           CIRCOM_VERSION="v2.2.3"
+          CIRCOM_SHA256="85342c7ff332d948df7c0c50ecf201e6129349aef550ce873f3c811b79fe53a3"
           curl -sSL "https://github.com/iden3/circom/releases/download/${CIRCOM_VERSION}/circom-linux-amd64" -o /tmp/circom
-          echo '85342c7ff332d948df7c0c50ecf201e6129349aef550ce873f3c811b79fe53a3  /tmp/circom' | sha256sum -c -
+          echo "${CIRCOM_SHA256}  /tmp/circom" | sha256sum -c -
           sudo install -m 755 /tmp/circom /usr/local/bin/circom
           circom --version
+
+      - name: Cache circom binary
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: /usr/local/bin/circom
+          key: circom-${{ hashFiles('**/circom-version.txt') }}-${{ runner.os }}
+          restore-keys: |
+            circom-v2.2.3-
+
+      - name: Cache node_modules
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

@@ -1,11 +1,11 @@
 # MARK Protocol Tutorial: End-to-End Transaction Flow
 
 > **WARNING: This tutorial is currently outdated and contains incorrect contract addresses and function names.**
-> 
+>
 > The commands below reference a registry contract architecture that does not exist in the current codebase. The actual contract functions are different (e.g., `bridgeTo()` instead of `deposit()`, `settleMint()`/`settleBurn()` instead of `settleWithAttestedProof()`).
-> 
+>
 > **Do not follow this tutorial until it is rewritten.** For current contract interfaces, see the contract source code in `contracts/src/`.
-> 
+>
 > Last verified: 2026-06-02
 
 This tutorial walks you through a complete transaction flow on the MARK Protocol using the local development environment.
@@ -13,6 +13,7 @@ This tutorial walks you through a complete transaction flow on the MARK Protocol
 ## Prerequisites
 
 Before starting, ensure you have:
+
 1. Completed the [Getting Started](../CONTRIBUTING.md#getting-started) guide
 2. Running local development environment: `pnpm dev` (in one terminal)
 3. The MARK dashboard accessible at http://localhost:5173
@@ -20,6 +21,7 @@ Before starting, ensure you have:
 ## Overview
 
 This tutorial demonstrates:
+
 1. Depositing RYLA tokens into the bridge contract
 2. Creating a settlement intent
 3. Generating and verifying a proof
@@ -208,6 +210,7 @@ While we've done everything via command line, you can also monitor transactions 
 ## Next Steps
 
 Once you've completed this tutorial:
+
 1. Experiment with different amounts and addresses
 2. Try using the Groth16 verifier instead of AttestedSettlementVerifier
 3. Explore the circuit code in `circuits/` to understand how zero-knowledge proofs work
@@ -216,6 +219,7 @@ Once you've completed this tutorial:
 ## Summary
 
 You've successfully:
+
 - Deposited RYLA tokens from L2A to L2B via the bridge
 - Created a settlement intent with an attested proof
 - Executed the settlement on L2A
@@ -224,4 +228,5 @@ You've successfully:
 This demonstrates the core MARK Protocol flow: private, verifiable transfers between chains using zero-knowledge technology and Superchain infrastructure.
 
 ---
-*Last updated: 2026-06-02*
+
+_Last updated: 2026-06-02_
