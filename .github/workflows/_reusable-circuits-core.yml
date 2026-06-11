@@ -44,7 +44,7 @@ jobs:
           circom --version
 
       - name: Cache circom binary
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: /usr/local/bin/circom
           key: circom-${{ hashFiles('**/circom-version.txt') }}-${{ runner.os }}
@@ -52,7 +52,7 @@ jobs:
             circom-v2.2.3-
 
       - name: Cache node_modules
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
