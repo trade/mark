@@ -88,6 +88,9 @@ jobs:
         run: |
           cd contracts
           codeql database create codeql-db --language=solidity --source-root=. --command="forge build" 2>&1 | tee codeql-db-create.log
+          ls -la codeql-db/
+          echo "DATABASE_PATH=$PWD/codeql-db" >> $GITHUB_OUTPUT
+        id: db
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
@@ -95,7 +98,7 @@ jobs:
           languages: solidity
           queries: security-extended
           build-mode: none
-          database-directory: ${{ github.workspace }}/contracts/codeql-db
+          database-directory: ${{ steps.db.outputs.DATABASE_PATH }}
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
