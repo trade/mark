@@ -226,6 +226,7 @@ DEV_CHECKS_JSON='[
   "Contracts Core (Unit + Invariant) / Contracts Core",
   "Contracts Security (Semgrep) / Semgrep Scan",
   "Contracts Security (Semgrep) / Slither Core Contracts",
+  "Contracts Fuzz / Contracts Fuzz",
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)"
 ]'
@@ -238,6 +239,7 @@ MAIN_CHECKS_JSON='[
   "Contracts Core (Unit + Invariant) / Contracts Core",
   "Contracts Security (Semgrep) / Semgrep Scan",
   "Contracts Security (Semgrep) / Slither Core Contracts",
+  "Contracts Fuzz / Contracts Fuzz",
   "Circuits Core (Build + Tests + Circomspect) / Circuits Core",
   "Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)",
   "Validate Release PR Checklist",

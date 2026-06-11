@@ -70,6 +70,13 @@ jobs:
     with:
       run_semgrep: 'true'
 
+  contracts-fuzz:
+    name: Contracts Fuzz
+    uses: ./.github/workflows/_reusable-contracts-fuzz.yml
+    with:
+      run_fuzz: 'true'
+      fuzz_runs: '256'
+
   circuits-core:
     name: Circuits Core (Build + Tests + Circomspect)
     uses: ./.github/workflows/_reusable-circuits-core.yml

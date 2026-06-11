@@ -1,0 +1,48 @@
+name: Reusable Contracts Fuzz
+
+on:
+  workflow_call:
+    inputs:
+      run_fuzz:
+        description: 'Run fuzz tests'
+        required: false
+        default: 'true'
+        type: string
+      fuzz_runs:
+        description: 'Number of fuzz runs per test'
+        required: false
+        default: '256'
+        type: string
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  fuzz:
+    name: Contracts Fuzz
+    if: ${{ inputs.run_fuzz == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: contracts
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          submodules: recursive
+
+      - name: Setup Foundry
+        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
+        with:
+          cache: true
+          cache-key: foundry-${{ runner.os }}
+          version: '1.7.1'
+
+      - name: Install dependencies
+        run: forge install --no-commit
+
+      - name: Run fuzz tests (core math + bridge limits)
+        run: |
+          forge test --match-test testFuzz --fuzz-runs ${{ inputs.fuzz_runs }} -vv
