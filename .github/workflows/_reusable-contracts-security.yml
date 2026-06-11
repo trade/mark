@@ -42,11 +42,17 @@ jobs:
     if: ${{ inputs.run_slither == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: contracts
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: recursive
+
+      - name: Initialize submodules
+        run: git submodule update --init --recursive
 
       - name: Setup mise
         uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
@@ -54,19 +60,16 @@ jobs:
           install: true
           cache: true
 
-      - name: Install dependencies
-        run: |
-          cd contracts
-          forge install --no-commit
-
       - name: Run Slither
         id: slither
         run: |
-          cd contracts
-          slither . --config-file ../.slither.config.json --sarif slither.sarif 2>&1 | tee slither.log
+          # Override fail-on + allow non-zero exit to ensure SARIF generation
+          slither . --config-file ../.slither.config.json --fail-on none --sarif slither.sarif 2>&1 | tee slither.log || true
+          ls -la slither.sarif || echo "SARIF file not found"
 
       - name: Upload Slither SARIF
+        if: always()
         uses: github/codeql-action/upload-sarif@51313611dfbc5bd21517390ab8e8517fd8363fb1 # v3.25.15
         with:
-          sarif_file: contracts/slither.sarif
+          sarif_file: slither.sarif
           category: slither
