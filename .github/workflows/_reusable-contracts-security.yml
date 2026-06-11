@@ -68,5 +68,5 @@ jobs:
       - name: Upload Slither SARIF
         uses: github/codeql-action/upload-sarif@51313611dfbc5bd21517390ab8e8517fd8363fb1 # v3.25.15
         with:
-          sarif_file: contracts/slither.sarif
+          sarif_file: slither.sarif
           category: slither
