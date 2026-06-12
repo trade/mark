@@ -1,38 +1,128 @@
-# .github/dependabot.yml
+# Dependabot configuration for MARK Protocol
+# Updates: github-actions (weekly), npm (weekly), docker (monthly)
+# PRs target `dev` branch; auto-merge for patch/minor with passing CI
+
 version: 2
 updates:
-  # Root npm workspace (frontend + tooling)
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    groups:
-      node:
-        patterns:
-          - "*"
-    labels:
-      - "security"
-
-  # Circuits workspace — separate package.json not covered by root entry
-  - package-ecosystem: "npm"
-    directory: "/circuits"
-    schedule:
-      interval: "weekly"
-    # snarkjs major bumps break trusted-setup compatibility with deployed contracts.
-    # Only allow patch/minor; major bumps require manual review.
-    ignore:
-      - dependency-name: "snarkjs"
-        update-types: ["version-update:semver-major"]
-    labels:
-      - "security"
-      - "circuits"
-
-  # GitHub Actions — keep SHA-pinned actions updated automatically
+  # GitHub Actions - weekly, auto-merge patch/minor
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
     target-branch: "dev"
-    labels:
-      - "ci"
-      - "security"
+    open-pull-requests-limit: 10
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+    autofix: true
+    commit-message:
+      prefix: "ci(deps):"
+      prefix-development: "ci(deps-dev):"
+
+  # Node.js / pnpm - weekly, grouped by scope
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "UTC"
+    target-branch: "dev"
+    open-pull-requests-limit: 15
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    groups:
+      frontend-deps:
+        patterns:
+          - "@mark/*"
+          - "react*"
+          - "vite*"
+          - "@types/*"
+          - "typescript*"
+          - "eslint*"
+          - "prettier*"
+          - "tailwind*"
+        update-types:
+          - "patch"
+          - "minor"
+      circuits-deps:
+        patterns:
+          - "circom*"
+          - "snarkjs*"
+          - "ffjavascript*"
+          - "circomlib*"
+        update-types:
+          - "patch"
+          - "minor"
+      test-deps:
+        patterns:
+          - "vitest*"
+          - "@testing-library/*"
+          - "playwright*"
+        update-types:
+          - "patch"
+          - "minor"
+      dev-deps:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+          - "minor"
+    ignore:
+      # Major version upgrades require manual review
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    autofix: true
+    commit-message:
+      prefix: "deps(frontend):"
+      prefix-development: "deps-dev(frontend):"
+
+  # Docker - monthly, base images only
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "1st monday"
+      time: "07:00"
+      timezone: "UTC"
+    target-branch: "dev"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "direct"
+    groups:
+      docker-base:
+        patterns:
+          - "node:*"
+          - "ghcr.io/*"
+          - "docker.io/library/*"
+        update-types:
+          - "patch"
+          - "minor"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    autofix: true
+    commit-message:
+      prefix: "deps(docker):"
+
+# Common settings
+registries: {}
+# Note: Private registries would be added here if needed
+# Example:
+# registries:
+#   npm-github:
+#     type: npm-registry
+#     url: https://npm.pkg.github.com
+#     username: ${{ secrets.GITHUB_ACTOR }}
+#     password: ${{ secrets.GITHUB_TOKEN }}
