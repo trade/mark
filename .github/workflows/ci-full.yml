@@ -16,7 +16,6 @@ jobs:
   ci-fast:
     name: CI Fast (All Fast Checks)
     uses: ./.github/workflows/ci-fast.yml
-    secrets: inherit
 
   contracts-core-full:
     name: Contracts Core (With Invariants)
