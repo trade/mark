@@ -9,6 +9,9 @@ on:
         default: 'false'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   contracts-core:
     name: Contracts Core
@@ -46,7 +49,7 @@ jobs:
         run: make test-production-lock
 
       - name: Check gas snapshot
-        run: make gas-check
+        run: FOUNDRY_PROFILE=default make gas-check
 
       - name: Run invariant tests
         if: ${{ inputs.run_invariant == 'true' }}

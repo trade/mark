@@ -54,29 +54,31 @@ Use this matrix as the merge baseline.
 ### PRs into `dev`
 
 - `Typecheck + Lint`
-- `Gitleaks Scan`
+- `Secret Scan (trufflehog)`
 - `Detect Secrets Drift`
 - `Dependency Review`
 - `Release Gate Container`
 - `Contracts Core (Unit + Invariant) / Contracts Core`
-- `Contracts Security (Semgrep + Slither) / Semgrep Scan`
-- `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+- `Contracts Security (Semgrep) / Semgrep Scan`
+- `Contracts Fuzz / Contracts Fuzz`
 - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
 - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
+- `Analyze (javascript-typescript)`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
 
 ### PRs into `main` (release candidate)
 
 - `Typecheck + Lint`
-- `Gitleaks Scan`
+- `Secret Scan (trufflehog)`
 - `Detect Secrets Drift`
 - `Dependency Review`
 - `Release Gate Container`
 - `Contracts Core (Unit + Invariant) / Contracts Core`
-- `Contracts Security (Semgrep + Slither) / Semgrep Scan`
-- `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+- `Contracts Security (Semgrep) / Semgrep Scan`
+- `Contracts Fuzz / Contracts Fuzz`
 - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
 - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
+- `Analyze (javascript-typescript)`
 - `Validate Release PR Checklist`
 - `Validate Release Evidence`
 - If PR touches governance policy files (`apply-governance.sh`, `BRANCHING.md`, governance checklist): `Validate Governance Policy Consistency`
@@ -95,11 +97,11 @@ Apply these repository settings:
 - Require pull request before merge.
 - Require status checks:
   - `Typecheck + Lint`
-  - `Gitleaks Scan`
+  - `Secret Scan (trufflehog)`
   - `Dependency Review`
   - `Contracts Core (Unit + Invariant) / Contracts Core`
-  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
-  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Contracts Security (Semgrep) / Semgrep Scan`
+  - `Contracts Fuzz / Contracts Fuzz`
   - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
   - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
   - `Detect Secrets Drift`
@@ -115,11 +117,11 @@ Apply these repository settings:
 - Require pull request before merge (or allow maintainers direct push if desired).
 - Require status checks:
   - `Typecheck + Lint`
-  - `Gitleaks Scan`
+  - `Secret Scan (trufflehog)`
   - `Dependency Review`
   - `Contracts Core (Unit + Invariant) / Contracts Core`
-  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
-  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Contracts Security (Semgrep) / Semgrep Scan`
+  - `Contracts Fuzz / Contracts Fuzz`
   - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
   - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
   - `Detect Secrets Drift`
