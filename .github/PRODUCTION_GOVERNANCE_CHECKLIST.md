@@ -13,15 +13,16 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
   - `Typecheck + Lint`
-  - `Gitleaks Scan`
+  - `Secret Scan (trufflehog)`
   - `Detect Secrets Drift`
   - `Release Gate Container`
   - `Dependency Review`
   - `Contracts Core (Unit + Invariant) / Contracts Core`
-  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
-  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Contracts Security (Semgrep) / Semgrep Scan`
+  - `Contracts Fuzz / Contracts Fuzz`
   - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
   - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
+  - `Analyze (javascript-typescript)`
   - `Validate Release PR Checklist`
   - `Validate Release Evidence`
 - Optional additional checks (recommended but not globally required):
@@ -44,15 +45,16 @@ GitHub path: `Settings -> Branches -> Add branch protection rule`
 - Enable `Require status checks to pass before merging`
 - Add required checks:
   - `Typecheck + Lint`
-  - `Gitleaks Scan`
+  - `Secret Scan (trufflehog)`
   - `Detect Secrets Drift`
   - `Release Gate Container`
   - `Dependency Review`
   - `Contracts Core (Unit + Invariant) / Contracts Core`
-  - `Contracts Security (Semgrep + Slither) / Semgrep Scan`
-  - `Contracts Security (Semgrep + Slither) / Slither Core Contracts`
+  - `Contracts Security (Semgrep) / Semgrep Scan`
+  - `Contracts Fuzz / Contracts Fuzz`
   - `Circuits Core (Build + Tests + Circomspect) / Circuits Core`
   - `Frontend Checks (Node 24) / Frontend Checks (Node 24.3.0)`
+  - `Analyze (javascript-typescript)`
 - Optional additional checks (recommended but not globally required):
   - `Contracts Core (With Invariants)`
   - `Contracts Env Guard`
@@ -144,4 +146,4 @@ export GH_PAT=<github_token_with_repo_admin_scope>
 ./scripts/github/verify-governance.sh
 ```
 
-Expected output: both branches (`dev`, `main`) report `PASS` and required checks include `Typecheck + Lint`, `Gitleaks Scan`, and `Dependency Review`.
+Expected output: both branches (`dev`, `main`) report `PASS` and required checks include `Typecheck + Lint`, `Secret Scan (trufflehog)`, and `Dependency Review`.

@@ -35,28 +35,6 @@ jobs:
           head: ${{ github.sha }}
           extra_args: --github-actions
 
-      - name: Find and upload TruffleHog SARIF
-        if: always()
-        run: |
-          find . -name "trufflehog*.sarif" -type f
-          SARIF_FILE=$(find . -name "trufflehog*.sarif" -type f | head -1)
-          if [ -n "$SARIF_FILE" ]; then
-            echo "Found SARIF: $SARIF_FILE"
-            echo "SARIF_FILE=$SARIF_FILE" >> $GITHUB_OUTPUT
-          else
-            echo "No SARIF file found, creating empty valid one"
-            echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"trufflehog"}}, "results":[]}]}' > trufflehog-empty.sarif
-            echo "SARIF_FILE=trufflehog-empty.sarif" >> $GITHUB_OUTPUT
-          fi
-        id: sarif
-
-      - name: Upload TruffleHog SARIF
-        if: always()
-        uses: github/codeql-action/upload-sarif@51313611dfbc5bd21517390ab8e8517fd8363fb1 # v3.25.15
-        with:
-          sarif_file: ${{ steps.sarif.outputs.SARIF_FILE }}
-          category: trufflehog
-
   typecheck-lint:
     name: Typecheck + Lint
     runs-on: ubuntu-latest
@@ -119,12 +97,26 @@ jobs:
 
   sbom:
     name: Generate SBOM
-    needs: [contracts-core, contracts-fuzz]
+    needs:
+      - secrets
+      - typecheck-lint
+      - contracts-core
+      - contracts-security
+      - contracts-fuzz
+      - circuits-core
+      - frontend-checks
     uses: ./.github/workflows/_reusable-sbom.yml
 
   release-gate:
     name: Release Gate Container
-    needs: [contracts-core, contracts-fuzz]
+    needs:
+      - secrets
+      - typecheck-lint
+      - contracts-core
+      - contracts-security
+      - contracts-fuzz
+      - circuits-core
+      - frontend-checks
     uses: ./.github/workflows/contracts-release-gate.yml
     secrets:
       DOCKER_REGISTRY_TOKEN: ${{ secrets.GHCR_PAT }}

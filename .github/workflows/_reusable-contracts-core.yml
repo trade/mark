@@ -9,6 +9,9 @@ on:
         default: 'false'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   contracts-core:
     name: Contracts Core
