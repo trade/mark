@@ -11,7 +11,7 @@ concurrency:
 permissions:
   contents: read
   security-events: write
-  actions: write
+  actions: read
 
 jobs:
   # Fast checks (same as ci-fast.yml)
@@ -33,7 +33,7 @@ jobs:
           path: ./
           base: ${{ github.base_ref }}
           head: ${{ github.sha }}
-          extra_args: --json --output=sarif
+          extra_args: --github-actions
 
       - name: Find and upload TruffleHog SARIF
         if: always()

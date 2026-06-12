@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: read
-  actions: write
+  actions: read
 
 jobs:
   sbom:
@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
 
       - name: Generate SBOM (CycloneDX JSON)
-        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
+        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0 (verified tag commit)
         id: sbom
         with:
           format: cyclonedx-json
@@ -42,7 +42,7 @@ jobs:
           retention-days: 30
 
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
+        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0 (verified tag commit)
         id: sbom-spdx
         with:
           format: spdx-json
