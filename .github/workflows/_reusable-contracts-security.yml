@@ -41,13 +41,14 @@ jobs:
     name: Slither Core Contracts
     if: ${{ inputs.run_slither == 'true' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     continue-on-error: true
+    container:
+      image: trailofbits/eth-security-toolbox:latest
+      options: --user root
     defaults:
       run:
-        working-directory: contracts
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+        working-directory: /contracts
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -56,12 +57,6 @@ jobs:
 
       - name: Initialize submodules
         run: git submodule update --init --recursive
-
-      - name: Setup mise
-        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
-        with:
-          install: true
-          cache: true
 
       - name: Setup Foundry
         uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
@@ -77,9 +72,10 @@ jobs:
       - name: Build contracts (required for Slither)
         run: forge build
 
-      - name: Run Slither
+      - name: Run Slither (Docker)
         run: |
           slither . --config-file ../.slither.config.json --fail-on high --sarif slither.sarif 2>&1 | tee slither.log
+        shell: bash
 
       - name: Upload Slither SARIF
         if: always()
