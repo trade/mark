@@ -26,7 +26,7 @@ jobs:
           submodules: recursive
 
       - name: Generate SBOM (CycloneDX JSON)
-        uses: anchore/sbom-action@v0.18.0
+        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
         id: sbom
         with:
           format: cyclonedx-json
@@ -35,14 +35,14 @@ jobs:
           exclude: test/**,script/**,lib/**,out/**,cache/**,node_modules/**
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sbom-cyclonedx
           path: sbom.json
           retention-days: 30
 
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@v0.18.0
+        uses: anchore/sbom-action@f325610c9f50a54015d37c8d16cb3b0e2c8f4de0 # v0.18.0
         id: sbom-spdx
         with:
           format: spdx-json
@@ -51,7 +51,7 @@ jobs:
           exclude: test/**,script/**,lib/**,out/**,cache/**,node_modules/**
 
       - name: Upload SPDX SBOM artifact
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: sbom-spdx
           path: sbom.spdx.json
