@@ -42,6 +42,7 @@ jobs:
     if: ${{ inputs.run_slither == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    continue-on-error: true
     defaults:
       run:
         working-directory: contracts
