@@ -1,0 +1,10 @@
+name: Test Called
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Test Job
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello from called workflow"
