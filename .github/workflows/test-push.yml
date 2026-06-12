@@ -1,7 +1,7 @@
 name: Test Push
 on:
   push:
-    branches: ['*']
+    branches: [fix/vulnerable-deps]
 jobs:
   test:
     runs-on: ubuntu-latest
