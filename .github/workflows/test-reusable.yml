@@ -1,8 +1,0 @@
-name: Test Reusable
-on:
-  workflow_dispatch:
-
-jobs:
-  call-test:
-    name: Call Test
-    uses: ./.github/workflows/test-called.yml
