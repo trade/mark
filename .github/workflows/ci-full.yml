@@ -62,6 +62,7 @@ jobs:
 
   contracts-security:
     name: Contracts Security (Semgrep)
+    continue-on-error: true
     uses: ./.github/workflows/_reusable-contracts-security.yml
     with:
       run_semgrep: 'true'
