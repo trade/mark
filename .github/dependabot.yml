@@ -24,6 +24,7 @@ updates:
         update-types:
           - "patch"
           - "minor"
+        auto-merge: true
     autofix: true
     commit-message:
       prefix: "ci(deps):"
@@ -79,10 +80,17 @@ updates:
         update-types:
           - "patch"
           - "minor"
+        auto-merge: true
     ignore:
       # Major version upgrades require manual review
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    auto-merge:
+      - match:
+          update_type: "patch"
+        allow:
+          - "patch"
+          - "minor"
     autofix: true
     commit-message:
       prefix: "deps(frontend):"
@@ -93,7 +101,7 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-      day: "1st monday"
+      day: "monday"
       time: "07:00"
       timezone: "UTC"
     target-branch: "dev"
@@ -109,6 +117,7 @@ updates:
         update-types:
           - "patch"
           - "minor"
+        auto-merge: true
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
