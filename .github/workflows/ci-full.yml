@@ -10,8 +10,6 @@ concurrency:
 
 permissions:
   contents: read
-  security-events: write
-  actions: read
 
 jobs:
   # Fast checks (reusable - same as ci-fast.yml)
