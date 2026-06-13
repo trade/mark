@@ -8,6 +8,8 @@ overrides:
   ws@>=8.0.0 <8.21.0: 8.21.0
   underscore@<1.13.7: '>=1.13.7'
   drizzle-orm@<0.45.2: '>=0.45.2'
+  uuid@<11: '>=11'
+  elliptic@<6.6.1: '>=6.6.1'
 
 importers:
 
@@ -3518,6 +3520,11 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  semver@7.8.4:
+    resolution: {integrity: sha512-rUCObTnP32Q08R2uuIrt7r9PlEonuTmtuXYcW6s5kjdlj3xbnwe+21yXptAUYcMAABLkYYTtnmzb3w3EDZfueA==}
+    engines: {node: '>=10'}
+    hasBin: true
+
   set-blocking@2.0.0:
     resolution: {integrity: sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==}
 
@@ -3852,14 +3859,8 @@ packages:
   util@0.12.5:
     resolution: {integrity: sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==}
 
-  uuid@8.3.2:
-    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
-    hasBin: true
-
-  uuid@9.0.1:
-    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+  uuid@14.0.0:
+    resolution: {integrity: sha512-Qo+uWgilfSmAhXCMav1uYFynlQO7fMFiMVZsQqZRMIXp0O7rR7qjkj+cPvBHLgBqi960QCoo/PH2/6ZtVqKvrg==}
     hasBin: true
 
   validate-npm-package-license@3.0.4:
@@ -5058,7 +5059,7 @@ snapshots:
       readable-stream: 3.6.2
       socket.io-client: 4.8.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       utf-8-validate: 5.0.10
-      uuid: 8.3.2
+      uuid: 14.0.0
     transitivePeerDependencies:
       - supports-color
 
@@ -5087,7 +5088,7 @@ snapshots:
       socket.io-client: 4.8.3(bufferutil@4.1.0)(utf-8-validate@6.0.6)
       tslib: 2.8.1
       util: 0.12.5
-      uuid: 8.3.2
+      uuid: 14.0.0
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -5108,7 +5109,7 @@ snapshots:
       lodash: 4.18.1
       pony-cause: 2.1.11
       semver: 7.8.3
-      uuid: 9.0.1
+      uuid: 14.0.0
     transitivePeerDependencies:
       - supports-color
 
@@ -5117,7 +5118,7 @@ snapshots:
       '@ethereumjs/tx': 4.2.0
       '@types/debug': 4.1.13
       debug: 4.4.3
-      semver: 7.8.3
+      semver: 7.8.4
       superstruct: 1.0.4
     transitivePeerDependencies:
       - supports-color
@@ -5132,7 +5133,7 @@ snapshots:
       debug: 4.3.4
       pony-cause: 2.1.11
       semver: 7.8.3
-      uuid: 9.0.1
+      uuid: 14.0.0
     transitivePeerDependencies:
       - supports-color
 
@@ -5146,7 +5147,7 @@ snapshots:
       debug: 4.3.4
       pony-cause: 2.1.11
       semver: 7.8.3
-      uuid: 9.0.1
+      uuid: 14.0.0
     transitivePeerDependencies:
       - supports-color
 
@@ -8622,6 +8623,8 @@ snapshots:
 
   semver@7.8.3: {}
 
+  semver@7.8.4: {}
+
   set-blocking@2.0.0: {}
 
   set-function-length@1.2.2:
@@ -8919,9 +8922,7 @@ snapshots:
       is-typed-array: 1.1.15
       which-typed-array: 1.1.20
 
-  uuid@8.3.2: {}
-
-  uuid@9.0.1: {}
+  uuid@14.0.0: {}
 
   validate-npm-package-license@3.0.4:
     dependencies:

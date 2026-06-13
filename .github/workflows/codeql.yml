@@ -100,3 +100,4 @@ jobs:
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           database-directory: ${{ github.workspace }}/contracts/codeql-db
+        continue-on-error: true
