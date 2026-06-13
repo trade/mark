@@ -102,6 +102,7 @@ updates:
     schedule:
       interval: "monthly"
       day: "monday"
+      week: 1
       time: "07:00"
       timezone: "UTC"
     target-branch: "dev"
