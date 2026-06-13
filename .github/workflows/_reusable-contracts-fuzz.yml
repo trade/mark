@@ -16,7 +16,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   fuzz:
@@ -24,6 +23,8 @@ jobs:
     if: ${{ inputs.run_fuzz == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      security-events: write
     defaults:
       run:
         working-directory: contracts

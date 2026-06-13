@@ -18,15 +18,16 @@ on:
 
 permissions:
   contents: read
-  security-events: write  # Required for SARIF upload to GitHub Security tab
-  id-token: write         # Required for OIDC token (result publishing)
-  pull-requests: write    # Required for PR comment on findings
 
 jobs:
   scorecard:
     name: OpenSSF Scorecard Analysis
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      security-events: write  # Required for SARIF upload to GitHub Security tab
+      id-token: write         # Required for OIDC token (result publishing)
+      pull-requests: write    # Required for PR comment on findings
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
