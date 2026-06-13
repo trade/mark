@@ -39,7 +39,6 @@ jobs:
         with:
           name: sbom-cyclonedx
           path: sbom.json
-          retention-days: 30
 
       - name: Generate SPDX SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.18.0 (verified tag commit)
@@ -55,4 +54,3 @@ jobs:
         with:
           name: sbom-spdx
           path: sbom.spdx.json
-          retention-days: 30
