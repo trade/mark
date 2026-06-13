@@ -1,4 +1,4 @@
-FROM ghcr.io/foundry-rs/foundry:latest
+FROM ghcr.io/foundry-rs/foundry:1.7.1
 
 USER root
 
@@ -7,7 +7,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Pin Node + pnpm for deterministic JS tooling in CI steps.
-RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
+RUN curl -fsSL https://deb.nodesource.com/setup_22.14.0 | bash - \
   && apt-get update \
   && apt-get install -y --no-install-recommends nodejs \
   && corepack enable \

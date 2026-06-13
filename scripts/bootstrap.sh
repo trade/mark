@@ -81,7 +81,7 @@ else
   else
     info "Installing mise via official script..."
     set +o pipefail
-    curl https://mise.run | sh
+    curl https://mise.run | MISE_VERSION=2026.5.11 sh
     local_mise_ok=$?
     set -o pipefail
     export PATH="$HOME/.local/bin:$PATH"
@@ -183,7 +183,8 @@ elif $CHECK_ONLY; then
 else
   if command -v npm &>/dev/null; then
     info "Installing super-cli via npm..."
-    npm install -g @ethereum-optimism/super-cli && {
+    # NOTE: super-cli is not published to public npm; version pin when available
+    npm install -g @ethereum-optimism/super-cli@1.0.0 && {
       success "super-cli installed"
       record_ok "super-cli"
     } || {
@@ -206,7 +207,7 @@ elif $CHECK_ONLY; then
 else
   info "Installing uv via astral.sh..."
   set +o pipefail
-  curl -LsSf https://astral.sh/uv/install.sh | sh
+  curl -LsSf https://astral.sh/uv/0.5.4/install.sh | sh
   local_uv_ok=$?
   set -o pipefail
   export PATH="$HOME/.local/bin:$PATH"
