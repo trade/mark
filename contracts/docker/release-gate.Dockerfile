@@ -7,9 +7,11 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Pin Node + pnpm for deterministic JS tooling in CI steps.
-RUN curl -fsSL https://deb.nodesource.com/setup_22.14.0 | bash - \
+# NodeSource only provides major version setup scripts (setup_22.x); patch version
+# is controlled by the apt repository. We pin the nodejs package explicitly.
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && apt-get update \
-  && apt-get install -y --no-install-recommends nodejs \
+  && apt-get install -y --no-install-recommends nodejs=22.14.0-1nodesource1 \
   && corepack enable \
   && corepack prepare pnpm@9.0.2 --activate
 
