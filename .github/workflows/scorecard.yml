@@ -25,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
+      contents: read
       security-events: write  # Required for SARIF upload to GitHub Security tab
       id-token: write         # Required for OIDC token (result publishing)
       pull-requests: write    # Required for PR comment on findings
