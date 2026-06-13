@@ -1,4 +1,4 @@
-FROM ghcr.io/foundry-rs/foundry:1.7.1
+FROM ghcr.io/foundry-rs/foundry:nightly-a0b37374f5bad527749da20bf4550dd51f34e8bc
 
 USER root
 
