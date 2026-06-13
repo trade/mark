@@ -1,4 +1,4 @@
-FROM ghcr.io/foundry-rs/foundry:latest
+FROM ghcr.io/foundry-rs/foundry:nightly-a0b37374f5bad527749da20bf4550dd51f34e8bc
 
 USER root
 
@@ -7,9 +7,11 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Pin Node + pnpm for deterministic JS tooling in CI steps.
+# NodeSource only provides major version setup scripts (setup_22.x); patch version
+# is controlled by the apt repository. We pin the nodejs package explicitly.
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && apt-get update \
-  && apt-get install -y --no-install-recommends nodejs \
+  && apt-get install -y --no-install-recommends nodejs=22.14.0-1nodesource1 \
   && corepack enable \
   && corepack prepare pnpm@9.0.2 --activate
 
