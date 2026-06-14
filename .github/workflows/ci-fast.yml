@@ -6,7 +6,6 @@ on:
     branches: [dev, main]
   schedule:
     - cron: '30 2 * * *'  # Daily at 2:30am UTC (same as ci-full)
-  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
