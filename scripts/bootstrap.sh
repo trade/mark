@@ -9,6 +9,10 @@
 
 set -euo pipefail
 
+# Tool version pins
+PNPM_VERSION="${PNPM_VERSION:-9.0.2}"
+PNPM_MAJOR="${PNPM_VERSION%%.*}"
+
 # Default install directory for user‑local binaries
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 mkdir -p "$INSTALL_DIR"
@@ -128,18 +132,18 @@ fi
 
 # ---- pnpm 9.x via corepack -----------------------------------------
 info "Checking pnpm..."
-if command -v pnpm &>/dev/null && pnpm --version | grep -q "^9\."; then
-  success "pnpm 9.x ready ($(pnpm --version))"
+if command -v pnpm &>/dev/null && pnpm --version | grep -q "^${PNPM_MAJOR}\."; then
+  success "pnpm ${PNPM_MAJOR}.x ready ($(pnpm --version))"
   record_ok "pnpm"
 elif $CHECK_ONLY; then
-  skip "pnpm 9.x not available"
+  skip "pnpm ${PNPM_MAJOR}.x not available"
   record_warn "pnpm (not available)"
 else
   # corepack ships with Node.js; enable it
   if command -v corepack &>/dev/null; then
     corepack enable
-    corepack prepare pnpm@9.0.2 --activate && {
-      success "pnpm 9.x ready ($(pnpm --version))"
+    corepack prepare "pnpm@${PNPM_VERSION}" --activate && {
+      success "pnpm ${PNPM_MAJOR}.x ready ($(pnpm --version))"
       record_ok "pnpm"
     } || {
       record_fail "pnpm"
