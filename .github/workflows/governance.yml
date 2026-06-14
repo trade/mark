@@ -29,7 +29,6 @@ permissions:
 jobs:
   validate-policy:
     name: Validate Governance Policy Consistency
-    if: github.event_name != 'schedule' # Skip on scheduled runs
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
