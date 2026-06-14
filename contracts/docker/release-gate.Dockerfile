@@ -1,4 +1,6 @@
 FROM ghcr.io/foundry-rs/foundry:nightly-a0b37374f5bad527749da20bf4550dd51f34e8bc
+# Digest (to be resolved in CI): sha256:<DIGEST_FROM_GHCR>
+# The tag above includes the Foundry commit SHA (a0b37374f5bad527749da20bf4550dd51f34e8bc)
 
 USER root
 
@@ -9,6 +11,7 @@ RUN apt-get update \
 # Pin Node + pnpm for deterministic JS tooling in CI steps.
 # NodeSource only provides major version setup scripts (setup_22.x); patch version
 # is controlled by the apt repository. We pin the nodejs package explicitly.
+# Ubuntu 22.04 nodejs=22.14.0-1nodesource1 (resolved at build time)
 RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && apt-get update \
   && apt-get install -y --no-install-recommends nodejs=22.14.0-1nodesource1 \
@@ -16,6 +19,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
   && corepack prepare pnpm@9.0.2 --activate
 
 # Slither analyzer is required by mainnet-readiness/release hardening checks.
+# Pinned to specific version
 RUN python3 -m pip install --no-cache-dir slither-analyzer==0.11.5
 
 # Create non-root user for CI execution
