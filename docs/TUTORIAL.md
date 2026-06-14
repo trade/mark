@@ -134,8 +134,15 @@ S=${SIGNATURE:66:64}
 Now submit the intent to the settlement module:
 
 ```bash
-# Submit intent with attested proof
-cast send $SETTLEMENT_MODULE_L2B "settleWithAttestedProof((address,address,uint256,uint256,uint8,bytes32,bytes32),bytes)" \
+# Submit mint settlement intent
+cast send $SETTLEMENT_MODULE_L2B "settleMint((address,address,uint256,uint256,uint8,bytes32,bytes32),bytes)" \
+  "(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,0x70997970C51812dc3A010C7d01b50e0d17dc79C8,5,10000000000000000000,$V,$R,$S)" \
+  "0x" \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+  --rpc-url http://localhost:8546
+
+# Submit burn settlement intent (use this variant for burn flows)
+cast send $SETTLEMENT_MODULE_L2B "settleBurn((address,address,uint256,uint256,uint8,bytes32,bytes32),bytes)" \
   "(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,0x70997970C51812dc3A010C7d01b50e0d17dc79C8,5,10000000000000000000,$V,$R,$S)" \
   "0x" \
   --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
