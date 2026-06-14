@@ -1,14 +1,11 @@
 # MARK Protocol Tutorial: End-to-End Transaction Flow
 
-> **Status: Temporarily removed**
+> **Status: Updated**
 >
-> This tutorial previously described a transaction flow using outdated contract architecture and function names.
-> To avoid confusion, the step-by-step instructions have been removed until a full rewrite is completed.
+> This tutorial has been updated with current function names (`bridgeTo()`, `settleMint()`, `settleBurn()`) and security warnings for the deterministic dev private key.
 >
-> For current interfaces and method names, see `contracts/src/`.
+> For full interfaces and method definitions, see `contracts/src/`.
 > For local environment setup, see [Getting Started](../CONTRIBUTING.md#getting-started).
-
-A revised end-to-end tutorial for the current MARK Protocol contracts will be restored in a future update.
 
 The local environment pre-funds some addresses with test tokens. Let's check our balance:
 
