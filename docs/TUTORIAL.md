@@ -70,7 +70,7 @@ echo "Bridge Adapter on L2A: $BRIDGE_ADAPTER_L2A"
 cast send $RYLA_L2A "approve(address,uint256)" $BRIDGE_ADAPTER_L2A 100000000000000000000 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://localhost:8545
 
 # Deposit 10 RYLA from L2A to L2B via the bridge
-cast send $BRIDGE_ADAPTER_L2A "deposit(uint256,address)" 10000000000000000000 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://localhost:8545
+cast send $BRIDGE_ADAPTER_L2A "bridgeTo(uint256,address)" 10000000000000000000 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://localhost:8545
 ```
 
 > **Note**: The private key above is for the first test account in the local environment. The destination address `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` is another test account.
