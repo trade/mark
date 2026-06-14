@@ -1,47 +1,14 @@
 # MARK Protocol Tutorial: End-to-End Transaction Flow
 
-> **WARNING: This tutorial is currently outdated and contains incorrect contract addresses and function names.**
+> **Status: Temporarily removed**
 >
-> The commands below reference a registry contract architecture that does not exist in the current codebase. The actual contract functions are different (e.g., `bridgeTo()` instead of `deposit()`, `settleMint()`/`settleBurn()` instead of `settleWithAttestedProof()`).
+> This tutorial previously described a transaction flow using outdated contract architecture and function names.
+> To avoid confusion, the step-by-step instructions have been removed until a full rewrite is completed.
 >
-> **Do not follow this tutorial until it is rewritten.** For current contract interfaces, see the contract source code in `contracts/src/`.
->
-> Last verified: 2026-06-02
+> For current interfaces and method names, see `contracts/src/`.
+> For local environment setup, see [Getting Started](../CONTRIBUTING.md#getting-started).
 
-This tutorial walks you through a complete transaction flow on the MARK Protocol using the local development environment.
-
-## Prerequisites
-
-Before starting, ensure you have:
-
-1. Completed the [Getting Started](../CONTRIBUTING.md#getting-started) guide
-2. Running local development environment: `pnpm dev` (in one terminal)
-3. The MARK dashboard accessible at http://localhost:5173
-
-## Overview
-
-This tutorial demonstrates:
-
-1. Depositing RYLA tokens into the bridge contract
-2. Creating a settlement intent
-3. Generating and verifying a proof
-4. Executing settlement on the destination chain
-
-We'll use the local Superchain (L1 + 2 L2 chains) started by `pnpm dev`.
-
-## Step 1: Understanding the Local Network
-
-When you run `pnpm dev`, the following components are started:
-
-- **L1 Chain**: Ethereum-like base layer (Superchain L1)
-- **L2A Chain**: Optimism L2 where deposits occur
-- **L2B Chain**: Optimism L2 where settlements happen
-- **Frontend**: Vite dev server at http://localhost:5173
-- **Contracts**: Automatically deployed to L2A and L2B
-
-## Step 2: Deposit RYLA Tokens via Bridge
-
-### 2.1 Get Test Tokens
+A revised end-to-end tutorial for the current MARK Protocol contracts will be restored in a future update.
 
 The local environment pre-funds some addresses with test tokens. Let's check our balance:
 
