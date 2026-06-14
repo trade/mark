@@ -6,6 +6,10 @@ on:
       - dev
       - main
 
+permissions:
+  contents: read
+  pull-requests: write # needed for comment-summary-in-pr
+
 jobs:
   dependency-review:
     name: Dependency Review

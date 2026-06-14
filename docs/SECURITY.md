@@ -15,7 +15,6 @@ Only `main` and `dev` branches receive security updates.
 
 Report vulnerabilities privately via:
 
-- **Email**: security@mark.xyz (GPG: `0049 2CBB E90A F475 521F 68B9 9166 D30F 6FE7 0F56`)
 - **GitHub Security Advisories**: Use the "Report a vulnerability" tab in this repository
 
 ### What to Include
@@ -92,8 +91,3 @@ Continuous validation runs on every PR:
 
 CodeQL Solidity and Slither are known gaps — tracked in CI but not required.
 
-## Contact
-
-- **Security Email**: security@mark.xyz
-- **GPG Key**: `0049 2CBB E90A F475 521F 68B9 9166 D30F 6FE7 0F56` (iap@disroot.org)
-- **Keybase**: @markprotocol (if available)
