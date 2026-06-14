@@ -1,47 +1,11 @@
 # MARK Protocol Tutorial: End-to-End Transaction Flow
 
-> **WARNING: This tutorial is currently outdated and contains incorrect contract addresses and function names.**
+> **Status: Updated**
 >
-> The commands below reference a registry contract architecture that does not exist in the current codebase. The actual contract functions are different (e.g., `bridgeTo()` instead of `deposit()`, `settleMint()`/`settleBurn()` instead of `settleWithAttestedProof()`).
+> This tutorial has been updated with current function names (`bridgeTo()`, `settleMint()`, `settleBurn()`) and security warnings for the deterministic dev private key.
 >
-> **Do not follow this tutorial until it is rewritten.** For current contract interfaces, see the contract source code in `contracts/src/`.
->
-> Last verified: 2026-06-02
-
-This tutorial walks you through a complete transaction flow on the MARK Protocol using the local development environment.
-
-## Prerequisites
-
-Before starting, ensure you have:
-
-1. Completed the [Getting Started](../CONTRIBUTING.md#getting-started) guide
-2. Running local development environment: `pnpm dev` (in one terminal)
-3. The MARK dashboard accessible at http://localhost:5173
-
-## Overview
-
-This tutorial demonstrates:
-
-1. Depositing RYLA tokens into the bridge contract
-2. Creating a settlement intent
-3. Generating and verifying a proof
-4. Executing settlement on the destination chain
-
-We'll use the local Superchain (L1 + 2 L2 chains) started by `pnpm dev`.
-
-## Step 1: Understanding the Local Network
-
-When you run `pnpm dev`, the following components are started:
-
-- **L1 Chain**: Ethereum-like base layer (Superchain L1)
-- **L2A Chain**: Optimism L2 where deposits occur
-- **L2B Chain**: Optimism L2 where settlements happen
-- **Frontend**: Vite dev server at http://localhost:5173
-- **Contracts**: Automatically deployed to L2A and L2B
-
-## Step 2: Deposit RYLA Tokens via Bridge
-
-### 2.1 Get Test Tokens
+> For full interfaces and method definitions, see `contracts/src/`.
+> For local environment setup, see [Getting Started](../CONTRIBUTING.md#getting-started).
 
 The local environment pre-funds some addresses with test tokens. Let's check our balance:
 
@@ -57,6 +21,11 @@ cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://localho
 
 We need to approve the bridge contract to spend our RYLA tokens, then deposit:
 
+> **🚨 SECURITY WARNING (READ FIRST):**
+> The private keys shown below are deterministic local development keys only (for `pnpm dev`/localhost).
+> **NEVER** use these keys on any public network (mainnet or testnet), and **NEVER** fund accounts derived from them with real assets.
+> Do not import these keys into wallets you use for real funds.
+
 ```bash
 # Get the RYLA token address on L2A (from deployment)
 RYLA_L2A=$(cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 "token()(address)" --rpc-url http://localhost:8545)
@@ -70,7 +39,7 @@ echo "Bridge Adapter on L2A: $BRIDGE_ADAPTER_L2A"
 cast send $RYLA_L2A "approve(address,uint256)" $BRIDGE_ADAPTER_L2A 100000000000000000000 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://localhost:8545
 
 # Deposit 10 RYLA from L2A to L2B via the bridge
-cast send $BRIDGE_ADAPTER_L2A "deposit(uint256,address)" 10000000000000000000 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://localhost:8545
+cast send $BRIDGE_ADAPTER_L2A "bridgeTo(uint256,address)" 10000000000000000000 0x70997970C51812dc3A010C7d01b50e0d17dc79C8 --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --rpc-url http://localhost:8545
 ```
 
 > **Note**: The private key above is for the first test account in the local environment. The destination address `0x70997970C51812dc3A010C7d01b50e0d17dc79C8` is another test account.
@@ -134,8 +103,15 @@ S=${SIGNATURE:66:64}
 Now submit the intent to the settlement module:
 
 ```bash
-# Submit intent with attested proof
-cast send $SETTLEMENT_MODULE_L2B "settleWithAttestedProof((address,address,uint256,uint256,uint8,bytes32,bytes32),bytes)" \
+# Submit mint settlement intent
+cast send $SETTLEMENT_MODULE_L2B "settleMint((address,address,uint256,uint256,uint8,bytes32,bytes32),bytes)" \
+  "(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,0x70997970C51812dc3A010C7d01b50e0d17dc79C8,5,10000000000000000000,$V,$R,$S)" \
+  "0x" \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+  --rpc-url http://localhost:8546
+
+# Submit burn settlement intent (use this variant for burn flows)
+cast send $SETTLEMENT_MODULE_L2B "settleBurn((address,address,uint256,uint256,uint8,bytes32,bytes32),bytes)" \
   "(0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,0x70997970C51812dc3A010C7d01b50e0d17dc79C8,5,10000000000000000000,$V,$R,$S)" \
   "0x" \
   --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
@@ -189,7 +165,7 @@ While we've done everything via command line, you can also monitor transactions 
 2. Connect your wallet (use MetaMask with custom RPCs):
    - L2A: http://localhost:8545
    - L2B: http://localhost:8546
-   - Use private key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+   - Use private key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 (⚠️ Local dev key only: never use on real networks)
 3. Navigate to the "Bridge" or "Settlement" sections to see transaction history
 
 ## Troubleshooting
