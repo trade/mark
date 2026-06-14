@@ -2,10 +2,10 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| main    | ✅ Active          |
-| dev     | ✅ Pre-release     |
+| Version | Supported      |
+| ------- | -------------- |
+| main    | ✅ Active      |
+| dev     | ✅ Pre-release |
 
 Only `main` and `dev` branches receive security updates.
 
@@ -27,12 +27,12 @@ Report vulnerabilities privately via:
 
 ### Response Timeline
 
-| Severity | Initial Response | Fix Target |
-| -------- | ---------------- | ---------- |
-| Critical (funds drain, nullifier reuse) | 24 hours | 72 hours |
-| High (privacy breach, DoS) | 48 hours | 7 days |
-| Medium (info leak, grindable) | 7 days | 30 days |
-| Low (code quality, no exploit) | 14 days | Next release |
+| Severity                                | Initial Response | Fix Target   |
+| --------------------------------------- | ---------------- | ------------ |
+| Critical (funds drain, nullifier reuse) | 24 hours         | 72 hours     |
+| High (privacy breach, DoS)              | 48 hours         | 7 days       |
+| Medium (info leak, grindable)           | 7 days           | 30 days      |
+| Low (code quality, no exploit)          | 14 days          | Next release |
 
 ## Scope
 
@@ -61,7 +61,7 @@ Report vulnerabilities privately via:
 
 ## Bug Bounty
 
-MARK Protocol does not currently operate a formal bug bounty program. 
+MARK Protocol does not currently operate a formal bug bounty program.
 Critical vulnerabilities affecting user funds will be rewarded at the team's discretion.
 
 ## Security Architecture Notes
@@ -80,14 +80,13 @@ See `contracts/ARCHITECTURE.md` and `docs/ZK_SECURITY.md` for details.
 
 Continuous validation runs on every PR:
 
-| Tool | Purpose |
-| ---- | ------- |
-| Foundry Fuzz / Invariant | Property-based contract testing |
-| Semgrep (Solidity) | Static analysis ruleset |
-| Circomspect | Circuit static analysis |
-| TruffleHog | Secret scanning |
-| CodeQL (JS/TS) | Code scanning for frontend/relayer |
-| Dependency Review | Supply chain vulnerabilities |
+| Tool                     | Purpose                            |
+| ------------------------ | ---------------------------------- |
+| Foundry Fuzz / Invariant | Property-based contract testing    |
+| Semgrep (Solidity)       | Static analysis ruleset            |
+| Circomspect              | Circuit static analysis            |
+| TruffleHog               | Secret scanning                    |
+| CodeQL (JS/TS)           | Code scanning for frontend/relayer |
+| Dependency Review        | Supply chain vulnerabilities       |
 
 CodeQL Solidity and Slither are known gaps — tracked in CI but not required.
-
