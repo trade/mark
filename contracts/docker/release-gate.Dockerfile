@@ -1,6 +1,6 @@
 FROM ghcr.io/foundry-rs/foundry:nightly-a0b37374f5bad527749da20bf4550dd51f34e8bc
-# Digest (to be resolved in CI): sha256:<DIGEST_FROM_GHCR>
-# The tag above includes the Foundry commit SHA (a0b37374f5bad527749da20bf4550dd51f34e8bc)
+# Tag includes Foundry commit SHA (a0b37374f5bad527749da20bf4550dd51f34e8bc)
+# For full digest pinning, resolve sha256:<digest> in CI and update FROM line
 
 USER root
 
