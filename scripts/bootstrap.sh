@@ -204,7 +204,7 @@ fi
 # Pin to versioned installer from GitHub releases (v0.5.4)
 # Commit: c62c83c37ada63eae4efb77551e2ec7a0f0113d8
 # Installer: https://github.com/astral-sh/uv/releases/download/0.5.4/uv-installer.sh
-# SHA256: a1b2c3d4e5f6... (verify at release page before updating)
+# NOTE: No in-script SHA256 verification is currently performed; verify installer integrity before updating.
 UV_VERSION="0.5.4"
 info "Checking uv..."
 if command -v uv &>/dev/null; then
