@@ -133,7 +133,7 @@ Apply these repository settings:
 Notes:
 
 - Do not add `Validate Governance Policy Consistency` as a global required branch-protection check because it is intentionally path-filtered; require it only on governance-touching PRs.
-- `Contracts Core (With Invariants)` runs in `ci-full` after `ci-fast` passes — not a required branch protection check to avoid timeout on PRs.
+- `Contracts Core (Unit + Invariant) / Contracts Core` is the required branch-protection check; `Contracts Core (With Invariants)` refers to the `ci-full` variant that runs after `ci-fast` passes and is not an additional required check (to avoid PR timeouts).
 
 3. Protect tags
 
