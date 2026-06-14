@@ -4,13 +4,7 @@
     "@openzeppelin/=lib/openzeppelin-contracts/"
   ],
   "exclude-dependencies": true,
-  "filter-paths": [
-    "lib",
-    "test",
-    "script",
-    "out",
-    "cache"
-  ],
+  "filter-paths": ["lib", "test", "script", "out", "cache"],
   "fail-on": "medium",
   "exclude": [
     "naming-convention",
