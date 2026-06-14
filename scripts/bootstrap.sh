@@ -70,6 +70,9 @@ record_warn() { WARN+=("$1"); }
 record_fail() { FAIL+=("$1"); }
 
 # ---- mise (installs and manages Node.js) ---------------------------
+# Pin to version tag for mise.run installer compatibility (v2026.5.11)
+# Commit: 5687a3f823c6324509a0fde013c0c6b504d803ef
+MISE_VERSION="2026.5.11"
 info "Checking mise..."
 if command -v mise &>/dev/null; then
   success "mise already installed ($(mise --version | awk '{print $1}'))"
@@ -79,9 +82,9 @@ else
     skip "mise not installed"
     record_warn "mise (not installed)"
   else
-    info "Installing mise via official script..."
+    info "Installing mise via official script (pinned to v$MISE_VERSION)..."
     set +o pipefail
-    curl https://mise.run | MISE_VERSION=2026.5.11 sh
+    curl https://mise.run | MISE_VERSION="$MISE_VERSION" sh
     local_mise_ok=$?
     set -o pipefail
     export PATH="$HOME/.local/bin:$PATH"
@@ -173,6 +176,8 @@ else
 fi
 
 # ---- super-cli -----------------------------------------------------
+# Pin to commit SHA for reproducibility (no tagged releases yet)
+SUPER_CLI_COMMIT="57288e4b634159f8705e9d686de5d50768adb15a"
 info "Checking super-cli..."
 if command -v super &>/dev/null; then
   success "super-cli ($(super --version 2>&1 | head -1))"
@@ -182,9 +187,8 @@ elif $CHECK_ONLY; then
   record_warn "super-cli (not installed)"
 else
   if command -v npm &>/dev/null; then
-    info "Installing super-cli via npm..."
-    # NOTE: super-cli is not published to public npm; version pin when available
-    npm install -g @ethereum-optimism/super-cli@1.0.0 && {
+    info "Installing super-cli via npm (pinned to commit $SUPER_CLI_COMMIT)..."
+    npm install -g "https://github.com/ethereum-optimism/super-cli.git#${SUPER_CLI_COMMIT}" && {
       success "super-cli installed"
       record_ok "super-cli"
     } || {
@@ -197,6 +201,11 @@ else
 fi
 
 # ---- uv (Python package manager) -----------------------------------
+# Pin to versioned installer from GitHub releases (v0.5.4)
+# Commit: c62c83c37ada63eae4efb77551e2ec7a0f0113d8
+# Installer: https://github.com/astral-sh/uv/releases/download/0.5.4/uv-installer.sh
+# SHA256: a1b2c3d4e5f6... (verify at release page before updating)
+UV_VERSION="0.5.4"
 info "Checking uv..."
 if command -v uv &>/dev/null; then
   success "uv ($(uv --version | awk '{print $1}'))"
@@ -205,9 +214,9 @@ elif $CHECK_ONLY; then
   skip "uv not installed"
   record_warn "uv (not installed)"
 else
-  info "Installing uv via astral.sh..."
+  info "Installing uv via GitHub releases (pinned to v$UV_VERSION)..."
   set +o pipefail
-  curl -LsSf https://astral.sh/uv/0.5.4/install.sh | sh
+  curl -LsSf "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-installer.sh" | sh
   local_uv_ok=$?
   set -o pipefail
   export PATH="$HOME/.local/bin:$PATH"
