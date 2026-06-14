@@ -20,7 +20,7 @@ permissions:
 jobs:
   link-check:
     name: Internal Link Check
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
       - name: Checkout

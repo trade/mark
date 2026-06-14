@@ -19,7 +19,7 @@ permissions:
 jobs:
   forge-fmt:
     name: Solidity Format (forge fmt)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: contracts
@@ -40,7 +40,7 @@ jobs:
 
   ts-fmt:
     name: TypeScript Format (prettier)
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
 
     steps:
       - name: Checkout

@@ -22,7 +22,7 @@ permissions:
 jobs:
   scorecard:
     name: OpenSSF Scorecard Analysis
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 15
     permissions:
       contents: read

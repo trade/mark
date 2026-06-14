@@ -16,7 +16,7 @@ jobs:
   semgrep:
     name: Semgrep Scan
     if: ${{ inputs.run_semgrep == 'true' }}
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 10
     permissions:
       contents: read

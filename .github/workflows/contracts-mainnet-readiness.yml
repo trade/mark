@@ -28,7 +28,7 @@ permissions:
 jobs:
   mainnet-readiness:
     name: Mainnet Readiness Gate
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     environment: production
     env:
       MARK_MAINNET_GATE_MODE: ${{ inputs.mode }}
