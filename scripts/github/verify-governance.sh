@@ -105,7 +105,7 @@ check_branch() {
     return 1
   fi
 
-  if [[ "$require_stale" == "true" && "$expected_approvals" != "0" ]]; then
+  if [[ "$require_stale" == "true" ]]; then
     local stale
     stale="$(jq -r '.required_pull_request_reviews.dismiss_stale_reviews // false' <<<"$json")"
     if [[ "$stale" != "true" ]]; then
@@ -150,7 +150,9 @@ check_branch() {
 }
 
 # All branches use 0 required approvals — sole maintainer cannot approve own PRs.
+# With review_count=0, apply-governance sets required_pull_request_reviews=null,
+# so dismiss_stale_reviews is not present and must not be required in verification.
 check_branch dev false 0 "${require_checks_dev[@]}"
-check_branch main true 0 "${require_checks_main[@]}"
+check_branch main false 0 "${require_checks_main[@]}"
 
 echo "[verify] governance baseline active for ${GH_REPO}"
