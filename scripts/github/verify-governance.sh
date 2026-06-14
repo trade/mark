@@ -105,7 +105,7 @@ check_branch() {
     return 1
   fi
 
-  if [[ "$require_stale" == "true" && "$expected_approvals" != "0" ]]; then
+  if [[ "$require_stale" == "true" ]]; then
     local stale
     stale="$(jq -r '.required_pull_request_reviews.dismiss_stale_reviews // false' <<<"$json")"
     if [[ "$stale" != "true" ]]; then
