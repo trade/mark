@@ -24,7 +24,7 @@ This repository uses a two-track branch model:
 
 - `feature/<name>`: regular feature or refactor work, branch from `dev`, merge into `dev`.
 - `hotfix/<name>`: urgent production fix, branch from `main`, merge to `main`, then back-merge to `dev`.
-- `release/<name>` (optional): additional stabilisation before merging `dev` into `main`.
+- `release/<name>` (optional): additional stabilization before merging `dev` into `main`.
 
 ## CI and Deployment Policy
 
