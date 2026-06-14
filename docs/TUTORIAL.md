@@ -57,6 +57,11 @@ cast balance 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 --rpc-url http://localho
 
 We need to approve the bridge contract to spend our RYLA tokens, then deposit:
 
+> **🚨 SECURITY WARNING (READ FIRST):**
+> The private keys shown below are deterministic local development keys only (for `pnpm dev`/localhost).
+> **NEVER** use these keys on any public network (mainnet or testnet), and **NEVER** fund accounts derived from them with real assets.
+> Do not import these keys into wallets you use for real funds.
+
 ```bash
 # Get the RYLA token address on L2A (from deployment)
 RYLA_L2A=$(cast call 0x5FbDB2315678afecb367f032d93F642f64180aa3 "token()(address)" --rpc-url http://localhost:8545)
