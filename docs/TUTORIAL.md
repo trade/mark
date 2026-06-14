@@ -168,7 +168,7 @@ While we've done everything via command line, you can also monitor transactions 
 2. Connect your wallet (use MetaMask with custom RPCs):
    - L2A: http://localhost:8545
    - L2B: http://localhost:8546
-   - Use private key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+   - Use private key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 (⚠️ Local dev key only: never use on real networks)
 3. Navigate to the "Bridge" or "Settlement" sections to see transaction history
 
 ## Troubleshooting
