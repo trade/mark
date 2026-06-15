@@ -59,7 +59,9 @@ jobs:
           test -n "${PRIVATE_KEY}" || { echo "MARK_STAGING_DEPLOYER_PRIVATE_KEY required" >&2; exit 1; }
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
+        uses: ./.github/actions/setup-foundry
+        with:
+          version: '1.7.1'
 
       - name: Run Bridge E2E (dry-run)
         run: forge script script/ops/bridge/BridgeE2E.s.sol --rpc-url "$RPC_URL" -vv

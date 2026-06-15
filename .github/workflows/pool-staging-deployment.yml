@@ -98,7 +98,9 @@ jobs:
           }
 
       - name: Setup Foundry
-        uses: foundry-rs/foundry-toolchain@c7450ba673e133f5ee30098b3b54f444d3a2ca2d # v1.8.0
+        uses: ./.github/actions/setup-foundry
+        with:
+          version: '1.7.1'
 
       - name: Deploy Groth16Verifier
         env:
