@@ -1,0 +1,19 @@
+# ~/.mise.local.toml.example
+# Copy this to ~/.mise.local.toml and fill in your values
+# This file is gitignored and will not be committed
+
+[env]
+# OP Sepolia RPC URL (get from Alchemy, Infura, QuickNode, etc.)
+# OP_SEPOLIA_RPC = "https://opt-sepolia.g.alchemy.com/v2/YOUR_KEY"
+
+# Mainnet deployer private key (for production deployments)
+# MARK_DEPLOYER_PRIVATE_KEY = "0x..."
+
+# Staging deployer private key (for OP Sepolia deployments)
+# MARK_STAGING_DEPLOYER_PRIVATE_KEY = "0x..."
+
+# Staging attester private key
+# MARK_STAGING_ATTESTER_PRIVATE_KEY = "0x..."
+
+# GitHub token for mise install (if GitHub rate limits Foundry downloads)
+# GITHUB_TOKEN = "ghp_..."

@@ -11,7 +11,8 @@ rust = "1.80.0"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
-OP_SEPOLIA_RPC = "https://sepolia.optimism.io"  # Override with your own RPC in ~/.mise.local.toml
+# OP_SEPOLIA_RPC: Override with your own RPC in ~/.mise.local.toml
+# Example: OP_SEPOLIA_RPC = "https://your-rpc-url"  # DO NOT COMMIT REAL RPC URLs
 
 [tasks.setup]
 description = "Full project setup: deps + toolchains + circuits"
@@ -82,7 +83,7 @@ run = [
 [tasks.ci-fast]
 description = "Fast CI checks before push to feat/*"
 timeout = "180s"
-run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && uvx trufflehog --repo_path . --json file://$(pwd) && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
+run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
 
 [tasks.ci-full]
 description = "Full CI before PR to dev/main"

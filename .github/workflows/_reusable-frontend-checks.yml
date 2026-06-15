@@ -1,11 +1,12 @@
 name: Reusable Frontend Checks
+
 on:
   workflow_call:
     inputs:
       node_versions:
         description: JSON array of Node versions
         required: false
-        default: '[ "24" ]'
+        default: '[ "24.3.0" ]'
         type: string
       pnpm_version:
         description: pnpm version used by corepack
@@ -31,13 +32,25 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: recursive
+
+      - name: Setup persistent cache (Blacksmith)
+        uses: useblacksmith/stickydisk@v1
+        with:
+          path: |
+            ~/.cache
+            ~/.cargo
+            ~/.foundry
+            node_modules
+            circuits/node_modules
+            contracts/lib
           fetch-depth: 0
 
-      - name: Setup Node + pnpm
-        uses: ./.github/actions/setup-node-pnpm
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpm_version }}
+          cache-key-suffix: frontend-${{ matrix.node }}
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

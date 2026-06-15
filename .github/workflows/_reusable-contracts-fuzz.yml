@@ -35,11 +35,21 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Foundry
-        uses: ./.github/actions/setup-foundry
+      - name: Setup persistent cache (Blacksmith)
+        uses: useblacksmith/stickydisk@v1
         with:
-          version: '1.7.1'
-          cache-key: foundry-${{ runner.os }}
+          path: |
+            ~/.cache
+            ~/.cargo
+            ~/.foundry
+            node_modules
+            circuits/node_modules
+            contracts/lib
+
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
+        with:
+          cache-key-suffix: contracts-fuzz
 
       - name: Install dependencies
         run: |

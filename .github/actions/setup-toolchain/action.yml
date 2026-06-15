@@ -1,0 +1,94 @@
+name: Setup Toolchain
+description: Setup all toolchain versions (Node, pnpm, Foundry, Circom, cargo tools) with caching
+
+inputs:
+  node-version:
+    description: Node.js version
+    required: false
+    default: '24.3.0'
+  pnpm-version:
+    description: pnpm version
+    required: false
+    default: '9.0.2'
+  foundry-version:
+    description: Foundry version
+    required: false
+    default: '1.7.1'
+  circom-version:
+    description: Circom version
+    required: false
+    default: 'v2.2.3'
+  circomspect-version:
+    description: Circomspect version
+    required: false
+    default: '0.9.0'
+  install-circom:
+    description: Install circom binary
+    required: false
+    default: 'false'
+  install-circomspect:
+    description: Install circomspect (cargo)
+    required: false
+    default: 'false'
+  cache-key-suffix:
+    description: Additional cache key suffix
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js + pnpm
+      uses: ./.github/actions/setup-node-pnpm
+      with:
+        node-version: ${{ inputs.node-version }}
+        pnpm-version: ${{ inputs.pnpm-version }}
+
+    - name: Setup Foundry
+      uses: ./.github/actions/setup-foundry
+      with:
+        version: ${{ inputs.foundry-version }}
+        cache-key: foundry-${{ inputs.foundry-version }}-${{ runner.os }}-${{ inputs.cache-key-suffix }}
+
+    - name: Install circom
+      if: ${{ inputs.install-circom == 'true' && steps.cache-circom.outputs.cache-hit != 'true' }}
+      shell: bash
+      env:
+        CIRCOM_VERSION: ${{ inputs.circom-version }}
+        CIRCOM_SHA256: ${{ inputs.circom-version == 'v2.2.3' && '85342c7ff332d948df7c0c50ecf201e6129349aef550ce873f3c811b79fe53a3' || '' }}
+      run: |
+        if [ -n "${CIRCOM_SHA256}" ]; then
+          curl -sSL "https://github.com/iden3/circom/releases/download/${CIRCOM_VERSION}/circom-linux-amd64" -o /tmp/circom
+          echo "${CIRCOM_SHA256}  /tmp/circom" | sha256sum -c -
+          sudo install -m 755 /tmp/circom /usr/local/bin/circom
+        else
+          echo "Unknown circom version ${CIRCOM_VERSION}, SHA256 not configured" >&2
+          exit 1
+        fi
+        circom --version
+
+    - name: Cache circom binary
+      if: ${{ inputs.install-circom == 'true' }}
+      id: cache-circom
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: /usr/local/bin/circom
+        key: circom-${{ inputs.circom-version }}-${{ runner.os }}-${{ inputs.cache-key-suffix }}
+        restore-keys: |
+          circom-${{ inputs.circom-version }}-
+
+    - name: Cache circomspect binary
+      if: ${{ inputs.install-circomspect == 'true' }}
+      id: cache-circomspect
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: ~/.cargo/bin/circomspect
+        key: circomspect-${{ inputs.circomspect-version }}-${{ runner.os }}-${{ runner.arch }}-${{ inputs.cache-key-suffix }}
+        restore-keys: |
+          circomspect-${{ inputs.circomspect-version }}-
+
+    - name: Install circomspect
+      if: ${{ inputs.install-circomspect == 'true' && steps.cache-circomspect.outputs.cache-hit != 'true' }}
+      shell: bash
+      run: |
+        cargo install circomspect --version ${{ inputs.circomspect-version }} --locked

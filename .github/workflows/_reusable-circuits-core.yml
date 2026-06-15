@@ -28,28 +28,23 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup mise
-        uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
+      - name: Setup persistent cache (Blacksmith)
+        uses: useblacksmith/stickydisk@v1
         with:
-          install: true
-          cache: true
+          path: |
+            ~/.cache
+            ~/.cargo
+            ~/.foundry
+            node_modules
+            circuits/node_modules
+            contracts/lib
 
-      - name: Install circom
-        run: |
-          CIRCOM_VERSION="v2.2.3"
-          CIRCOM_SHA256="85342c7ff332d948df7c0c50ecf201e6129349aef550ce873f3c811b79fe53a3"
-          curl -sSL "https://github.com/iden3/circom/releases/download/${CIRCOM_VERSION}/circom-linux-amd64" -o /tmp/circom
-          echo "${CIRCOM_SHA256}  /tmp/circom" | sha256sum -c -
-          sudo install -m 755 /tmp/circom /usr/local/bin/circom
-          circom --version
-
-      - name: Cache circom binary
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
         with:
-          path: /usr/local/bin/circom
-          key: circom-${{ hashFiles('**/circom-version.txt') }}-${{ runner.os }}
-          restore-keys: |
-            circom-v2.2.3-
+          install-circom: 'true'
+          install-circomspect: ${{ inputs.run_circomspect }}
+          cache-key-suffix: circuits
 
       - name: Cache node_modules
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
@@ -73,19 +68,6 @@ jobs:
         run: |
           cd circuits
           pnpm test
-
-      - name: Cache circomspect binary
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        if: ${{ inputs.run_circomspect == 'true' }}
-        with:
-          path: ~/.cargo/bin/circomspect
-          key: circomspect-v0.9.0-${{ runner.os }}-${{ runner.arch }}
-          restore-keys: |
-            circomspect-v0.9.0-
-
-      - name: Install circomspect
-        if: ${{ inputs.run_circomspect == 'true' }}
-        run: cargo install circomspect --version 0.9.0 --locked
 
       - name: Run circomspect
         if: ${{ inputs.run_circomspect == 'true' }}
