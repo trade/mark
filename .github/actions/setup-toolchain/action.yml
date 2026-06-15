@@ -50,6 +50,16 @@ runs:
         version: ${{ inputs.foundry-version }}
         cache-key: foundry-${{ inputs.foundry-version }}-${{ runner.os }}-${{ inputs.cache-key-suffix }}
 
+    - name: Cache circom binary
+      if: ${{ inputs.install-circom == 'true' }}
+      id: cache-circom
+      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
+      with:
+        path: /usr/local/bin/circom
+        key: circom-${{ inputs.circom-version }}-${{ runner.os }}-${{ inputs.cache-key-suffix }}
+        restore-keys: |
+          circom-${{ inputs.circom-version }}-
+
     - name: Install circom
       if: ${{ inputs.install-circom == 'true' && steps.cache-circom.outputs.cache-hit != 'true' }}
       shell: bash
@@ -66,16 +76,6 @@ runs:
           exit 1
         fi
         circom --version
-
-    - name: Cache circom binary
-      if: ${{ inputs.install-circom == 'true' }}
-      id: cache-circom
-      uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-      with:
-        path: /usr/local/bin/circom
-        key: circom-${{ inputs.circom-version }}-${{ runner.os }}-${{ inputs.cache-key-suffix }}
-        restore-keys: |
-          circom-${{ inputs.circom-version }}-
 
     - name: Cache circomspect binary
       if: ${{ inputs.install-circomspect == 'true' }}
