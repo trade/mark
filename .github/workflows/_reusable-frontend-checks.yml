@@ -32,6 +32,7 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           submodules: recursive
+          fetch-depth: 0
 
       - name: Setup persistent cache (Blacksmith)
         uses: useblacksmith/stickydisk@4c034ba57b706cf0e3b4b0ce098c2a3b1071580c
@@ -43,7 +44,6 @@ jobs:
             node_modules
             circuits/node_modules
             contracts/lib
-          fetch-depth: 0
 
       - name: Setup toolchain
         uses: ./.github/actions/setup-toolchain
