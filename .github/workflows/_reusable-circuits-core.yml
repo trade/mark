@@ -28,17 +28,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup persistent cache (Blacksmith)
-        uses: useblacksmith/stickydisk@4c034ba57b706cf0e3b4b0ce098c2a3b1071580c
-        with:
-          path: |
-            ~/.cache
-            ~/.cargo
-            ~/.foundry
-            node_modules
-            circuits/node_modules
-            contracts/lib
-
       - name: Setup toolchain
         uses: ./.github/actions/setup-toolchain
         with:
