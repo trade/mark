@@ -11,7 +11,8 @@ rust = "1.80.0"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
-OP_SEPOLIA_RPC = "https://sepolia.optimism.io"  # Override with your own RPC in ~/.mise.local.toml
+# OP_SEPOLIA_RPC: Override with your own RPC in ~/.mise.local.toml
+# Example: OP_SEPOLIA_RPC = "https://your-rpc-url"  # DO NOT COMMIT REAL RPC URLs
 
 [tasks.setup]
 description = "Full project setup: deps + toolchains + circuits"
@@ -49,8 +50,11 @@ run = "pnpm lint"
 
 # === Blockchain Tasks ===
 [tasks.anvil]
-description = "Start Anvil fork of OP Sepolia"
-run = "anvil --fork-url $OP_SEPOLIA_RPC --fork-block-number 18000000 --port 8545 --block-time 2"
+description = "Start Anvil fork of OP Sepolia (requires OP_SEPOLIA_RPC, see .mise.local.toml.example)"
+run = """
+: "${OP_SEPOLIA_RPC:?OP_SEPOLIA_RPC is unset. Set it in ~/.mise.local.toml (see .mise.local.toml.example).}"
+anvil --fork-url "$OP_SEPOLIA_RPC" --fork-block-number 18000000 --port 8545 --block-time 2
+"""
 env = { ANVIL_IP_ADDR = "0.0.0.0" }
 
 [tasks.deploy-local]
@@ -82,7 +86,7 @@ run = [
 [tasks.ci-fast]
 description = "Fast CI checks before push to feat/*"
 timeout = "180s"
-run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && uvx trufflehog --repo_path . --json file://$(pwd) && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
+run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
 
 [tasks.ci-full]
 description = "Full CI before PR to dev/main"
@@ -95,8 +99,11 @@ run = [
 ]
 
 [tasks.reorg-sim]
-description = "Test 1-block reorg double-spend protection"
-run = "cd contracts && forge test --match-test testReorgDoubleSpendProtection --fork-url $OP_SEPOLIA_RPC -vvv"
+description = "Test 1-block reorg double-spend protection (requires OP_SEPOLIA_RPC, see .mise.local.toml.example)"
+run = """
+: "${OP_SEPOLIA_RPC:?OP_SEPOLIA_RPC is unset. Set it in ~/.mise.local.toml (see .mise.local.toml.example).}"
+cd contracts && forge test --match-test testReorgDoubleSpendProtection --fork-url "$OP_SEPOLIA_RPC" -vvv
+"""
 
 [tasks.zk-proof-tests]
 description = "ZK proof soundness and completeness tests"

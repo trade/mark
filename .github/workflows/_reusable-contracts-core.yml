@@ -26,11 +26,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Foundry
-        uses: ./.github/actions/setup-foundry
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
         with:
-          version: '1.7.1'
-          cache-key: foundry-${{ runner.os }}
+          cache-key-suffix: contracts
 
       - name: Enforce architecture boundaries
         run: make architecture-guard

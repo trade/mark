@@ -30,10 +30,10 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Setup Foundry
-        uses: ./.github/actions/setup-foundry
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
         with:
-          version: '1.7.1'
+          cache-key-suffix: fmt-contracts
 
       - name: Check Solidity formatting
         run: forge fmt --check
@@ -46,11 +46,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
-      - name: Setup Node + pnpm
-        uses: ./.github/actions/setup-node-pnpm
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
         with:
-          node-version: '24.3.0'
-          pnpm-version: '9.0.2'
+          cache-key-suffix: fmt-typescript
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
