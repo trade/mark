@@ -75,6 +75,7 @@ jobs:
           pnpm test
 
       - name: Cache circomspect binary
+        id: cache-circomspect
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         if: ${{ inputs.run_circomspect == 'true' }}
         with:
@@ -84,7 +85,7 @@ jobs:
             circomspect-v0.9.0-
 
       - name: Install circomspect
-        if: ${{ inputs.run_circomspect == 'true' }}
+        if: ${{ inputs.run_circomspect == 'true' && steps.cache-circomspect.outputs.cache-hit != 'true' }}
         run: cargo install circomspect --version 0.9.0 --locked
 
       - name: Run circomspect
