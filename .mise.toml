@@ -50,8 +50,11 @@ run = "pnpm lint"
 
 # === Blockchain Tasks ===
 [tasks.anvil]
-description = "Start Anvil fork of OP Sepolia"
-run = "anvil --fork-url $OP_SEPOLIA_RPC --fork-block-number 18000000 --port 8545 --block-time 2"
+description = "Start Anvil fork of OP Sepolia (requires OP_SEPOLIA_RPC, see .mise.local.toml.example)"
+run = """
+: "${OP_SEPOLIA_RPC:?OP_SEPOLIA_RPC is unset. Set it in ~/.mise.local.toml (see .mise.local.toml.example).}"
+anvil --fork-url "$OP_SEPOLIA_RPC" --fork-block-number 18000000 --port 8545 --block-time 2
+"""
 env = { ANVIL_IP_ADDR = "0.0.0.0" }
 
 [tasks.deploy-local]
@@ -96,8 +99,11 @@ run = [
 ]
 
 [tasks.reorg-sim]
-description = "Test 1-block reorg double-spend protection"
-run = "cd contracts && forge test --match-test testReorgDoubleSpendProtection --fork-url $OP_SEPOLIA_RPC -vvv"
+description = "Test 1-block reorg double-spend protection (requires OP_SEPOLIA_RPC, see .mise.local.toml.example)"
+run = """
+: "${OP_SEPOLIA_RPC:?OP_SEPOLIA_RPC is unset. Set it in ~/.mise.local.toml (see .mise.local.toml.example).}"
+cd contracts && forge test --match-test testReorgDoubleSpendProtection --fork-url "$OP_SEPOLIA_RPC" -vvv
+"""
 
 [tasks.zk-proof-tests]
 description = "ZK proof soundness and completeness tests"
