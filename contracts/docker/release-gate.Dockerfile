@@ -1,4 +1,4 @@
-FROM ghcr.io/foundry-rs/foundry:nightly-a0b37374f5bad527749da20bf4550dd51f34e8bc@sha256:536a9f2655c232b39f54892fa7089119cae79444e729d5ed697155e293fe75ba
+FROM ghcr.io/foundry-rs/foundry:nightly-a0b37374f5bad527749da20bf4550dd51f34e8bc@sha256:b931fe558985857a454a953cd1684202dffc4e417e45c30487cfe57656b0f6f0
 # Tag includes Foundry commit SHA (a0b37374f5bad527749da20bf4550dd51f34e8bc)
 # Pinned by sha256 digest for reproducible builds (Scorecard Pinned-Dependencies)
 
