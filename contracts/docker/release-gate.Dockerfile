@@ -25,8 +25,9 @@ RUN nodesource_script=$(mktemp) \
 
 # Slither analyzer is required by mainnet-readiness/release hardening checks.
 # Pinned to specific version with hash verification
-RUN python3 -m pip install --no-cache-dir --require-hashes \
-  slither-analyzer==0.11.5 \
+RUN python3 -m pip install --no-cache-dir --upgrade pip \
+  && python3 -m pip install --no-cache-dir --require-hashes \
+  "slither-analyzer==0.11.5" \
   --hash=sha256:3c7cb43651464543ed9152ed2f383dad4e15220b173754878ba6b291698be977
 
 # Create non-root user for CI execution
