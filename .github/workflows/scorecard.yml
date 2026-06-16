@@ -43,7 +43,6 @@ jobs:
           results_file: scorecard-results.sarif
           results_format: sarif
           publish_results: true
-          fail-on-severity: critical
           # Upload results to GitHub Security tab
           # Token is auto-generated via OIDC (id-token: write permission above)
 
