@@ -82,13 +82,13 @@ else
     skip "mise not installed"
     record_warn "mise (not installed)"
   else
-    info "Installing mise via official script (pinned to v$MISE_VERSION)..."
-    # sha256: aad081ff2ae662b051c64341057dd759b3b79dc6b841d593832bdeb9e2726fd8
+    info "Installing mise via GitHub releases (pinned to v$MISE_VERSION)..."
+    # sha256: f4a83973d39208496770ceb43deca9c79985aaaca87dfc56e9745abc439b339c
     set +o pipefail
     mise_script=$(mktemp)
-    curl -fsSL https://mise.run >"$mise_script"
-    echo "aad081ff2ae662b051c64341057dd759b3b79dc6b841d593832bdeb9e2726fd8  $mise_script" | sha256sum -c -
-    MISE_VERSION="$MISE_VERSION" sh "$mise_script"
+    curl -fsSL "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/install.sh" >"$mise_script"
+    echo "f4a83973d39208496770ceb43deca9c79985aaaca87dfc56e9745abc439b339c  $mise_script" | sha256sum -c -
+    sh "$mise_script"
     local_mise_ok=$?
     rm -f "$mise_script"
     set -o pipefail
