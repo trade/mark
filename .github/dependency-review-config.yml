@@ -56,6 +56,26 @@ allow_dependencies_licenses:
   - pkg:npm/actions/github-script
   - pkg:npm/supersim
   - pkg:npm/@solidity-parser/parser
+  # Transitive dependencies of slither-analyzer, pulled in only by the
+  # CI-only release-gate container (contracts/docker/slither-requirements.txt).
+  # Like slither-analyzer itself, these are static-analysis tooling deps that
+  # never become part of the distributed product. They are allow-listed by
+  # package because the SPDX scanner flags their (often false-positive) AND
+  # license expressions (PSF-2.0, GPL-1.0-or-later, MPL-2.0, CNRI-Python,
+  # Unicode-TOU, public-domain), or cannot detect a license at all.
+  - pkg:pypi/aiohappyeyeballs
+  - pkg:pypi/aiohttp
+  - pkg:pypi/bitarray
+  - pkg:pypi/cbor2
+  - pkg:pypi/certifi
+  - pkg:pypi/idna
+  - pkg:pypi/pycryptodome
+  - pkg:pypi/pyunormalize
+  - pkg:pypi/regex
+  - pkg:pypi/solc-select
+  - pkg:pypi/types-requests
+  - pkg:pypi/typing-extensions
+  - pkg:pypi/wcwidth
 
 # GHSA IDs to allow (none currently).
 allow_ghsas: []
