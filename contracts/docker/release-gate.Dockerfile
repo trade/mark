@@ -24,11 +24,15 @@ RUN nodesource_script=$(mktemp) \
   && corepack prepare pnpm@9.0.2 --activate
 
 # Slither analyzer is required by mainnet-readiness/release hardening checks.
-# Pinned to specific version with hash verification
+# Installed from a fully hash-pinned requirements file (the whole transitive
+# tree, resolved for Python 3.10). --require-hashes rejects an install unless
+# every requirement, including transitive deps, carries a hash, so pinning only
+# slither-analyzer on the command line cannot satisfy it.
+COPY contracts/docker/slither-requirements.txt /tmp/slither-requirements.txt
 RUN python3 -m pip install --no-cache-dir --upgrade pip \
   && python3 -m pip install --no-cache-dir --require-hashes \
-  "slither-analyzer==0.11.5" \
-  --hash=sha256:3c7cb43651464543ed9152ed2f383dad4e15220b173754878ba6b291698be977
+  -r /tmp/slither-requirements.txt \
+  && rm -f /tmp/slither-requirements.txt
 
 # Create non-root user for CI execution
 RUN useradd --create-home --shell /bin/bash appuser \
