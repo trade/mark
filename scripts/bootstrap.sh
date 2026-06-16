@@ -82,10 +82,15 @@ else
     skip "mise not installed"
     record_warn "mise (not installed)"
   else
-    info "Installing mise via official script (pinned to v$MISE_VERSION)..."
+    info "Installing mise via GitHub releases (pinned to v$MISE_VERSION)..."
+    # sha256: f4a83973d39208496770ceb43deca9c79985aaaca87dfc56e9745abc439b339c
     set +o pipefail
-    curl https://mise.run | MISE_VERSION="$MISE_VERSION" sh
+    mise_script=$(mktemp)
+    curl -fsSL "https://github.com/jdx/mise/releases/download/v${MISE_VERSION}/install.sh" >"$mise_script"
+    echo "f4a83973d39208496770ceb43deca9c79985aaaca87dfc56e9745abc439b339c  $mise_script" | sha256sum -c -
+    sh "$mise_script"
     local_mise_ok=$?
+    rm -f "$mise_script"
     set -o pipefail
     export PATH="$HOME/.local/bin:$PATH"
     if [[ $local_mise_ok -eq 0 ]] && command -v mise &>/dev/null; then
@@ -215,9 +220,14 @@ elif $CHECK_ONLY; then
   record_warn "uv (not installed)"
 else
   info "Installing uv via GitHub releases (pinned to v$UV_VERSION)..."
+  # sha256: 4c99c45e4727adb1c36da70779c4f2a51b19197ea44aa8a89656d2e9bc793eeb
   set +o pipefail
-  curl -LsSf "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-installer.sh" | sh
+  uv_script=$(mktemp)
+  curl -fsSL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-installer.sh" >"$uv_script"
+  echo "4c99c45e4727adb1c36da70779c4f2a51b19197ea44aa8a89656d2e9bc793eeb  $uv_script" | sha256sum -c -
+  sh "$uv_script"
   local_uv_ok=$?
+  rm -f "$uv_script"
   set -o pipefail
   export PATH="$HOME/.local/bin:$PATH"
   if [[ $local_uv_ok -eq 0 ]] && command -v uv &>/dev/null; then
