@@ -86,7 +86,7 @@ else
     # sha256: aad081ff2ae662b051c64341057dd759b3b79dc6b841d593832bdeb9e2726fd8
     set +o pipefail
     mise_script=$(mktemp)
-    curl -fsSL https://mise.run > "$mise_script"
+    curl -fsSL https://mise.run >"$mise_script"
     echo "aad081ff2ae662b051c64341057dd759b3b79dc6b841d593832bdeb9e2726fd8  $mise_script" | sha256sum -c -
     MISE_VERSION="$MISE_VERSION" sh "$mise_script"
     local_mise_ok=$?
@@ -223,7 +223,7 @@ else
   # sha256: 4c99c45e4727adb1c36da70779c4f2a51b19197ea44aa8a89656d2e9bc793eeb
   set +o pipefail
   uv_script=$(mktemp)
-  curl -fsSL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-installer.sh" > "$uv_script"
+  curl -fsSL "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-installer.sh" >"$uv_script"
   echo "4c99c45e4727adb1c36da70779c4f2a51b19197ea44aa8a89656d2e9bc793eeb  $uv_script" | sha256sum -c -
   sh "$uv_script"
   local_uv_ok=$?
