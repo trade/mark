@@ -259,6 +259,12 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @notice Emitted when nullifiers are received from a source chain via cross-chain sync.
     event NullifierSyncReceived(uint256 indexed srcChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1);
 
+    /// @notice Emitted when a cross-chain nullifier sync message could not be dispatched.
+    /// @dev The nullifiers are already spent locally, so same-chain safety is preserved.
+    ///      This surfaces a failed cross-chain propagation (e.g. a paused or mid-upgrade
+    ///      messenger, or an invalid destination) so a relayer/operator can re-drive it.
+    event NullifierSyncFailed(uint256 indexed dstChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1);
+
     // =========================================================
     //  Constructor
     // =========================================================
@@ -527,8 +533,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         CrossDomainMessageLib.requireCrossDomainCallback();
 
         // Get source chain from the message context
-        uint256 srcChainId = IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
-            .crossDomainMessageSource();
+        uint256 srcChainId = IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER).crossDomainMessageSource();
 
         // Validate source chain is supported
         if (!supportedChains[srcChainId]) revert PoolErrors.InvalidSource();
@@ -909,18 +914,24 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @param nullifiers The nullifiers that were spent.
     function _sendNullifierSync(bytes32[2] calldata nullifiers) internal {
         // Encode the sync message: syncNullifiers(nullifier0, nullifier1)
-        bytes memory message = abi.encodeWithSelector(
-            this.syncNullifiers.selector,
-            nullifiers[0],
-            nullifiers[1]
-        );
+        bytes memory message = abi.encodeWithSelector(this.syncNullifiers.selector, nullifiers[0], nullifiers[1]);
 
-        // Send to each supported chain from supportedChainList
+        // Send to each supported chain from supportedChainList.
+        // Best-effort: the nullifiers are already spent locally (CEI), so a reverting
+        // messenger (paused, mid-interop-upgrade, or an invalid destination) must not
+        // brick the user's transact/bridgeOut. Failures are surfaced via
+        // NullifierSyncFailed for an operator/relayer to re-drive, decoupling
+        // cross-chain sync reliability from user liveness.
         for (uint256 i = 0; i < supportedChainList.length; ++i) {
             uint256 dstChainId = supportedChainList[i];
-            bytes32 msgHash = IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
-                .sendMessage(dstChainId, address(this), message);
-            emit NullifierSyncSent(dstChainId, nullifiers[0], nullifiers[1], msgHash);
+            try IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
+                .sendMessage(dstChainId, address(this), message) returns (
+                bytes32 msgHash
+            ) {
+                emit NullifierSyncSent(dstChainId, nullifiers[0], nullifiers[1], msgHash);
+            } catch {
+                emit NullifierSyncFailed(dstChainId, nullifiers[0], nullifiers[1]);
+            }
         }
     }
 

@@ -257,4 +257,31 @@ contract CrossChainDoubleSpendTest is Test {
         assertTrue(poolB.isNullifierUsedGlobal(n0));
         assertTrue(poolB.isNullifierUsedGlobal(n1));
     }
+
+    /// @notice A reverting cross-chain messenger must not brick transact. The spend still
+    ///         succeeds locally and a NullifierSyncFailed event is emitted for the chain
+    ///         whose sync could not be dispatched.
+    function testTransactSucceedsWhenMessengerReverts() public {
+        // Give the messenger predeploy code so _sendNullifierSync runs (the _hasCode
+        // guard passes), then force its sendMessage to revert at runtime.
+        address messenger = poolA.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
+        vm.etch(messenger, hex"00");
+        vm.mockCallRevert(
+            messenger, abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.sendMessage.selector), "messenger down"
+        );
+
+        bytes32 rootA = poolA.getMerkleRoot();
+        bytes32[2] memory nullifiers = [N0, N1];
+        bytes32[2] memory commitments = [C0, C1];
+
+        // CHAIN_B_ID is supported on poolA (configured in setUp), so the send loop runs
+        // and the failed dispatch surfaces as NullifierSyncFailed instead of reverting.
+        vm.expectEmit(true, true, true, false, address(poolA));
+        emit MARKPool.NullifierSyncFailed(CHAIN_B_ID, N0, N1);
+        poolA.transact(rootA, nullifiers, commitments, 0, address(0), A, B, C);
+
+        // The spend committed locally despite the messenger revert.
+        assertTrue(poolA.isNullifierUsedGlobal(N0));
+        assertTrue(poolA.isNullifierUsedGlobal(N1));
+    }
 }
