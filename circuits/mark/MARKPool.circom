@@ -123,6 +123,19 @@ template MARKPool(depth, nIn, nOut) {
     bindingDiff <== inSecret[0] - withdrawOwner - inSecret0Upper * RELAYER_MAX;
     bindingDiff * withdrawAmountNonZero === 0;
 
+    // SECURITY: range-constrain inSecret0Upper so the decomposition above is a real
+    // integer split, not merely a field-arithmetic identity mod p. Without this,
+    // a prover could set inSecret0Upper = (inSecret[0] - withdrawOwner) * (RELAYER_MAX)^{-1} mod p
+    // for ANY withdrawOwner, making the binding vacuous. withdrawOwner is already
+    // constrained to 160 bits (withdrawOwnerBits below), so bounding inSecret0Upper to
+    // 93 bits guarantees withdrawOwner + inSecret0Upper * 2^160 < 2^253 < p (BN254 scalar
+    // field). With no modular wraparound the equation forces withdrawOwner to be exactly
+    // the lower 160 bits of inSecret[0]. 93 is the largest width that stays below p; using
+    // 94 would allow a sum up to 2^254 > p and reopen the attack. Note secrets must
+    // therefore be generated with inSecret[0] < 2^253 (upper part < 2^93).
+    component inSecret0UpperBits = Num2Bits(93);
+    inSecret0UpperBits.in <== inSecret0Upper;
+
     // 2) Merkle inclusion for each input
     signal cur[nIn][depth + 1];
     component sw[nIn][depth];

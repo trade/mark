@@ -11,6 +11,11 @@ library PoolValidation {
     uint256 internal constant SNARK_SCALAR_FIELD =
         21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
+    /// @notice Approximate number of L2 blocks per day on OP Stack (~2s block time).
+    /// @dev 86400 seconds / 2 seconds per block = 43200 blocks. Shared so block-based
+    ///      root-age math stays consistent across the pool and its validation helpers.
+    uint256 internal constant BLOCKS_PER_DAY = 43200;
+
     function requireDestEpochAndFeeWithinCircuitRange(uint256 dstChainId, uint256 protocolEpoch, uint256 fee)
         internal
         pure
@@ -93,7 +98,7 @@ library PoolValidation {
             if (root != currentRoot) {
                 uint256 blockNum = rootBlockNumbers[root];
                 // Convert maxRootAge (seconds) to blocks (OP Stack ~2s/block)
-                uint256 maxRootAgeBlocks = (maxRootAge * 43200) / 1 days;
+                uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY) / 1 days;
                 if (blockNum != 0 && block.number > blockNum + maxRootAgeBlocks) revert PoolErrors.RootExpired();
             }
         }

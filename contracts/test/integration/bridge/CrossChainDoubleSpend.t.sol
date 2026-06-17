@@ -9,6 +9,7 @@ import {RYLA} from "../../../src/token/RYLA.sol";
 import {IVerifier} from "../../../src/interfaces/IVerifier.sol";
 import {PoolErrors} from "../../../src/pool/errors/PoolErrors.sol";
 import {NullifierErrors} from "../../../src/errors/NullifierErrors.sol";
+import {IL2ToL2CrossDomainMessenger} from "@interop-lib/interfaces/IL2ToL2CrossDomainMessenger.sol";
 
 contract MockVerifier is IVerifier {
     function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
@@ -112,6 +113,31 @@ contract CrossChainDoubleSpendTest is Test {
         poolB.setSupportedChain(CHAIN_A_ID, true);
     }
 
+    /// @dev Mocks the L2ToL2CrossDomainMessenger context so a pranked call to
+    ///      pool.syncNullifiers(...) satisfies CrossDomainMessageLib's caller and
+    ///      cross-domain-sender checks, simulating a relayed sync message from `srcChainId`.
+    function _mockMessengerContext(MARKPool pool, uint256 srcChainId) internal {
+        address messenger = pool.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
+        vm.mockCall(
+            messenger,
+            abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.crossDomainMessageSender.selector),
+            abi.encode(address(pool))
+        );
+        vm.mockCall(
+            messenger,
+            abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.crossDomainMessageSource.selector),
+            abi.encode(srcChainId)
+        );
+    }
+
+    /// @dev Simulates a relayed cross-chain nullifier sync from `srcChainId` by calling the
+    ///      production syncNullifiers entry point as the cross-domain messenger.
+    function _relaySyncNullifiers(MARKPool pool, uint256 srcChainId, bytes32 n0, bytes32 n1) internal {
+        _mockMessengerContext(pool, srcChainId);
+        vm.prank(pool.L2_TO_L2_CROSS_DOMAIN_MESSENGER());
+        pool.syncNullifiers(n0, n1);
+    }
+
     /// @notice Spend nullifier on chain A, then try to spend same nullifier on chain A again.
     function testCrossChainDoubleSpendRevertsOnSamePool() public {
         bytes32 rootA = poolA.getMerkleRoot();
@@ -147,9 +173,9 @@ contract CrossChainDoubleSpendTest is Test {
         assertTrue(poolA.isNullifierUsedGlobal(N0));
         assertTrue(poolA.isNullifierUsedGlobal(N1));
 
-        // 3. Simulate cross-chain nullifier sync: Chain B receives sync from Chain A
-        //    Using test-only function to bypass cross-domain messenger
-        poolB.syncNullifiersForTest(CHAIN_A_ID, N0, N1);
+        // 3. Simulate cross-chain nullifier sync: Chain B receives a relayed sync from Chain A
+        //    through the production messenger-guarded syncNullifiers entry point.
+        _relaySyncNullifiers(poolB, CHAIN_A_ID, N0, N1);
 
         // 4. Verify nullifiers are now marked as spent on chain B
         assertTrue(poolB.isNullifierUsedGlobal(N0));
@@ -207,8 +233,11 @@ contract CrossChainDoubleSpendTest is Test {
         bytes32[2] memory nullifiers = [bytes32(uint256(100)), bytes32(uint256(101))];
 
         // Chain C (902) is not supported by poolB
+        _mockMessengerContext(poolB, 902);
+        address messenger = poolB.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
         vm.expectRevert(PoolErrors.InvalidSource.selector);
-        poolB.syncNullifiersForTest(902, nullifiers[0], nullifiers[1]);
+        vm.prank(messenger);
+        poolB.syncNullifiers(nullifiers[0], nullifiers[1]);
     }
 
     /// @notice SyncNullifiers only marks nullifiers once (idempotent).
@@ -219,12 +248,12 @@ contract CrossChainDoubleSpendTest is Test {
         bytes32 n1 = bytes32(uint256(201));
 
         // First sync
-        poolB.syncNullifiersForTest(CHAIN_A_ID, n0, n1);
+        _relaySyncNullifiers(poolB, CHAIN_A_ID, n0, n1);
         assertTrue(poolB.isNullifierUsedGlobal(n0));
         assertTrue(poolB.isNullifierUsedGlobal(n1));
 
         // Second sync with same nullifiers - should not revert, just be idempotent
-        poolB.syncNullifiersForTest(CHAIN_A_ID, n0, n1);
+        _relaySyncNullifiers(poolB, CHAIN_A_ID, n0, n1);
         assertTrue(poolB.isNullifierUsedGlobal(n0));
         assertTrue(poolB.isNullifierUsedGlobal(n1));
     }

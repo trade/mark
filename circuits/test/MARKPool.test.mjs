@@ -233,6 +233,37 @@ await expectFail("withdraw amount zero but owner non-zero", {
     withdrawAmount: 0n,
 });
 
+// SECURITY REGRESSION (P0): without a range constraint on inSecret0Upper, a prover could
+// bind ANY withdrawOwner to a given secret by solving the field equation
+// inSecret0Upper = (inSecret[0] - withdrawOwner) * (2^160)^{-1} mod p. The Num2Bits(93)
+// constraint rejects the resulting out-of-range witness, so the binding can no longer be forged.
+const P = F.p;
+function modInverse(a, m) {
+  let [oldR, r] = [((a % m) + m) % m, m];
+  let [oldS, s] = [1n, 0n];
+  while (r !== 0n) {
+    const q = oldR / r;
+    [oldR, r] = [r, oldR - q * r];
+    [oldS, s] = [s, oldS - q * s];
+  }
+  if (oldR !== 1n) throw new Error("2^160 not invertible mod p");
+  return ((oldS % m) + m) % m;
+}
+const spoofedOwner = BigInt("0x00000000000000000000000000000000DeaDBeef");
+const inv2pow160 = modInverse(2n ** 160n % P, P);
+const diff = (((in0Withdraw.secret - spoofedOwner) % P) + P) % P;
+const maliciousUpper = (diff * inv2pow160) % P;
+// Sanity: the forged upper value must exceed 2^93 for this to exercise the range check.
+if (maliciousUpper < 2n ** 93n) {
+  console.error("  FAIL: test setup error — maliciousUpper unexpectedly within range");
+  process.exit(1);
+}
+await expectFail("withdraw owner spoofed via unconstrained upper bits", {
+  ...validWithWithdraw,
+  withdrawOwner: spoofedOwner,
+  inSecret0Upper: maliciousUpper,
+});
+
 // Nullifier constraints
 await expectFail("wrong nullifier (tampered)", {
   ...validBase,

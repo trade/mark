@@ -72,8 +72,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     uint256 public constant MAX_ALLOWED_ROOT_AGE = 30 days;
 
     /// @notice Approximate number of L2 blocks per day on OP Stack (2s block time).
-    /// @dev 86400 seconds / 2 seconds per block = 43200 blocks.
-    uint256 public constant BLOCKS_PER_DAY = 43200;
+    /// @dev 86400 seconds / 2 seconds per block = 43200 blocks. Single-sourced from
+    ///      PoolValidation so the pool and its validation library can never diverge.
+    uint256 public constant BLOCKS_PER_DAY = PoolValidation.BLOCKS_PER_DAY;
 
     /// @notice L2ToL2CrossDomainMessenger predeploy address for cross-chain nullifier sync.
     address public constant L2_TO_L2_CROSS_DOMAIN_MESSENGER = PredeployAddresses.L2_TO_L2_CROSS_DOMAIN_MESSENGER;
@@ -249,7 +250,11 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     event SupportedChainSet(uint256 indexed chainId, bool enabled);
 
     /// @notice Emitted when nullifiers are synced to a destination chain.
-    event NullifierSyncSent(uint256 indexed dstChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1);
+    /// @dev `msgHash` is the L2ToL2CrossDomainMessenger message hash, the canonical handle
+    ///      operators use to track delivery of this sync on the destination chain.
+    event NullifierSyncSent(
+        uint256 indexed dstChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1, bytes32 msgHash
+    );
 
     /// @notice Emitted when nullifiers are received from a source chain via cross-chain sync.
     event NullifierSyncReceived(uint256 indexed srcChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1);
@@ -545,26 +550,21 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (!usedNullifiersGlobal[nullifier0]) {
             usedNullifiersGlobal[nullifier0] = true;
             emit NoteSpent(nullifier0);
-            emit NullifierSyncReceived(srcChainId, nullifier0, nullifier1);
         }
         if (!usedNullifiersGlobal[nullifier1]) {
             usedNullifiersGlobal[nullifier1] = true;
             emit NoteSpent(nullifier1);
         }
+
+        // Emit once per received sync message (covers both nullifiers) regardless of
+        // whether either was already marked, so off-chain indexers can reconstruct the
+        // full cross-chain sync history from logs.
+        emit NullifierSyncReceived(srcChainId, nullifier0, nullifier1);
     }
 
     // =========================================================
     //  Admin configuration
     // =========================================================
-
-    /// @notice Test-only function to mark nullifiers from cross-chain sync.
-    /// @dev DO NOT USE IN PRODUCTION. Bypasses cross-domain messenger checks.
-    /// @param srcChainId Source chain ID.
-    /// @param nullifier0 First nullifier hash.
-    /// @param nullifier1 Second nullifier hash.
-    function syncNullifiersForTest(uint256 srcChainId, bytes32 nullifier0, bytes32 nullifier1) external {
-        _markNullifiersFromSync(srcChainId, nullifier0, nullifier1);
-    }
 
     /// @notice Pauses the contract (inherited from Pausable).
     /// @dev Delegates to Pausable._pause(). Restricted to admin.
@@ -920,7 +920,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             uint256 dstChainId = supportedChainList[i];
             bytes32 msgHash = IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
                 .sendMessage(dstChainId, address(this), message);
-            emit NullifierSyncSent(dstChainId, nullifiers[0], nullifiers[1]);
+            emit NullifierSyncSent(dstChainId, nullifiers[0], nullifiers[1], msgHash);
         }
     }
 
