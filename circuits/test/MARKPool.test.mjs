@@ -77,26 +77,26 @@ const CHAIN_ID = 11155420n; // OP Sepolia
 
 // Build a valid note
 function makeNote(amount, secret, blinding) {
-    const commitment = poseidonHash(DOMAIN_COMMITMENT, amount, secret, blinding);
-    return { amount, secret, blinding, commitment };
+  const commitment = poseidonHash(DOMAIN_COMMITMENT, amount, secret, blinding);
+  return { amount, secret, blinding, commitment };
 }
 
 function makeNullifier(note, chainId) {
-    return poseidonHash(DOMAIN_NULLIFIER_TAG, note.secret, note.commitment, chainId);
+  return poseidonHash(DOMAIN_NULLIFIER_TAG, note.secret, note.commitment, chainId);
 }
 
 function makeInSecret0Upper(secret) {
-    // Upper bits of secret when split at 160 bits
-    // secret = withdrawOwner + inSecret0Upper * 2^160
-    // withdrawOwner is the lower 160 bits, so inSecret0Upper = (secret - withdrawOwner) / 2^160
-    const RELAYER_MAX = 2n ** 160n;
-    return (secret / RELAYER_MAX);
+  // Upper bits of secret when split at 160 bits
+  // secret = withdrawOwner + inSecret0Upper * 2^160
+  // withdrawOwner is the lower 160 bits, so inSecret0Upper = (secret - withdrawOwner) / 2^160
+  const RELAYER_MAX = 2n ** 160n;
+  return secret / RELAYER_MAX;
 }
 
 // Helper to create a secret with specific lower 160 bits (the owner)
 function makeSecretWithOwner(owner, upperBits) {
-    const RELAYER_MAX = 2n ** 160n;
-    return owner + upperBits * RELAYER_MAX;
+  const RELAYER_MAX = 2n ** 160n;
+  return owner + upperBits * RELAYER_MAX;
 }
 
 // NEW: Output commitment uses 5-input Poseidon with domain-separated dstChainId
@@ -219,18 +219,18 @@ const validWithWithdraw = {
 };
 await expectPass("valid transact with withdraw binding", validWithWithdraw);
 await expectFail("withdraw amount non-zero but owner zero", {
-    ...validWithWithdraw,
-    withdrawOwner: 0n,
+  ...validWithWithdraw,
+  withdrawOwner: 0n,
 });
 await expectFail("withdraw amount non-zero but recipient zero", {
-    ...validWithWithdraw,
-    withdrawRecipient: 0n,
+  ...validWithWithdraw,
+  withdrawRecipient: 0n,
 });
 await expectFail("withdraw amount zero but owner non-zero", {
-    ...validBase,
-    withdrawOwner,
-    withdrawRecipient: 0n,
-    withdrawAmount: 0n,
+  ...validBase,
+  withdrawOwner,
+  withdrawRecipient: 0n,
+  withdrawAmount: 0n,
 });
 
 // SECURITY REGRESSION (P0): without a range constraint on inSecret0Upper, a prover could

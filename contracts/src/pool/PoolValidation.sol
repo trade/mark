@@ -69,11 +69,7 @@ library PoolValidation {
     /// @notice Validates fee and relayer parameters.
     /// @param fee The fee amount.
     /// @param relayer The relayer address.
-    function requireFeeOk(
-        uint256 fee,
-        address relayer,
-        uint256 minFee
-    ) internal pure {
+    function requireFeeOk(uint256 fee, address relayer, uint256 minFee) internal pure {
         if (minFee > 0 && fee < minFee) revert PoolErrors.FeeTooLow();
         if (fee > 0 && relayer == address(0)) revert PoolErrors.InvalidRelayer();
     }

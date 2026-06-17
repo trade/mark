@@ -39,10 +39,7 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
         bytes32 s;
     }
 
-    constructor(address initialAdmin)
-        EIP712("AttestedSettlementVerifier", "1")
-        AccessControlled(initialAdmin)
-    {}
+    constructor(address initialAdmin) EIP712("AttestedSettlementVerifier", "1") AccessControlled(initialAdmin) {}
 
     function setAttester(address attester, bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (attester == address(0)) revert ZeroAddress();

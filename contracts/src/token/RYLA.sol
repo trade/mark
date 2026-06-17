@@ -32,8 +32,7 @@ contract RYLA is SuperchainERC20, AccessControlled, TokenErrors {
         override(AccessControlled, SuperchainERC20)
         returns (bool)
     {
-        return AccessControlled.supportsInterface(interfaceId)
-            || SuperchainERC20.supportsInterface(interfaceId);
+        return AccessControlled.supportsInterface(interfaceId) || SuperchainERC20.supportsInterface(interfaceId);
     }
 
     function setMinter(address account, bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE) {
