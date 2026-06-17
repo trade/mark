@@ -254,9 +254,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     event SupportedChainSet(uint256 indexed chainId, bool enabled);
 
     /// @notice Emitted when nullifiers are synced to a destination chain.
-    event NullifierSyncSent(
-        uint256 indexed dstChainId, bytes32 nullifier0, bytes32 nullifier1, bytes32 msgHash
-    );
+    event NullifierSyncSent(uint256 indexed dstChainId, bytes32 nullifier0, bytes32 nullifier1, bytes32 msgHash);
 
     /// @notice Emitted when nullifiers are received from a source chain via cross-chain sync.
     event NullifierSyncReceived(uint256 indexed srcChainId, bytes32 nullifier0, bytes32 nullifier1);
@@ -931,14 +929,18 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @param nullifiers The nullifiers that were spent.
     function _sendNullifierSync(bytes32[2] calldata nullifiers) internal {
         if (!CROSS_CHAIN_SYNC_ENABLED) return;
-        
+
         bytes memory message = abi.encodeWithSelector(this.syncNullifiers.selector, nullifiers[0], nullifiers[1]);
         for (uint256 i = 0; i < supportedChainList.length; ++i) {
             uint256 dstChainId = supportedChainList[i];
             try IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
-                .sendMessage(dstChainId, address(this), message) returns (bytes32 msgHash) {
+                .sendMessage(dstChainId, address(this), message) returns (
+                bytes32 msgHash
+            ) {
                 emit NullifierSyncSent(dstChainId, nullifiers[0], nullifiers[1], msgHash);
-            } catch { emit NullifierSyncFailed(dstChainId, nullifiers[0], nullifiers[1]); }
+            } catch {
+                emit NullifierSyncFailed(dstChainId, nullifiers[0], nullifiers[1]);
+            }
         }
     }
 
@@ -952,7 +954,9 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             knownRoots[newRoot] = true;
             rootBlockNumbers[newRoot] = block.number;
             rootQueue[rootQueueTail] = newRoot;
-            unchecked { rootQueueTail++; }
+            unchecked {
+                rootQueueTail++;
+            }
             emit RootAdded(newRoot);
         }
         emit NoteCreated(commitment);
