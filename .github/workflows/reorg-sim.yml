@@ -70,33 +70,46 @@ jobs:
 
       - name: Run reorg double-spend test
         if: steps.check.outputs.run == 'true' && steps.check-rpc.outputs.has_secret == 'true'
+        env:
+          OP_SEPOLIA_RPC: ${{ secrets.OP_SEPOLIA_RPC }}
+          # The reorg tests live under test/integration/**, which the default
+          # foundry profile excludes via no_match_path. The integration profile
+          # includes them so this security test actually executes.
+          FOUNDRY_PROFILE: integration
         run: |
           set -euo pipefail
           cd contracts
 
+          # Normalize the RPC endpoint. forge's vm.createFork rejects scheme-less
+          # URLs ("invalid rpc url"), so default to https:// when no scheme is set.
+          case "$OP_SEPOLIA_RPC" in
+            http://* | https://* | ws://* | wss://*) ;;
+            *) OP_SEPOLIA_RPC="https://${OP_SEPOLIA_RPC}" ;;
+          esac
+          export OP_SEPOLIA_RPC
+
           echo "Running reorg simulation against OP Sepolia fork..."
 
-          # Run reorg tests once. Capture output and exit code separately.
-          # --match-test filters test function names (case-insensitive substring match).
-          OUTPUT=$(forge test --match-test 'testReorg.*' --fork-url "${{ secrets.OP_SEPOLIA_RPC }}" --fork-block-number 18000000 -vvv 2>&1) && STATUS=0 || STATUS=$?
+          # ReorgSimulationTest creates its own fork from $OP_SEPOLIA_RPC via
+          # vm.createFork, so we must NOT pass --fork-url: doing so makes forge
+          # eagerly instantiate a global fork and fail before any test runs.
+          OUTPUT=$(forge test --match-contract 'ReorgSimulationTest' -vvv 2>&1) && STATUS=0 || STATUS=$?
 
           echo "$OUTPUT"
 
-          if [ "$STATUS" -ne 0 ]; then
-            echo "::error::Reorg test failed with exit code $STATUS. NULLIFIER REPLAY DETECTED."
-            echo "This indicates a critical vulnerability: 1-block L2 reorg can cause double-spend."
+          # Guard against a silent no-op: if the profile/filter matches nothing,
+          # the security test never ran and must not be reported as a pass.
+          if echo "$OUTPUT" | grep -q "No tests found"; then
+            echo "::error::No reorg tests were executed (check FOUNDRY_PROFILE / --match-contract)."
             exit 1
           fi
 
-          # Additional check: ensure no FAILURES string appeared in output
-          if echo "$OUTPUT" | grep -q "FAILURES"; then
-            echo "::error::Reorg test output contains FAILURES. NULLIFIER REPLAY DETECTED."
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Reorg double-spend test failed (exit $STATUS). Possible nullifier replay enabling double-spend on a 1-block L2 reorg."
             exit 1
           fi
 
           echo "Reorg tests passed."
-        env:
-          OP_SEPOLIA_RPC: ${{ secrets.OP_SEPOLIA_RPC }}
 
       - name: Skip reorg test (no secret)
         if: steps.check.outputs.run == 'true' && steps.check-rpc.outputs.has_secret != 'true'
