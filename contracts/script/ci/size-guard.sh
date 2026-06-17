@@ -7,7 +7,13 @@ MAX_CODE_SIZE=24576
 MIN_MARGIN_BYTES="${MARK_POOL_MIN_SIZE_MARGIN_BYTES:-100}"
 TARGET_ARTIFACT="out/MARKPool.sol/MARKPool.json"
 
-forge build -q
+# EIP-170 governs the DEPLOYED runtime bytecode, which is produced with the
+# optimizer enabled (the `ci` profile). The default profile leaves the optimizer
+# off for fast test compilation and emits much larger bytecode that is never
+# deployed, so measuring it would reject contracts that actually deploy fine.
+# Build the optimized artifact here to check the real deployed size. Override with
+# SIZE_GUARD_FOUNDRY_PROFILE if a different deployment profile is ever used.
+FOUNDRY_PROFILE="${SIZE_GUARD_FOUNDRY_PROFILE:-ci}" forge build -q
 
 if [ ! -f "$TARGET_ARTIFACT" ]; then
   echo "size-guard: artifact not found: $TARGET_ARTIFACT" >&2
