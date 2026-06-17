@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {
-    AccessControlDefaultAdminRules
-} from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
+import {AccessControlled} from "../access/AccessControlled.sol";
 import {SuperchainERC20} from "@interop-lib/SuperchainERC20.sol";
 import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 import {TokenErrors} from "../errors/TokenErrors.sol";
@@ -11,17 +9,14 @@ import {TokenErrors} from "../errors/TokenErrors.sol";
 /// @title RYLA (Ʀ)
 /// @notice Superchain-compatible standard credit token.
 /// @dev Cross-chain mint/burn is handled by SuperchainTokenBridge via SuperchainERC20.
-contract RYLA is SuperchainERC20, AccessControlDefaultAdminRules, TokenErrors {
+contract RYLA is SuperchainERC20, AccessControlled, TokenErrors {
     event MinterUpdated(address indexed account, bool enabled);
     event BurnerUpdated(address indexed account, bool enabled);
 
-    uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    constructor(address initialAdmin) AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin) {
-        if (initialAdmin == address(0)) revert ZeroAddress();
-    }
+    constructor(address initialAdmin) AccessControlled(initialAdmin) {}
 
     function name() public pure override returns (string memory) {
         return "RYLA Credits";
@@ -34,10 +29,10 @@ contract RYLA is SuperchainERC20, AccessControlDefaultAdminRules, TokenErrors {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(AccessControlDefaultAdminRules, SuperchainERC20)
+        override(AccessControlled, SuperchainERC20)
         returns (bool)
     {
-        return AccessControlDefaultAdminRules.supportsInterface(interfaceId)
+        return AccessControlled.supportsInterface(interfaceId)
             || SuperchainERC20.supportsInterface(interfaceId);
     }
 
