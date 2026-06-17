@@ -3,6 +3,7 @@ pragma solidity ^0.8.25;
 
 import {Test} from "forge-std/Test.sol";
 import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
+import {IAccessManaged} from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
 import {MARKPool} from "../../../src/pool/MARKPool.sol";
 import {RYLACreditLedger} from "../../../src/pool/RYLACreditLedger.sol";
 import {RYLA} from "../../../src/token/RYLA.sol";
@@ -65,13 +66,14 @@ contract CrossChainDoubleSpendTest is Test {
         poolA = new MARKPool(address(accessManagerA), address(verifier), poseidonA);
         ledgerA = new RYLACreditLedger(address(tokenA), address(poolA));
 
-        bytes4[] memory selectorsA = new bytes4[](6);
+        bytes4[] memory selectorsA = new bytes4[](7);
         selectorsA[0] = poolA.setAssetLedger.selector;
         selectorsA[1] = poolA.bridgeIn.selector;
         selectorsA[2] = poolA.pauseWithdrawals.selector;
         selectorsA[3] = poolA.unpauseWithdrawals.selector;
         selectorsA[4] = poolA.setProtocolEpoch.selector;
         selectorsA[5] = poolA.setSupportedChain.selector;
+        selectorsA[6] = poolA.reSyncNullifiers.selector;
         accessManagerA.setTargetFunctionRole(address(poolA), selectorsA, 1);
         accessManagerA.grantRole(1, admin, 0);
         vm.warp(block.timestamp + 1);
@@ -89,13 +91,14 @@ contract CrossChainDoubleSpendTest is Test {
         poolB = new MARKPool(address(accessManagerB), address(verifier), poseidonB);
         ledgerB = new RYLACreditLedger(address(tokenB), address(poolB));
 
-        bytes4[] memory selectorsB = new bytes4[](6);
+        bytes4[] memory selectorsB = new bytes4[](7);
         selectorsB[0] = poolB.setAssetLedger.selector;
         selectorsB[1] = poolB.bridgeIn.selector;
         selectorsB[2] = poolB.pauseWithdrawals.selector;
         selectorsB[3] = poolB.unpauseWithdrawals.selector;
         selectorsB[4] = poolB.setProtocolEpoch.selector;
         selectorsB[5] = poolB.setSupportedChain.selector;
+        selectorsB[6] = poolB.reSyncNullifiers.selector;
         accessManagerB.setTargetFunctionRole(address(poolB), selectorsB, 1);
         accessManagerB.grantRole(1, admin, 0);
         vm.warp(block.timestamp + 1);
@@ -283,5 +286,47 @@ contract CrossChainDoubleSpendTest is Test {
         // The spend committed locally despite the messenger revert.
         assertTrue(poolA.isNullifierUsedGlobal(N0));
         assertTrue(poolA.isNullifierUsedGlobal(N1));
+    }
+
+    /// @notice Admin can re-drive a failed cross-chain sync for an already-spent pair.
+    function testReSyncNullifiersReDrivesSpentPair() public {
+        // Spend on chain A so the nullifiers are marked locally.
+        bytes32 rootA = poolA.getMerkleRoot();
+        bytes32[2] memory nullifiers = [N0, N1];
+        bytes32[2] memory commitments = [C0, C1];
+        poolA.transact(rootA, nullifiers, commitments, 0, address(0), A, B, C);
+
+        // Mock the messenger so the re-driven sendMessage returns a message hash.
+        address messenger = poolA.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
+        bytes32 msgHash = bytes32(uint256(0xABC));
+        vm.mockCall(
+            messenger, abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.sendMessage.selector), abi.encode(msgHash)
+        );
+
+        vm.expectEmit(true, true, true, true, address(poolA));
+        emit MARKPool.NullifierSyncSent(CHAIN_B_ID, N0, N1, msgHash);
+        vm.prank(admin);
+        poolA.reSyncNullifiers(CHAIN_B_ID, N0, N1);
+    }
+
+    /// @notice reSyncNullifiers refuses to propagate nullifiers that were never spent
+    ///         locally, so an admin cannot freeze unspent notes on other chains.
+    function testReSyncNullifiersRevertsForUnspentNullifiers() public {
+        vm.prank(admin);
+        vm.expectRevert(NullifierErrors.NullifierNotConsumed.selector);
+        poolA.reSyncNullifiers(CHAIN_B_ID, bytes32(uint256(0xDEAD)), bytes32(uint256(0xBEEF)));
+    }
+
+    /// @notice reSyncNullifiers rejects an unsupported destination chain.
+    function testReSyncNullifiersRevertsForUnsupportedChain() public {
+        vm.prank(admin);
+        vm.expectRevert(PoolErrors.InvalidDestination.selector);
+        poolA.reSyncNullifiers(902, N0, N1);
+    }
+
+    /// @notice reSyncNullifiers is admin-restricted.
+    function testReSyncNullifiersRevertsForNonAdmin() public {
+        vm.expectRevert(abi.encodeWithSelector(IAccessManaged.AccessManagedUnauthorized.selector, address(this)));
+        poolA.reSyncNullifiers(CHAIN_B_ID, N0, N1);
     }
 }

@@ -262,7 +262,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @notice Emitted when a cross-chain nullifier sync message could not be dispatched.
     /// @dev The nullifiers are already spent locally, so same-chain safety is preserved.
     ///      This surfaces a failed cross-chain propagation (e.g. a paused or mid-upgrade
-    ///      messenger, or an invalid destination) so a relayer/operator can re-drive it.
+    ///      messenger, or an invalid destination); an admin re-drives it via reSyncNullifiers.
     event NullifierSyncFailed(uint256 indexed dstChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1);
 
     // =========================================================
@@ -565,6 +565,29 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         // whether either was already marked, so off-chain indexers can reconstruct the
         // full cross-chain sync history from logs.
         emit NullifierSyncReceived(srcChainId, nullifier0, nullifier1);
+    }
+
+    /// @notice Re-sends a cross-chain nullifier sync to a single destination chain.
+    /// @dev Recovery path for a `NullifierSyncFailed` event: the broadcast in
+    ///      `_sendNullifierSync` during transact/bridgeOut is best-effort, so an admin
+    ///      re-drives a failed sync here. Only nullifiers already spent on THIS chain may
+    ///      be re-synced, so a mistaken or compromised admin cannot freeze unspent notes
+    ///      on other chains. Reverts if the messenger send fails so the caller sees it.
+    /// @param dstChainId Destination chain to re-sync to (must be a supported chain).
+    /// @param nullifier0 First nullifier hash (must already be spent locally).
+    /// @param nullifier1 Second nullifier hash (must already be spent locally).
+    function reSyncNullifiers(uint256 dstChainId, bytes32 nullifier0, bytes32 nullifier1) external restricted {
+        if (!supportedChains[dstChainId]) revert PoolErrors.InvalidDestination();
+        if (nullifier0 == bytes32(0) || nullifier1 == bytes32(0)) revert NullifierErrors.NullifierInvalid();
+        if (nullifier0 == nullifier1) revert NullifierErrors.NullifierDuplicate();
+        if (!usedNullifiersGlobal[nullifier0] || !usedNullifiersGlobal[nullifier1]) {
+            revert NullifierErrors.NullifierNotConsumed();
+        }
+
+        bytes memory message = abi.encodeWithSelector(this.syncNullifiers.selector, nullifier0, nullifier1);
+        bytes32 msgHash = IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
+            .sendMessage(dstChainId, address(this), message);
+        emit NullifierSyncSent(dstChainId, nullifier0, nullifier1, msgHash);
     }
 
     // =========================================================
@@ -920,7 +943,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         // Best-effort: the nullifiers are already spent locally (CEI), so a reverting
         // messenger (paused, mid-interop-upgrade, or an invalid destination) must not
         // brick the user's transact/bridgeOut. Failures are surfaced via
-        // NullifierSyncFailed for an operator/relayer to re-drive, decoupling
+        // NullifierSyncFailed and re-driven by an admin via reSyncNullifiers, decoupling
         // cross-chain sync reliability from user liveness.
         for (uint256 i = 0; i < supportedChainList.length; ++i) {
             uint256 dstChainId = supportedChainList[i];
