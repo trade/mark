@@ -82,6 +82,10 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @notice Maximum fee burn basis points (10000 = 100%).
     uint256 public constant MAX_FEE_BURN_BPS = 10_000;
 
+    /// @notice Enable cross-chain nullifier sync (set to false for size-constrained deployments).
+    /// @dev When false, all cross-chain sync logic is compiled out, reducing bytecode size.
+    bool public constant CROSS_CHAIN_SYNC_ENABLED = true;
+
     // =========================================================
     //  Immutable state
     // =========================================================
@@ -250,20 +254,15 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     event SupportedChainSet(uint256 indexed chainId, bool enabled);
 
     /// @notice Emitted when nullifiers are synced to a destination chain.
-    /// @dev `msgHash` is the L2ToL2CrossDomainMessenger message hash, the canonical handle
-    ///      operators use to track delivery of this sync on the destination chain.
     event NullifierSyncSent(
-        uint256 indexed dstChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1, bytes32 msgHash
+        uint256 indexed dstChainId, bytes32 nullifier0, bytes32 nullifier1, bytes32 msgHash
     );
 
     /// @notice Emitted when nullifiers are received from a source chain via cross-chain sync.
-    event NullifierSyncReceived(uint256 indexed srcChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1);
+    event NullifierSyncReceived(uint256 indexed srcChainId, bytes32 nullifier0, bytes32 nullifier1);
 
     /// @notice Emitted when a cross-chain nullifier sync message could not be dispatched.
-    /// @dev The nullifiers are already spent locally, so same-chain safety is preserved.
-    ///      This surfaces a failed cross-chain propagation (e.g. a paused or mid-upgrade
-    ///      messenger, or an invalid destination); an admin re-drives it via reSyncNullifiers.
-    event NullifierSyncFailed(uint256 indexed dstChainId, bytes32 indexed nullifier0, bytes32 indexed nullifier1);
+    event NullifierSyncFailed(uint256 indexed dstChainId, bytes32 nullifier0, bytes32 nullifier1);
 
     // =========================================================
     //  Constructor
@@ -915,9 +914,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         emit NoteSpent(nullifiers[0]);
         emit NoteSpent(nullifiers[1]);
 
-        // Sync nullifiers to supported chains via L2ToL2CrossDomainMessenger
-        // Check if messenger has code before calling (graceful in test environments)
-        if (_hasCode(L2_TO_L2_CROSS_DOMAIN_MESSENGER)) {
+        if (CROSS_CHAIN_SYNC_ENABLED && _hasCode(L2_TO_L2_CROSS_DOMAIN_MESSENGER)) {
             _sendNullifierSync(nullifiers);
         }
     }
@@ -925,36 +922,23 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @dev Private helper to check if an address has code.
     function _hasCode(address addr) private view returns (bool) {
         uint256 codeSize;
-        assembly {
-            codeSize := extcodesize(addr)
-        }
+        assembly { codeSize := extcodesize(addr) }
         return codeSize > 0;
     }
 
     /// @notice Sends nullifier sync messages to all supported chains.
     /// @dev Called after nullifiers are marked as spent locally.
-    ///      Uses L2ToL2CrossDomainMessenger.sendMessage to each supported chain.
     /// @param nullifiers The nullifiers that were spent.
     function _sendNullifierSync(bytes32[2] calldata nullifiers) internal {
-        // Encode the sync message: syncNullifiers(nullifier0, nullifier1)
+        if (!CROSS_CHAIN_SYNC_ENABLED) return;
+        
         bytes memory message = abi.encodeWithSelector(this.syncNullifiers.selector, nullifiers[0], nullifiers[1]);
-
-        // Send to each supported chain from supportedChainList.
-        // Best-effort: the nullifiers are already spent locally (CEI), so a reverting
-        // messenger (paused, mid-interop-upgrade, or an invalid destination) must not
-        // brick the user's transact/bridgeOut. Failures are surfaced via
-        // NullifierSyncFailed and re-driven by an admin via reSyncNullifiers, decoupling
-        // cross-chain sync reliability from user liveness.
         for (uint256 i = 0; i < supportedChainList.length; ++i) {
             uint256 dstChainId = supportedChainList[i];
             try IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
-                .sendMessage(dstChainId, address(this), message) returns (
-                bytes32 msgHash
-            ) {
+                .sendMessage(dstChainId, address(this), message) returns (bytes32 msgHash) {
                 emit NullifierSyncSent(dstChainId, nullifiers[0], nullifiers[1], msgHash);
-            } catch {
-                emit NullifierSyncFailed(dstChainId, nullifiers[0], nullifiers[1]);
-            }
+            } catch { emit NullifierSyncFailed(dstChainId, nullifiers[0], nullifiers[1]); }
         }
     }
 
@@ -968,9 +952,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             knownRoots[newRoot] = true;
             rootBlockNumbers[newRoot] = block.number;
             rootQueue[rootQueueTail] = newRoot;
-            unchecked {
-                rootQueueTail++;
-            }
+            unchecked { rootQueueTail++; }
             emit RootAdded(newRoot);
         }
         emit NoteCreated(commitment);
@@ -978,11 +960,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
 
     /// @notice Credits the relayer fee through the asset ledger.
     /// @dev Splits fee between burn and relayer credit based on feeBurnBps.
-    ///      The relayer portion is credited via ledger.credit (mints RYLA to relayer).
-    ///      The burn portion is NOT credited to any address -- it is simply not minted,
-    ///      effectively removing it from supply. We track _totalBurned for accounting.
-    ///      RYLACreditLedger.credit() always calls TOKEN.mint(), so we cannot use it
-    ///      for burns (mint to address(0) reverts in RYLA.mint).
+    ///      The burn portion is NOT credited to any address -- effectively removing it from supply.
+    ///      RYLACreditLedger.credit() always calls TOKEN.mint(), so we cannot use it for burns.
     /// @param fee The total fee amount.
     /// @param relayer The relayer address to receive the non-burned portion.
     function _creditRelayerFee(uint256 fee, address relayer) internal {
@@ -998,11 +977,6 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             ledger.credit(relayer, relayerAmount);
             emit FeePaid(relayer, relayerAmount);
         }
-        if (burnAmount > 0) {
-            // Do NOT call ledger.credit(address(0), ...) -- RYLA.mint reverts on zero address.
-            // The burn is implicit: the fee was collected but only relayerAmount is minted.
-            // The burnAmount is effectively removed from supply.
-            emit FeeBurned(burnAmount);
-        }
+        if (burnAmount > 0) emit FeeBurned(burnAmount);
     }
 }
