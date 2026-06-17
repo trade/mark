@@ -77,12 +77,26 @@ const CHAIN_ID = 11155420n; // OP Sepolia
 
 // Build a valid note
 function makeNote(amount, secret, blinding) {
-  const commitment = poseidonHash(DOMAIN_COMMITMENT, amount, secret, blinding);
-  return { amount, secret, blinding, commitment };
+    const commitment = poseidonHash(DOMAIN_COMMITMENT, amount, secret, blinding);
+    return { amount, secret, blinding, commitment };
 }
 
 function makeNullifier(note, chainId) {
-  return poseidonHash(DOMAIN_NULLIFIER_TAG, note.secret, note.commitment, chainId);
+    return poseidonHash(DOMAIN_NULLIFIER_TAG, note.secret, note.commitment, chainId);
+}
+
+function makeInSecret0Upper(secret) {
+    // Upper bits of secret when split at 160 bits
+    // secret = withdrawOwner + inSecret0Upper * 2^160
+    // withdrawOwner is the lower 160 bits, so inSecret0Upper = (secret - withdrawOwner) / 2^160
+    const RELAYER_MAX = 2n ** 160n;
+    return (secret / RELAYER_MAX);
+}
+
+// Helper to create a secret with specific lower 160 bits (the owner)
+function makeSecretWithOwner(owner, upperBits) {
+    const RELAYER_MAX = 2n ** 160n;
+    return owner + upperBits * RELAYER_MAX;
 }
 
 // NEW: Output commitment uses 5-input Poseidon with domain-separated dstChainId
@@ -156,6 +170,7 @@ const validBase = {
   withdrawOwner: 0n,
   withdrawRecipient: 0n,
   withdrawAmount: 0n,
+  inSecret0Upper: makeInSecret0Upper(in0.secret),
 };
 
 console.log("MARKPool circuit tests");
@@ -172,27 +187,50 @@ const withdrawOwner = BigInt("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
 const withdrawRecipient = BigInt("0x70997970C51812dc3A010C7d01b50e0d17dc79C8");
 const withdrawAmount = 200n;
 const feeWithWithdraw = 300n; // in0+in1=1000, out0+out1=500, fee=300, withdraw=200
+
+// Create a new input note with secret bound to withdrawOwner
+const in0Withdraw = makeNote(500n, makeSecretWithOwner(withdrawOwner, 0n), 222n);
+const in1Withdraw = makeNote(500n, 333n, 444n);
+const nullifier0Withdraw = makeNullifier(in0Withdraw, CHAIN_ID);
+const nullifier1Withdraw = makeNullifier(in1Withdraw, CHAIN_ID);
+const treeWithdraw = buildTwoLeafRoot(in0Withdraw.commitment, in1Withdraw.commitment, DEPTH);
+
 const validWithWithdraw = {
-  ...validBase,
+  inAmount: [in0Withdraw.amount, in1Withdraw.amount],
+  inSecret: [in0Withdraw.secret, in1Withdraw.secret],
+  inBlinding: [in0Withdraw.blinding, in1Withdraw.blinding],
+  inPathElements: [treeWithdraw.path0.elements, treeWithdraw.path1.elements],
+  inPathIndices: [treeWithdraw.path0.indices, treeWithdraw.path1.indices],
+  outAmount: [out0Amount, out1Amount],
+  outSecret: [out0Secret, out1Secret],
+  outBlinding: [out0Blinding, out1Blinding],
+  merkleRoot: treeWithdraw.root,
+  chainId: CHAIN_ID,
+  dstChainId: CHAIN_ID,
+  protocolEpoch: 0n,
   fee: feeWithWithdraw,
+  relayer: 0n,
+  nullifier: [nullifier0Withdraw, nullifier1Withdraw],
+  outCommitment: [outC0, outC1],
   withdrawOwner,
   withdrawRecipient,
   withdrawAmount,
+  inSecret0Upper: makeInSecret0Upper(in0Withdraw.secret),
 };
 await expectPass("valid transact with withdraw binding", validWithWithdraw);
 await expectFail("withdraw amount non-zero but owner zero", {
-  ...validWithWithdraw,
-  withdrawOwner: 0n,
+    ...validWithWithdraw,
+    withdrawOwner: 0n,
 });
 await expectFail("withdraw amount non-zero but recipient zero", {
-  ...validWithWithdraw,
-  withdrawRecipient: 0n,
+    ...validWithWithdraw,
+    withdrawRecipient: 0n,
 });
 await expectFail("withdraw amount zero but owner non-zero", {
-  ...validBase,
-  withdrawOwner,
-  withdrawRecipient: 0n,
-  withdrawAmount: 0n,
+    ...validBase,
+    withdrawOwner,
+    withdrawRecipient: 0n,
+    withdrawAmount: 0n,
 });
 
 // Nullifier constraints

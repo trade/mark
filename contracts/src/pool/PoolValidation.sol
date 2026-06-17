@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {PoolErrors} from "../pool/errors/PoolErrors.sol";
+import {PoolErrors} from "src/pool/errors/PoolErrors.sol";
+import {NullifierErrors} from "src/errors/NullifierErrors.sol";
+import {MerkleTree} from "src/crypto/MerkleTree.sol";
 
 /// @notice Shared validation helpers for Pool transaction and bridge flows.
 library PoolValidation {
@@ -42,12 +44,12 @@ library PoolValidation {
         mapping(bytes32 => bool) storage usedNullifiersGlobal
     ) internal view {
         // Check duplicate first so the error is precise.
-        if (nullifiers[0] == nullifiers[1]) revert PoolErrors.NullifierDuplicate();
+        if (nullifiers[0] == nullifiers[1]) revert NullifierErrors.NullifierDuplicate();
         for (uint256 i = 0; i < nullifiers.length; i++) {
             bytes32 nullifier = nullifiers[i];
-            if (nullifier == bytes32(0)) revert PoolErrors.NullifierInvalid();
+            if (nullifier == bytes32(0)) revert NullifierErrors.NullifierInvalid();
             if (uint256(nullifier) >= SNARK_SCALAR_FIELD) revert PoolErrors.InputExceedsCircuitRange();
-            if (usedNullifiersGlobal[nullifier]) revert PoolErrors.NullifierUsed();
+            if (usedNullifiersGlobal[nullifier]) revert NullifierErrors.NullifierUsed();
         }
     }
 
@@ -57,5 +59,43 @@ library PoolValidation {
             if (uint256(outCommitments[i]) >= SNARK_SCALAR_FIELD) revert PoolErrors.InputExceedsCircuitRange();
         }
         if (outCommitments[0] == outCommitments[1]) revert PoolErrors.CommitmentDuplicate();
+    }
+
+    /// @notice Validates fee and relayer parameters.
+    /// @param fee The fee amount.
+    /// @param relayer The relayer address.
+    function requireFeeOk(
+        uint256 fee,
+        address relayer,
+        uint256 minFee
+    ) internal pure {
+        if (minFee > 0 && fee < minFee) revert PoolErrors.FeeTooLow();
+        if (fee > 0 && relayer == address(0)) revert PoolErrors.InvalidRelayer();
+    }
+
+    /// @notice Validates that a Merkle root is known and not expired.
+    /// @dev Reverts with UnknownRoot or RootExpired.
+    /// @param root The root hash to validate.
+    /// @param knownRoots Mapping of known roots.
+    /// @param rootBlockNumbers Mapping of root block numbers.
+    /// @param maxRootAge Maximum age for root validity in seconds (0 = no expiry).
+    /// @param currentRoot Current active root (never expires).
+    function requireRootUsable(
+        bytes32 root,
+        mapping(bytes32 => bool) storage knownRoots,
+        mapping(bytes32 => uint256) storage rootBlockNumbers,
+        uint256 maxRootAge,
+        bytes32 currentRoot
+    ) internal view {
+        requireRootWithinCircuitRange(root);
+        if (!knownRoots[root]) revert PoolErrors.UnknownRoot();
+        if (maxRootAge != 0) {
+            if (root != currentRoot) {
+                uint256 blockNum = rootBlockNumbers[root];
+                // Convert maxRootAge (seconds) to blocks (OP Stack ~2s/block)
+                uint256 maxRootAgeBlocks = (maxRootAge * 43200) / 1 days;
+                if (blockNum != 0 && block.number > blockNum + maxRootAgeBlocks) revert PoolErrors.RootExpired();
+            }
+        }
     }
 }

@@ -113,8 +113,8 @@ contract MARKBridgeAdapter is ReentrancyGuard, AccessControlDefaultAdminRules, B
         uint256 dailyCap_ = dailyCap;
         if (dailyCap_ == 0) return;
 
-        // nosemgrep: mark-timestamp-in-withdraw - Daily cap epoch calculation, not ZK proof path
-        uint64 epoch = uint64(block.timestamp / 1 days);
+        // OP Stack L2: ~2s blocks → 1 day ≈ 43200 blocks (not timestamp)
+        uint64 epoch = uint64(block.number / 43200);
         if (epoch != dailyCapEpoch) {
             dailyCapEpoch = epoch;
             bridgedInDailyCapEpoch = 0;

@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {NullifierErrors} from "src/errors/NullifierErrors.sol";
+
 /// @notice Custom errors for WithdrawAdapter.
-abstract contract MARKWithdrawErrors {
+abstract contract MARKWithdrawErrors is NullifierErrors {
     error InvalidCreditOwner();
     error InvalidRecipient();
     error InvalidAmount();
@@ -12,10 +14,11 @@ abstract contract MARKWithdrawErrors {
     error IntentExceedsMaxValidity();
     error InsufficientLiquidity();
     error NonceMismatch();
-    error NullifierAlreadyClaimed();
-    error NullifierInvalid();
-    error NullifierDuplicate();
-    error NullifierNotConsumed();
+    // Nullifier (inherited from NullifierErrors)
+    // error NullifierAlreadyClaimed();
+    // error NullifierInvalid();
+    // error NullifierDuplicate();
+    // error NullifierNotConsumed();
     error WithdrawBindingMismatch();
     error InvalidOwnerSigner();
     error UnauthorizedIntentSigner();

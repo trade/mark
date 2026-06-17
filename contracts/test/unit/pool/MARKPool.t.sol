@@ -5,6 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
 import {MARKPool} from "../../../src/pool/MARKPool.sol";
 import {PoolErrors} from "../../../src/pool/errors/PoolErrors.sol";
+import {NullifierErrors} from "../../../src/errors/NullifierErrors.sol";
 import {IVerifier} from "../../../src/interfaces/IVerifier.sol";
 import {ICreditLedger} from "../../../src/interfaces/ICreditLedger.sol";
 
@@ -137,7 +138,7 @@ contract MARKPoolTest is Test {
 
         // New commitments, same nullifiers
         bytes32[2] memory commitments2 = [bytes32(uint256(5)), bytes32(uint256(6))];
-        vm.expectRevert(PoolErrors.NullifierUsed.selector);
+        vm.expectRevert(NullifierErrors.NullifierUsed.selector);
         pool.transact(root, nullifiers, commitments2, 0, address(0), A, B, C);
     }
 
@@ -171,7 +172,7 @@ contract MARKPoolTest is Test {
         bytes32[2] memory nullifiers = [N0, N0]; // duplicate
         bytes32[2] memory commitments = [C0, C1];
 
-        vm.expectRevert(PoolErrors.NullifierDuplicate.selector);
+        vm.expectRevert(NullifierErrors.NullifierDuplicate.selector);
         pool.transact(root, nullifiers, commitments, 0, address(0), A, B, C);
     }
 
@@ -212,8 +213,8 @@ contract MARKPoolTest is Test {
         pool.unpauseWithdrawals();
         vm.stopPrank();
 
-        // Warp past expiry
-        vm.warp(block.timestamp + 2 days);
+        // Advance blocks past expiry (43200 blocks/day * 2 days = 86400 blocks)
+        vm.roll(block.number + 86400);
 
         // initialRoot should now be expired (not the latest root)
         assertFalse(pool.isRootUsable(initialRoot));
@@ -226,7 +227,8 @@ contract MARKPoolTest is Test {
         pool.unpauseWithdrawals();
         vm.stopPrank();
 
-        vm.warp(block.timestamp + 2 days);
+        // Advance blocks past expiry (43200 blocks/day * 2 days = 86400 blocks)
+        vm.roll(block.number + 86400);
 
         // Latest root is always usable regardless of age
         assertTrue(pool.isRootUsable(pool.getMerkleRoot()));
@@ -284,7 +286,8 @@ contract MARKPoolTest is Test {
         bytes32[2] memory commitments = [C0, C1];
         pool.transact(initialRoot, nullifiers, commitments, 0, address(0), A, B, C);
 
-        vm.warp(block.timestamp + 2 days);
+        // Advance blocks past expiry (43200 blocks/day * 2 days = 86400 blocks)
+        vm.roll(block.number + 86400);
 
         uint256 pruned = pool.pruneRoots(10);
         assertGt(pruned, 0);
