@@ -8,6 +8,7 @@ import {RYLACreditLedger} from "../../../src/pool/RYLACreditLedger.sol";
 import {RYLA} from "../../../src/token/RYLA.sol";
 import {IVerifier} from "../../../src/interfaces/IVerifier.sol";
 import {PoolErrors} from "../../../src/pool/errors/PoolErrors.sol";
+import {NullifierErrors} from "../../../src/errors/NullifierErrors.sol";
 
 contract MockVerifier is IVerifier {
     function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
@@ -119,14 +120,14 @@ contract ReorgSimulationTest is Test {
 
         // Verify: same nullifier + new root (proving reorg didn't happen) → NullifierUsed
         bytes32[2] memory commitments2 = [bytes32(uint256(7)), bytes32(uint256(8))];
-        vm.expectRevert(PoolErrors.NullifierUsed.selector);
+        vm.expectRevert(NullifierErrors.NullifierUsed.selector);
         pool.transact(rootAfterTransact, nullifiers, commitments2, fee, relayer, A, B, C);
 
         // Verify: same nullifier + old root (proving reorg happened, root is stale) → UnknownRoot
         // Note: In practice, nullifier check happens FIRST, so it returns NullifierUsed
         // even for old roots. The actual reorg test would require state revert.
         // This test verifies the invariant logic: double-spend is blocked.
-        vm.expectRevert(PoolErrors.NullifierUsed.selector);
+        vm.expectRevert(NullifierErrors.NullifierUsed.selector);
         pool.transact(initialRoot, nullifiers, commitments2, fee, relayer, A, B, C);
     }
 

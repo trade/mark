@@ -18,6 +18,12 @@ template MARKPool(depth, nIn, nOut) {
     var DOMAIN_NULLIFIER = 12;
     var DOMAIN_DST_CHAIN = 13;
 
+    // 2^160 constant (RELAYER_MAX)
+    var RELAYER_MAX = 1;
+    for (var k = 0; k < 160; k++) {
+        RELAYER_MAX = RELAYER_MAX * 2;
+    }
+
     // Private inputs (notes to spend)
     signal input inAmount[nIn];
     signal input inSecret[nIn];
@@ -48,6 +54,13 @@ template MARKPool(depth, nIn, nOut) {
     signal input withdrawRecipient;
     signal input withdrawAmount;
 
+    // Additional private input for withdraw owner binding
+    // inSecret0Upper is the upper bits of inSecret[0] when split at 160 bits
+    // Constraint: inSecret[0] = withdrawOwner + inSecret0Upper * 2^160
+    // This constraint is only enforced when withdrawAmount > 0
+    signal input inSecret0Upper;
+
+    // Intermediate signals
     signal computedNullifier[nIn];
     signal computedOutCommitment[nOut];
 
@@ -91,6 +104,37 @@ template MARKPool(depth, nIn, nOut) {
             pairIndex++;
         }
     }
+
+    // Withdraw owner binding: withdrawOwner must equal lower 160 bits of inSecret[0]
+    // BUT only enforced when withdrawAmount > 0
+    // Implemented as: inSecret[0] = withdrawOwner + inSecret0Upper * 2^160
+    // where withdrawOwner < 2^160 (enforced by withdrawOwnerBits below)
+    // Use conditional: if withdrawAmount != 0 then enforce binding
+    component withdrawAmountIsZero = IsZero();
+    withdrawAmountIsZero.in <== withdrawAmount;
+    // withdrawAmountNonZero = 1 - withdrawAmountIsZero.out
+    signal withdrawAmountNonZero;
+    withdrawAmountNonZero <== 1 - withdrawAmountIsZero.out;
+
+    // The binding constraint: inSecret[0] - withdrawOwner - inSecret0Upper * RELAYER_MAX = 0
+    // We enforce this only when withdrawAmountNonZero == 1
+    // i.e., (inSecret[0] - withdrawOwner - inSecret0Upper * RELAYER_MAX) * withdrawAmountNonZero = 0
+    signal bindingDiff;
+    bindingDiff <== inSecret[0] - withdrawOwner - inSecret0Upper * RELAYER_MAX;
+    bindingDiff * withdrawAmountNonZero === 0;
+
+    // SECURITY: range-constrain inSecret0Upper so the decomposition above is a real
+    // integer split, not merely a field-arithmetic identity mod p. Without this,
+    // a prover could set inSecret0Upper = (inSecret[0] - withdrawOwner) * (RELAYER_MAX)^{-1} mod p
+    // for ANY withdrawOwner, making the binding vacuous. withdrawOwner is already
+    // constrained to 160 bits (withdrawOwnerBits below), so bounding inSecret0Upper to
+    // 93 bits guarantees withdrawOwner + inSecret0Upper * 2^160 < 2^253 < p (BN254 scalar
+    // field). With no modular wraparound the equation forces withdrawOwner to be exactly
+    // the lower 160 bits of inSecret[0]. 93 is the largest width that stays below p; using
+    // 94 would allow a sum up to 2^254 > p and reopen the attack. Note secrets must
+    // therefore be generated with inSecret[0] < 2^253 (upper part < 2^93).
+    component inSecret0UpperBits = Num2Bits(93);
+    inSecret0UpperBits.in <== inSecret0Upper;
 
     // 2) Merkle inclusion for each input
     signal cur[nIn][depth + 1];
@@ -169,16 +213,9 @@ template MARKPool(depth, nIn, nOut) {
     component feeBits = Num2Bits(64);
     feeBits.in <== fee;
 
-    // FIX: Constrain relayer to fit in 160 bits (addresses are 160 bits)
+    // Constrain relayer to fit in 160 bits (addresses are 160 bits)
     // Contract encodes as uint256(uint160(relayer)), so relayer must be < 2^160
-    // Use LessThan to check: relayer < 2^160
-    // RELAYER_MAX = 2^160 is a 161-bit number, so we need LessThan(161)
     component relayerUpperBound = LessThan(161);
-    // 2^160 as constant
-    var RELAYER_MAX = 1;
-    for (var k = 0; k < 160; k++) {
-        RELAYER_MAX = RELAYER_MAX * 2;
-    }
     relayerUpperBound.in[0] <== relayer;
     relayerUpperBound.in[1] <== RELAYER_MAX;
     relayerUpperBound.out === 1;
@@ -214,8 +251,6 @@ template MARKPool(depth, nIn, nOut) {
 
     // Withdraw binding: if withdrawAmount is zero, owner and recipient must be zero.
     // If withdrawAmount is non-zero, owner and recipient must both be non-zero.
-    component withdrawAmountIsZero = IsZero();
-    withdrawAmountIsZero.in <== withdrawAmount;
     withdrawOwner * withdrawAmountIsZero.out === 0;
     withdrawRecipient * withdrawAmountIsZero.out === 0;
 
@@ -228,7 +263,7 @@ template MARKPool(depth, nIn, nOut) {
     withdrawRecipientIsZero.out * (1 - withdrawAmountIsZero.out) === 0;
 }
 
-// Public signal order (13 signals):
+// Public signal order (13 signals - UNCHANGED):
 // [0]  merkleRoot
 // [1]  chainId
 // [2]  dstChainId

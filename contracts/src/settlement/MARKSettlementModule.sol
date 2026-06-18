@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {
-    AccessControlDefaultAdminRules
-} from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
+import {AccessControlled} from "../access/AccessControlled.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {IRYLA} from "../interfaces/IRYLA.sol";
@@ -14,7 +12,7 @@ import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 /// @title MARKSettlementModule
 /// @notice Boundary module for integrating external UTXO/zk accounting with RYLA mint/burn.
 /// @dev Holds RYLA minter and burner roles. Replay protection is enforced via `intentId`.
-contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules, SettlementErrors {
+contract MARKSettlementModule is ReentrancyGuard, AccessControlled, SettlementErrors {
     using SafeERC20 for IRYLA;
     event OperatorUpdated(address indexed operator, bool enabled);
     event VerifierUpdated(address indexed verifier, bool validationEnabled);
@@ -22,7 +20,6 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
     event MintSettled(bytes32 indexed intentId, address indexed operator, address indexed recipient, uint256 amount);
     event BurnSettled(bytes32 indexed intentId, address indexed operator, address indexed account, uint256 amount);
 
-    uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
     IRYLA public immutable TOKEN;
@@ -35,10 +32,7 @@ contract MARKSettlementModule is ReentrancyGuard, AccessControlDefaultAdminRules
     bool public proofValidationEnabled;
     bool public productionMode;
 
-    constructor(address initialAdmin, address tokenAddress)
-        AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin)
-    {
-        if (initialAdmin == address(0)) revert ZeroAddress();
+    constructor(address initialAdmin, address tokenAddress) AccessControlled(initialAdmin) {
         if (tokenAddress == address(0)) revert ZeroAddress();
         TOKEN = IRYLA(tokenAddress);
     }

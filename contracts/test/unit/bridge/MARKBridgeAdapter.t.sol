@@ -101,7 +101,8 @@ contract MARKBridgeAdapterTest is Test {
         vm.expectRevert(BridgeErrors.DailyCapExceeded.selector);
         adapter.bridgeTo(recipient, 70 ether, DST_CHAIN_ID);
 
-        vm.warp(block.timestamp + 1 days + 1);
+        // Advance block number by 1 day worth of blocks (43200 @ 2s/block)
+        vm.roll(block.number + 43200 + 1);
 
         vm.mockCall(SUPERCHAIN_BRIDGE, callData60, abi.encode(keccak256("h60")));
         vm.prank(operator);
@@ -182,7 +183,8 @@ contract MARKBridgeAdapterTest is Test {
             assertEq(adapter.bridgedInDailyCapEpoch(), first + second);
         }
 
-        vm.warp(block.timestamp + 1 days + 1);
+        // Advance block number by 1 day worth of blocks (43200 @ 2s/block)
+        vm.roll(block.number + 43200 + 1);
 
         bytes memory callData3 = abi.encodeWithSelector(
             ISuperchainTokenBridge.sendERC20.selector, address(token), recipient, third, DST_CHAIN_ID

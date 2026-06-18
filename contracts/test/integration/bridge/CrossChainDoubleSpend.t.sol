@@ -3,11 +3,14 @@ pragma solidity ^0.8.25;
 
 import {Test} from "forge-std/Test.sol";
 import {AccessManager} from "@openzeppelin/contracts/access/manager/AccessManager.sol";
+import {IAccessManaged} from "@openzeppelin/contracts/access/manager/IAccessManaged.sol";
 import {MARKPool} from "../../../src/pool/MARKPool.sol";
 import {RYLACreditLedger} from "../../../src/pool/RYLACreditLedger.sol";
 import {RYLA} from "../../../src/token/RYLA.sol";
 import {IVerifier} from "../../../src/interfaces/IVerifier.sol";
 import {PoolErrors} from "../../../src/pool/errors/PoolErrors.sol";
+import {NullifierErrors} from "../../../src/errors/NullifierErrors.sol";
+import {IL2ToL2CrossDomainMessenger} from "@interop-lib/interfaces/IL2ToL2CrossDomainMessenger.sol";
 
 contract MockVerifier is IVerifier {
     function verifyProof(uint256[2] calldata, uint256[2][2] calldata, uint256[2] calldata, uint256[13] calldata)
@@ -63,12 +66,14 @@ contract CrossChainDoubleSpendTest is Test {
         poolA = new MARKPool(address(accessManagerA), address(verifier), poseidonA);
         ledgerA = new RYLACreditLedger(address(tokenA), address(poolA));
 
-        bytes4[] memory selectorsA = new bytes4[](5);
+        bytes4[] memory selectorsA = new bytes4[](7);
         selectorsA[0] = poolA.setAssetLedger.selector;
         selectorsA[1] = poolA.bridgeIn.selector;
         selectorsA[2] = poolA.pauseWithdrawals.selector;
         selectorsA[3] = poolA.unpauseWithdrawals.selector;
         selectorsA[4] = poolA.setProtocolEpoch.selector;
+        selectorsA[5] = poolA.setSupportedChain.selector;
+        selectorsA[6] = poolA.reSyncNullifiers.selector;
         accessManagerA.setTargetFunctionRole(address(poolA), selectorsA, 1);
         accessManagerA.grantRole(1, admin, 0);
         vm.warp(block.timestamp + 1);
@@ -86,12 +91,14 @@ contract CrossChainDoubleSpendTest is Test {
         poolB = new MARKPool(address(accessManagerB), address(verifier), poseidonB);
         ledgerB = new RYLACreditLedger(address(tokenB), address(poolB));
 
-        bytes4[] memory selectorsB = new bytes4[](5);
+        bytes4[] memory selectorsB = new bytes4[](7);
         selectorsB[0] = poolB.setAssetLedger.selector;
         selectorsB[1] = poolB.bridgeIn.selector;
         selectorsB[2] = poolB.pauseWithdrawals.selector;
         selectorsB[3] = poolB.unpauseWithdrawals.selector;
         selectorsB[4] = poolB.setProtocolEpoch.selector;
+        selectorsB[5] = poolB.setSupportedChain.selector;
+        selectorsB[6] = poolB.reSyncNullifiers.selector;
         accessManagerB.setTargetFunctionRole(address(poolB), selectorsB, 1);
         accessManagerB.grantRole(1, admin, 0);
         vm.warp(block.timestamp + 1);
@@ -100,13 +107,41 @@ contract CrossChainDoubleSpendTest is Test {
         tokenB.setMinter(address(ledgerB), true);
         tokenB.setBurner(address(ledgerB), true);
         vm.stopPrank();
+
+        // Enable cross-chain nullifier sync between pools
+        vm.prank(admin);
+        poolA.setSupportedChain(CHAIN_B_ID, true);
+
+        vm.prank(admin);
+        poolB.setSupportedChain(CHAIN_A_ID, true);
     }
 
-    /// @notice Spend nullifier on chain A, then try to spend same nullifier on chain B via transact.
-    /// @dev The nullifier is marked as spent on chain A's pool. Chain B's pool is independent
-    ///      in this test, but the invariant requires that if the same nullifier is used on
-    ///      chain B, it should fail. This simulates the cross-chain case where bridgeIn
-    ///      brings commitments but nullifiers remain per-pool.
+    /// @dev Mocks the L2ToL2CrossDomainMessenger context so a pranked call to
+    ///      pool.syncNullifiers(...) satisfies CrossDomainMessageLib's caller and
+    ///      cross-domain-sender checks, simulating a relayed sync message from `srcChainId`.
+    function _mockMessengerContext(MARKPool pool, uint256 srcChainId) internal {
+        address messenger = pool.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
+        vm.mockCall(
+            messenger,
+            abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.crossDomainMessageSender.selector),
+            abi.encode(address(pool))
+        );
+        vm.mockCall(
+            messenger,
+            abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.crossDomainMessageSource.selector),
+            abi.encode(srcChainId)
+        );
+    }
+
+    /// @dev Simulates a relayed cross-chain nullifier sync from `srcChainId` by calling the
+    ///      production syncNullifiers entry point as the cross-domain messenger.
+    function _relaySyncNullifiers(MARKPool pool, uint256 srcChainId, bytes32 n0, bytes32 n1) internal {
+        _mockMessengerContext(pool, srcChainId);
+        vm.prank(pool.L2_TO_L2_CROSS_DOMAIN_MESSENGER());
+        pool.syncNullifiers(n0, n1);
+    }
+
+    /// @notice Spend nullifier on chain A, then try to spend same nullifier on chain A again.
     function testCrossChainDoubleSpendRevertsOnSamePool() public {
         bytes32 rootA = poolA.getMerkleRoot();
         bytes32[2] memory nullifiers = [N0, N1];
@@ -122,56 +157,38 @@ contract CrossChainDoubleSpendTest is Test {
         // Attempt to spend SAME nullifiers on chain A again → should fail
         bytes32 newRootA = poolA.getMerkleRoot();
         bytes32[2] memory commitments2 = [bytes32(uint256(5)), bytes32(uint256(6))];
-        vm.expectRevert(PoolErrors.NullifierUsed.selector);
+        vm.expectRevert(NullifierErrors.NullifierUsed.selector);
         poolA.transact(newRootA, nullifiers, commitments2, 0, address(0), A, B, C);
     }
 
-    /// @notice Cross-chain double-spend protection via bridgeIn.
-    /// @dev Simulated: spend on chain A, bridge output commitment to chain B,
+    /// @notice Cross-chain double-spend protection via L2ToL2CrossDomainMessenger sync.
+    /// @dev Simulated: spend on chain A, sync nullifiers to chain B via cross-chain message,
     ///      then try to spend same nullifier on chain B.
-    ///
-    ///      This test uses mockVerifier (always returns true) so it tests the
-    ///      STATE logic, not the ZK circuit. The circuit itself enforces nullifier
-    ///      uniqueness via nullifierNonZero and sameNullifier checks.
-    function testCrossChainDoubleSpendViaBridgeIn() public {
-        // 1. Spend on chain A (source chain) - creates output commitment that
-        //    will be bridged to chain B
+    function testCrossChainDoubleSpendViaNullifierSync() public {
+        // 1. Spend on chain A (source chain)
         bytes32 rootA = poolA.getMerkleRoot();
         bytes32[2] memory nullifiers = [N0, N1];
         bytes32[2] memory commitments = [C0, C1];
 
         poolA.transact(rootA, nullifiers, commitments, 0, address(0), A, B, C);
 
-        // 2. Get the new root and output commitments that would be bridged
-        // Note: In real bridge, commitments are the OUTPUT commitments from transact
-        // Here we use the same C0, C1 that were output from the first transact
+        // 2. Verify nullifiers are spent on chain A
+        assertTrue(poolA.isNullifierUsedGlobal(N0));
+        assertTrue(poolA.isNullifierUsedGlobal(N1));
 
-        // 3. Bridge the output commitments to chain B (destination chain)
-        //    bridgeIn is restricted, so admin calls it
-        vm.prank(admin);
-        // bridgeIn adds these commitments to chain B's tree
-        // messageId must be unique per bridge message
-        bytes32 messageId = bytes32(uint256(12345));
-        poolB.bridgeIn(CHAIN_A_ID, messageId, commitments);
+        // 3. Simulate cross-chain nullifier sync: Chain B receives a relayed sync from Chain A
+        //    through the production messenger-guarded syncNullifiers entry point.
+        _relaySyncNullifiers(poolB, CHAIN_A_ID, N0, N1);
 
-        // 4. Verify commitments are now in chain B's tree
-        bytes32 rootB = poolB.getMerkleRoot();
-        assertTrue(poolB.knownRoots(rootB));
-        assertGt(poolB.rootQueueTail(), 0);
+        // 4. Verify nullifiers are now marked as spent on chain B
+        assertTrue(poolB.isNullifierUsedGlobal(N0));
+        assertTrue(poolB.isNullifierUsedGlobal(N1));
 
         // 5. TRY TO SPEND THE SAME NULLIFIERS on chain B → MUST FAIL
-        //    The nullifiers N0, N1 were already consumed on chain A.
-        //    If chain B's pool independent, this would pass - but the protocol
-        ///     invariant requires cross-chain nullifier uniqueness.
-        //    Since the pools are separate in this test, we verify the invariant
-        //    at the PROTOCOL level (not implementation):
-        //    - In real deployment, a single global nullifier registry would be used
-        //    - Here we verify the test EXPECTS the failure to understand the security property
-
-        // FOR NOW: This documents the expected invariant.
-        // In production, a shared nullifier registry or cross-chain message
-        // would enforce this. The circuit itself doesn't prevent this across
-        // independent pools - it's a deployment/integration concern.
+        bytes32 rootB = poolB.getMerkleRoot();
+        bytes32[2] memory commitmentsB = [bytes32(uint256(5)), bytes32(uint256(6))];
+        vm.expectRevert(NullifierErrors.NullifierUsed.selector);
+        poolB.transact(rootB, nullifiers, commitmentsB, 0, address(0), A, B, C);
     }
 
     /// @notice BridgeIn replay protection - same messageId cannot be processed twice.
@@ -214,32 +231,102 @@ contract CrossChainDoubleSpendTest is Test {
         poolB.bridgeIn(CHAIN_A_ID, bytes32(uint256(1)), commitments);
     }
 
-    /// @notice Cross-chain scenario: verify protocolEpoch is incremented correctly.
-    /// @dev In production, protocolEpoch would be synchronized across chains
-    ///      to prevent proof replay across different circuit versions.
-    ///      Skipped due to AccessManager timing - see setUp role grants.
-    // function testProtocolEpochSync() public {
-    //     // Initially both pools at epoch 0
-    //     assertEq(poolA.protocolEpoch(), 0);
-    //     assertEq(poolB.protocolEpoch(), 0);
+    /// @notice SyncNullifiers rejects unsupported chains.
+    function testSyncNullifiersRevertsOnUnsupportedChain() public {
+        bytes32[2] memory nullifiers = [bytes32(uint256(100)), bytes32(uint256(101))];
 
-    //     // Admin increments epoch on chain A
-    //     // setProtocolEpoch requires withdrawalsPaused
-    //     vm.prank(admin);
-    //     poolA.pauseWithdrawals();
-    //     poolA.setProtocolEpoch(1);
-    //     poolA.unpauseWithdrawals();
+        // Chain C (902) is not supported by poolB
+        _mockMessengerContext(poolB, 902);
+        address messenger = poolB.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
+        vm.expectRevert(PoolErrors.InvalidSource.selector);
+        vm.prank(messenger);
+        poolB.syncNullifiers(nullifiers[0], nullifiers[1]);
+    }
 
-    //     // Chain A at epoch 1, chain B still at 0 until admin syncs
-    //     assertEq(poolA.protocolEpoch(), 1);
-    //     assertEq(poolB.protocolEpoch(), 0);
+    /// @notice SyncNullifiers only marks nullifiers once (idempotent).
+    function testSyncNullifiersIsIdempotent() public {
+        // Already enabled in setUp: poolB.setSupportedChain(CHAIN_A_ID, true)
 
-    //     // Sync chain B
-    //     vm.prank(admin);
-    //     poolB.pauseWithdrawals();
-    //     poolB.setProtocolEpoch(1);
-    //     poolB.unpauseWithdrawals();
+        bytes32 n0 = bytes32(uint256(200));
+        bytes32 n1 = bytes32(uint256(201));
 
-    //     assertEq(poolB.protocolEpoch(), 1);
-    // }
+        // First sync
+        _relaySyncNullifiers(poolB, CHAIN_A_ID, n0, n1);
+        assertTrue(poolB.isNullifierUsedGlobal(n0));
+        assertTrue(poolB.isNullifierUsedGlobal(n1));
+
+        // Second sync with same nullifiers - should not revert, just be idempotent
+        _relaySyncNullifiers(poolB, CHAIN_A_ID, n0, n1);
+        assertTrue(poolB.isNullifierUsedGlobal(n0));
+        assertTrue(poolB.isNullifierUsedGlobal(n1));
+    }
+
+    /// @notice A reverting cross-chain messenger must not brick transact. The spend still
+    ///         succeeds locally and a NullifierSyncFailed event is emitted for the chain
+    ///         whose sync could not be dispatched.
+    function testTransactSucceedsWhenMessengerReverts() public {
+        // Give the messenger predeploy code so _sendNullifierSync runs (the _hasCode
+        // guard passes), then force its sendMessage to revert at runtime.
+        address messenger = poolA.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
+        vm.etch(messenger, hex"00");
+        vm.mockCallRevert(
+            messenger, abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.sendMessage.selector), "messenger down"
+        );
+
+        bytes32 rootA = poolA.getMerkleRoot();
+        bytes32[2] memory nullifiers = [N0, N1];
+        bytes32[2] memory commitments = [C0, C1];
+
+        // CHAIN_B_ID is supported on poolA (configured in setUp), so the send loop runs
+        // and the failed dispatch surfaces as NullifierSyncFailed instead of reverting.
+        vm.expectEmit(true, true, true, false, address(poolA));
+        emit MARKPool.NullifierSyncFailed(CHAIN_B_ID, N0, N1);
+        poolA.transact(rootA, nullifiers, commitments, 0, address(0), A, B, C);
+
+        // The spend committed locally despite the messenger revert.
+        assertTrue(poolA.isNullifierUsedGlobal(N0));
+        assertTrue(poolA.isNullifierUsedGlobal(N1));
+    }
+
+    /// @notice Admin can re-drive a failed cross-chain sync for an already-spent pair.
+    function testReSyncNullifiersReDrivesSpentPair() public {
+        // Spend on chain A so the nullifiers are marked locally.
+        bytes32 rootA = poolA.getMerkleRoot();
+        bytes32[2] memory nullifiers = [N0, N1];
+        bytes32[2] memory commitments = [C0, C1];
+        poolA.transact(rootA, nullifiers, commitments, 0, address(0), A, B, C);
+
+        // Mock the messenger so the re-driven sendMessage returns a message hash.
+        address messenger = poolA.L2_TO_L2_CROSS_DOMAIN_MESSENGER();
+        bytes32 msgHash = bytes32(uint256(0xABC));
+        vm.mockCall(
+            messenger, abi.encodeWithSelector(IL2ToL2CrossDomainMessenger.sendMessage.selector), abi.encode(msgHash)
+        );
+
+        vm.expectEmit(true, true, true, true, address(poolA));
+        emit MARKPool.NullifierSyncSent(CHAIN_B_ID, N0, N1, msgHash);
+        vm.prank(admin);
+        poolA.reSyncNullifiers(CHAIN_B_ID, N0, N1);
+    }
+
+    /// @notice reSyncNullifiers refuses to propagate nullifiers that were never spent
+    ///         locally, so an admin cannot freeze unspent notes on other chains.
+    function testReSyncNullifiersRevertsForUnspentNullifiers() public {
+        vm.prank(admin);
+        vm.expectRevert(NullifierErrors.NullifierNotConsumed.selector);
+        poolA.reSyncNullifiers(CHAIN_B_ID, bytes32(uint256(0xDEAD)), bytes32(uint256(0xBEEF)));
+    }
+
+    /// @notice reSyncNullifiers rejects an unsupported destination chain.
+    function testReSyncNullifiersRevertsForUnsupportedChain() public {
+        vm.prank(admin);
+        vm.expectRevert(PoolErrors.InvalidDestination.selector);
+        poolA.reSyncNullifiers(902, N0, N1);
+    }
+
+    /// @notice reSyncNullifiers is admin-restricted.
+    function testReSyncNullifiersRevertsForNonAdmin() public {
+        vm.expectRevert(abi.encodeWithSelector(IAccessManaged.AccessManagedUnauthorized.selector, address(this)));
+        poolA.reSyncNullifiers(CHAIN_B_ID, N0, N1);
+    }
 }

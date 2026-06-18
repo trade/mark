@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {
-    AccessControlDefaultAdminRules
-} from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
+import {AccessControlled} from "../../access/AccessControlled.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {IUTXOSettlementVerifier} from "../interfaces/IUTXOSettlementVerifier.sol";
@@ -21,7 +19,7 @@ import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
 ///      external state without exposing that state on-chain.
 ///      EIP-5267: `eip712Domain()` is inherited from OZ EIP712 and available for wallets
 ///      to discover domain parameters without reading source code.
-contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessControlDefaultAdminRules {
+contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessControlled {
     using ECDSA for bytes32;
 
     /// @dev EIP-712 type hash for the SettlementAttestation struct.
@@ -29,7 +27,6 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
         "SettlementAttestation(bytes32 intentId,address verifier,address settlementModule,address account,uint256 amount,bool isMint,bytes32 contextHash,uint256 deadline)"
     );
 
-    uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
     bytes32 public constant ATTESTER_ROLE = keccak256("ATTESTER_ROLE");
 
     event AttesterUpdated(address indexed attester, bool enabled);
@@ -42,12 +39,7 @@ contract AttestedSettlementVerifier is IUTXOSettlementVerifier, EIP712, AccessCo
         bytes32 s;
     }
 
-    constructor(address initialAdmin)
-        EIP712("AttestedSettlementVerifier", "1")
-        AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin)
-    {
-        if (initialAdmin == address(0)) revert ZeroAddress();
-    }
+    constructor(address initialAdmin) EIP712("AttestedSettlementVerifier", "1") AccessControlled(initialAdmin) {}
 
     function setAttester(address attester, bool enabled) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (attester == address(0)) revert ZeroAddress();

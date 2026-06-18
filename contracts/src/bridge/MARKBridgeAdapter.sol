@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {
-    AccessControlDefaultAdminRules
-} from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
+import {AccessControlled} from "../access/AccessControlled.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -18,7 +16,7 @@ import {BridgeErrors} from "../errors/BridgeErrors.sol";
 ///      No pause mechanism is provided by design: emergency containment is achieved by
 ///      revoking all OPERATOR_ROLE holders (see RUNBOOK.md section 5), which stops all
 ///      bridge operations without introducing pause-admin key risk.
-contract MARKBridgeAdapter is ReentrancyGuard, AccessControlDefaultAdminRules, BridgeErrors {
+contract MARKBridgeAdapter is ReentrancyGuard, AccessControlled, BridgeErrors {
     using SafeERC20 for IERC20;
 
     event OperatorUpdated(address indexed operator, bool enabled);
@@ -32,7 +30,6 @@ contract MARKBridgeAdapter is ReentrancyGuard, AccessControlDefaultAdminRules, B
         bytes32 messageHash
     );
 
-    uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
 
     IERC20 public immutable TOKEN;
@@ -46,10 +43,7 @@ contract MARKBridgeAdapter is ReentrancyGuard, AccessControlDefaultAdminRules, B
     uint64 public dailyCapEpoch;
     uint256 public bridgedInDailyCapEpoch;
 
-    constructor(address initialAdmin, address tokenAddress)
-        AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin)
-    {
-        if (initialAdmin == address(0)) revert ZeroAddress();
+    constructor(address initialAdmin, address tokenAddress) AccessControlled(initialAdmin) {
         if (tokenAddress == address(0)) revert ZeroAddress();
         TOKEN = IERC20(tokenAddress);
     }
@@ -113,8 +107,8 @@ contract MARKBridgeAdapter is ReentrancyGuard, AccessControlDefaultAdminRules, B
         uint256 dailyCap_ = dailyCap;
         if (dailyCap_ == 0) return;
 
-        // nosemgrep: mark-timestamp-in-withdraw - Daily cap epoch calculation, not ZK proof path
-        uint64 epoch = uint64(block.timestamp / 1 days);
+        // OP Stack L2: ~2s blocks → 1 day ≈ 43200 blocks (not timestamp)
+        uint64 epoch = uint64(block.number / 43200);
         if (epoch != dailyCapEpoch) {
             dailyCapEpoch = epoch;
             bridgedInDailyCapEpoch = 0;

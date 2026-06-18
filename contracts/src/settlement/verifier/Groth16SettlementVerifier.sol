@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {
-    AccessControlDefaultAdminRules
-} from "@openzeppelin/contracts/access/extensions/AccessControlDefaultAdminRules.sol";
+import {AccessControlled} from "../../access/AccessControlled.sol";
 import {IUTXOSettlementVerifier} from "../interfaces/IUTXOSettlementVerifier.sol";
 import {IGroth16Verifier} from "../interfaces/IGroth16Verifier.sol";
 import {ZeroAddress} from "@interop-lib/libraries/errors/CommonErrors.sol";
@@ -41,8 +39,7 @@ error SettlementModuleNotAContract();
 ///        - By default, signal[7] must be zero for backward compatibility.
 ///        - After upgrading proof generation, admins can enable direction enforcement so
 ///          signal[7] must equal `isMint ? 1 : 0`.
-contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefaultAdminRules {
-    uint48 public constant DEFAULT_ADMIN_DELAY = 1 days;
+contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlled {
     uint256 public constant DIRECTION_FALSE = 0;
     uint256 public constant DIRECTION_TRUE = 1;
 
@@ -54,9 +51,7 @@ contract Groth16SettlementVerifier is IUTXOSettlementVerifier, AccessControlDefa
     address public settlementModule;
     bool public directionEnforcementEnabled;
 
-    constructor(address initialAdmin) AccessControlDefaultAdminRules(DEFAULT_ADMIN_DELAY, initialAdmin) {
-        if (initialAdmin == address(0)) revert ZeroAddress();
-    }
+    constructor(address initialAdmin) AccessControlled(initialAdmin) {}
 
     function setVerifierContract(address verifierContract_) external onlyRole(DEFAULT_ADMIN_ROLE) {
         if (verifierContract_ == address(0)) revert ZeroAddress();

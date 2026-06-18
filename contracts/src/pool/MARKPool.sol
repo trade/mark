@@ -12,6 +12,10 @@ import {PoolFeePolicy} from "./PoolFeePolicy.sol";
 import {PoolPublicInputs} from "./PoolPublicInputs.sol";
 import {PoolValidation} from "./PoolValidation.sol";
 import {PoolErrors} from "./errors/PoolErrors.sol";
+import {NullifierErrors} from "src/errors/NullifierErrors.sol";
+import {IL2ToL2CrossDomainMessenger} from "@interop-lib/interfaces/IL2ToL2CrossDomainMessenger.sol";
+import {PredeployAddresses} from "@interop-lib/libraries/PredeployAddresses.sol";
+import {CrossDomainMessageLib} from "@interop-lib/libraries/CrossDomainMessageLib.sol";
 
 /// @title MARKPool
 /// @notice ZK UTXO pool for private RYLA transfers with Merkle tree membership proofs.
@@ -67,8 +71,20 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @notice Maximum allowed age for a Merkle root before it expires.
     uint256 public constant MAX_ALLOWED_ROOT_AGE = 30 days;
 
+    /// @notice Approximate number of L2 blocks per day on OP Stack (2s block time).
+    /// @dev 86400 seconds / 2 seconds per block = 43200 blocks. Single-sourced from
+    ///      PoolValidation so the pool and its validation library can never diverge.
+    uint256 public constant BLOCKS_PER_DAY = PoolValidation.BLOCKS_PER_DAY;
+
+    /// @notice L2ToL2CrossDomainMessenger predeploy address for cross-chain nullifier sync.
+    address public constant L2_TO_L2_CROSS_DOMAIN_MESSENGER = PredeployAddresses.L2_TO_L2_CROSS_DOMAIN_MESSENGER;
+
     /// @notice Maximum fee burn basis points (10000 = 100%).
     uint256 public constant MAX_FEE_BURN_BPS = 10_000;
+
+    /// @notice Enable cross-chain nullifier sync (set to false for size-constrained deployments).
+    /// @dev When false, all cross-chain sync logic is compiled out, reducing bytecode size.
+    bool public constant CROSS_CHAIN_SYNC_ENABLED = true;
 
     // =========================================================
     //  Immutable state
@@ -125,8 +141,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @notice Whether a root hash is known (exists in the tree history).
     mapping(bytes32 => bool) public knownRoots;
 
-    /// @notice Timestamp when each root was added.
-    mapping(bytes32 => uint256) public rootTimestamps;
+    /// @notice Block number when each root was added.
+    mapping(bytes32 => uint256) public rootBlockNumbers;
 
     // =========================================================
     //  Nullifier & binding state
@@ -152,8 +168,16 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     mapping(uint8 => bool) public proofTypeEnabled;
 
     // =========================================================
-    //  Bridge state
+    //  Cross-chain nullifier sync state
     // =========================================================
+
+    /// @notice Chains that this pool syncs nullifiers with.
+    /// @dev Set by admin via setSupportedChain(). True = sync enabled.
+    mapping(uint256 => bool) public supportedChains;
+
+    /// @notice List of supported chain IDs for iteration.
+    /// @dev Maintained by setSupportedChain().
+    uint256[] private supportedChainList;
 
     /// @notice Processed bridge message IDs to prevent replay.
     /// @dev Keyed by message hash sourced from origin chain.
@@ -226,6 +250,18 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
     /// @notice Emitted when a bridge-in operation completes.
     event BridgeIn(uint256 indexed srcChainId, bytes32 indexed messageId, bytes32[2] commitments);
 
+    /// @notice Emitted when a supported chain is added or removed for nullifier sync.
+    event SupportedChainSet(uint256 indexed chainId, bool enabled);
+
+    /// @notice Emitted when nullifiers are synced to a destination chain.
+    event NullifierSyncSent(uint256 indexed dstChainId, bytes32 nullifier0, bytes32 nullifier1, bytes32 msgHash);
+
+    /// @notice Emitted when nullifiers are received from a source chain via cross-chain sync.
+    event NullifierSyncReceived(uint256 indexed srcChainId, bytes32 nullifier0, bytes32 nullifier1);
+
+    /// @notice Emitted when a cross-chain nullifier sync message could not be dispatched.
+    event NullifierSyncFailed(uint256 indexed dstChainId, bytes32 nullifier0, bytes32 nullifier1);
+
     // =========================================================
     //  Constructor
     // =========================================================
@@ -250,7 +286,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         // Register the initial root so it is usable for the first transact
         bytes32 initialRoot = tree.getRoot();
         knownRoots[initialRoot] = true;
-        rootTimestamps[initialRoot] = block.timestamp;
+        rootBlockNumbers[initialRoot] = block.number;
         rootQueue[rootQueueTail] = initialRoot;
         unchecked {
             rootQueueTail++;
@@ -283,8 +319,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         uint256[2] calldata c
     ) external whenNotPaused nonReentrant {
         if (withdrawalsPaused) revert WithdrawalsArePaused();
-        _requireFeeOk(fee, relayer);
-        _requireRootUsable(merkleRoot);
+        PoolValidation.requireFeeOk(fee, relayer, minFee);
+        PoolValidation.requireRootUsable(merkleRoot, knownRoots, rootBlockNumbers, maxRootAge, tree.getRoot());
         PoolValidation.requireNullifiersFresh(nullifiers, usedNullifiersGlobal);
         PoolValidation.requireCommitmentsValid(outCommitments);
 
@@ -346,8 +382,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         uint256[2] calldata c
     ) external whenNotPaused nonReentrant {
         if (withdrawalsPaused) revert WithdrawalsArePaused();
-        _requireFeeOk(fee, relayer);
-        _requireRootUsable(merkleRoot);
+        PoolValidation.requireFeeOk(fee, relayer, minFee);
+        PoolValidation.requireRootUsable(merkleRoot, knownRoots, rootBlockNumbers, maxRootAge, tree.getRoot());
         PoolValidation.requireNullifiersFresh(nullifiers, usedNullifiersGlobal);
         PoolValidation.requireCommitmentsValid(outCommitments);
 
@@ -420,9 +456,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         if (dstChainId == 0) revert InvalidDestination();
         if (dstChainId == block.chainid) revert SourceIsDestination();
         if (withdrawalsPaused) revert WithdrawalsArePaused();
-        _requireFeeOk(fee, relayer);
-
-        _requireRootUsable(merkleRoot);
+        PoolValidation.requireFeeOk(fee, relayer, minFee);
+        PoolValidation.requireRootUsable(merkleRoot, knownRoots, rootBlockNumbers, maxRootAge, tree.getRoot());
         PoolValidation.requireNullifiersFresh(nullifiers, usedNullifiersGlobal);
         PoolValidation.requireCommitmentsValid(outCommitments);
 
@@ -483,6 +518,73 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         _addCommitmentToTree(outCommitments[1]);
 
         emit BridgeIn(srcChainId, messageId, outCommitments);
+    }
+
+    /// @notice Receives nullifier sync from a source chain via L2ToL2CrossDomainMessenger.
+    /// @dev Only callable by L2ToL2CrossDomainMessenger via relayMessage.
+    ///      Marks the nullifiers as spent on this chain to enforce cross-chain uniqueness.
+    /// @param nullifier0 First nullifier hash to mark as spent.
+    /// @param nullifier1 Second nullifier hash to mark as spent.
+    function syncNullifiers(bytes32 nullifier0, bytes32 nullifier1) external {
+        CrossDomainMessageLib.requireCallerIsCrossDomainMessenger();
+        CrossDomainMessageLib.requireCrossDomainCallback();
+
+        // Get source chain from the message context
+        uint256 srcChainId = IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER).crossDomainMessageSource();
+
+        // Validate source chain is supported
+        if (!supportedChains[srcChainId]) revert PoolErrors.InvalidSource();
+
+        // Mark nullifiers as spent (local, no re-sync to avoid infinite loop)
+        _markNullifiersFromSync(srcChainId, nullifier0, nullifier1);
+    }
+
+    /// @notice Internal function to mark nullifiers from cross-chain sync.
+    /// @dev Separated for testing purposes.
+    /// @param srcChainId Source chain ID.
+    /// @param nullifier0 First nullifier hash.
+    /// @param nullifier1 Second nullifier hash.
+    function _markNullifiersFromSync(uint256 srcChainId, bytes32 nullifier0, bytes32 nullifier1) internal {
+        // Validate source chain is supported
+        if (!supportedChains[srcChainId]) revert PoolErrors.InvalidSource();
+
+        // Mark nullifiers as spent (local, no re-sync to avoid infinite loop)
+        if (!usedNullifiersGlobal[nullifier0]) {
+            usedNullifiersGlobal[nullifier0] = true;
+            emit NoteSpent(nullifier0);
+        }
+        if (!usedNullifiersGlobal[nullifier1]) {
+            usedNullifiersGlobal[nullifier1] = true;
+            emit NoteSpent(nullifier1);
+        }
+
+        // Emit once per received sync message (covers both nullifiers) regardless of
+        // whether either was already marked, so off-chain indexers can reconstruct the
+        // full cross-chain sync history from logs.
+        emit NullifierSyncReceived(srcChainId, nullifier0, nullifier1);
+    }
+
+    /// @notice Re-sends a cross-chain nullifier sync to a single destination chain.
+    /// @dev Recovery path for a `NullifierSyncFailed` event: the broadcast in
+    ///      `_sendNullifierSync` during transact/bridgeOut is best-effort, so an admin
+    ///      re-drives a failed sync here. Only nullifiers already spent on THIS chain may
+    ///      be re-synced, so a mistaken or compromised admin cannot freeze unspent notes
+    ///      on other chains. Reverts if the messenger send fails so the caller sees it.
+    /// @param dstChainId Destination chain to re-sync to (must be a supported chain).
+    /// @param nullifier0 First nullifier hash (must already be spent locally).
+    /// @param nullifier1 Second nullifier hash (must already be spent locally).
+    function reSyncNullifiers(uint256 dstChainId, bytes32 nullifier0, bytes32 nullifier1) external restricted {
+        if (!supportedChains[dstChainId]) revert PoolErrors.InvalidDestination();
+        if (nullifier0 == bytes32(0) || nullifier1 == bytes32(0)) revert NullifierErrors.NullifierInvalid();
+        if (nullifier0 == nullifier1) revert NullifierErrors.NullifierDuplicate();
+        if (!usedNullifiersGlobal[nullifier0] || !usedNullifiersGlobal[nullifier1]) {
+            revert NullifierErrors.NullifierNotConsumed();
+        }
+
+        bytes memory message = abi.encodeWithSelector(this.syncNullifiers.selector, nullifier0, nullifier1);
+        bytes32 msgHash = IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
+            .sendMessage(dstChainId, address(this), message);
+        emit NullifierSyncSent(dstChainId, nullifier0, nullifier1, msgHash);
     }
 
     // =========================================================
@@ -614,6 +716,32 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         emit BridgeOutEntrypointSet(entrypoint);
     }
 
+    /// @notice Adds or removes a supported chain for cross-chain nullifier sync.
+    /// @dev Only callable by admin. Enables/disables nullifier synchronization
+    ///      with the specified destination chain via L2ToL2CrossDomainMessenger.
+    /// @param chainId The destination chain ID.
+    /// @param enabled True to enable sync, false to disable.
+    function setSupportedChain(uint256 chainId, bool enabled) external restricted {
+        if (chainId == 0) revert InvalidChainId();
+        if (chainId == block.chainid) revert InvalidChainId();
+        if (supportedChains[chainId] == enabled) revert NoStateChange();
+        supportedChains[chainId] = enabled;
+
+        if (enabled) {
+            supportedChainList.push(chainId);
+        } else {
+            // Remove from list (swap with last and pop for O(1) removal)
+            for (uint256 i = 0; i < supportedChainList.length; ++i) {
+                if (supportedChainList[i] == chainId) {
+                    supportedChainList[i] = supportedChainList[supportedChainList.length - 1];
+                    supportedChainList.pop();
+                    break;
+                }
+            }
+        }
+        emit SupportedChainSet(chainId, enabled);
+    }
+
     /// @notice Sets the asset ledger (credit ledger) address.
     /// @dev Required post-deployment to break circular dependency.
     /// @param newLedger The new ledger address.
@@ -636,16 +764,19 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         bytes32 latestRoot = tree.getRoot();
         uint256 head = rootQueueHead;
 
+        // Convert maxRootAge (seconds) to blocks
+        uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY) / 1 days;
+
         for (uint256 i = 0; i < maxIterations && head < rootQueueTail;) {
             bytes32 root = rootQueue[head];
             if (root == latestRoot) {
                 // Always keep the latest root
                 break;
             }
-            uint256 ts = rootTimestamps[root];
-            if (ts != 0 && block.timestamp > ts + maxRootAge) {
+            uint256 blockNum = rootBlockNumbers[root];
+            if (blockNum != 0 && block.number > blockNum + maxRootAgeBlocks) {
                 delete knownRoots[root];
-                delete rootTimestamps[root];
+                delete rootBlockNumbers[root];
                 emit RootPruned(root);
                 unchecked {
                     head++;
@@ -701,9 +832,11 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         // Latest root is always usable
         if (root == tree.getRoot()) return true;
 
-        uint256 ts = rootTimestamps[root];
-        if (ts == 0) return false;
-        return block.timestamp <= ts + maxRootAge;
+        uint256 blockNum = rootBlockNumbers[root];
+        if (blockNum == 0) return false;
+        // Convert maxRootAge (seconds) to blocks
+        uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY) / 1 days;
+        return block.number <= blockNum + maxRootAgeBlocks;
     }
 
     // =========================================================
@@ -778,17 +911,48 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         usedNullifiersGlobal[nullifiers[1]] = true;
         emit NoteSpent(nullifiers[0]);
         emit NoteSpent(nullifiers[1]);
+
+        if (CROSS_CHAIN_SYNC_ENABLED && _hasCode(L2_TO_L2_CROSS_DOMAIN_MESSENGER)) {
+            _sendNullifierSync(nullifiers);
+        }
+    }
+
+    /// @dev Private helper to check if an address has code.
+    function _hasCode(address addr) private view returns (bool) {
+        uint256 codeSize;
+        assembly { codeSize := extcodesize(addr) }
+        return codeSize > 0;
+    }
+
+    /// @notice Sends nullifier sync messages to all supported chains.
+    /// @dev Called after nullifiers are marked as spent locally.
+    /// @param nullifiers The nullifiers that were spent.
+    function _sendNullifierSync(bytes32[2] calldata nullifiers) internal {
+        if (!CROSS_CHAIN_SYNC_ENABLED) return;
+
+        bytes memory message = abi.encodeWithSelector(this.syncNullifiers.selector, nullifiers[0], nullifiers[1]);
+        for (uint256 i = 0; i < supportedChainList.length; ++i) {
+            uint256 dstChainId = supportedChainList[i];
+            try IL2ToL2CrossDomainMessenger(L2_TO_L2_CROSS_DOMAIN_MESSENGER)
+                .sendMessage(dstChainId, address(this), message) returns (
+                bytes32 msgHash
+            ) {
+                emit NullifierSyncSent(dstChainId, nullifiers[0], nullifiers[1], msgHash);
+            } catch {
+                emit NullifierSyncFailed(dstChainId, nullifiers[0], nullifiers[1]);
+            }
+        }
     }
 
     /// @notice Adds a new commitment to the Merkle tree and tracks the root.
-    /// @dev Updates knownRoots and rootTimestamps. Queues the new root.
+    /// @dev Updates knownRoots and rootBlockNumbers. Queues the new root.
     /// @param commitment The note commitment to insert.
     function _addCommitmentToTree(bytes32 commitment) internal {
         MerkleTree.insert(tree, commitment);
         bytes32 newRoot = tree.getRoot();
         if (!knownRoots[newRoot]) {
             knownRoots[newRoot] = true;
-            rootTimestamps[newRoot] = block.timestamp;
+            rootBlockNumbers[newRoot] = block.number;
             rootQueue[rootQueueTail] = newRoot;
             unchecked {
                 rootQueueTail++;
@@ -800,11 +964,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
 
     /// @notice Credits the relayer fee through the asset ledger.
     /// @dev Splits fee between burn and relayer credit based on feeBurnBps.
-    ///      The relayer portion is credited via ledger.credit (mints RYLA to relayer).
-    ///      The burn portion is NOT credited to any address -- it is simply not minted,
-    ///      effectively removing it from supply. We track _totalBurned for accounting.
-    ///      RYLACreditLedger.credit() always calls TOKEN.mint(), so we cannot use it
-    ///      for burns (mint to address(0) reverts in RYLA.mint).
+    ///      The burn portion is NOT credited to any address -- effectively removing it from supply.
+    ///      RYLACreditLedger.credit() always calls TOKEN.mint(), so we cannot use it for burns.
     /// @param fee The total fee amount.
     /// @param relayer The relayer address to receive the non-burned portion.
     function _creditRelayerFee(uint256 fee, address relayer) internal {
@@ -820,34 +981,6 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
             ledger.credit(relayer, relayerAmount);
             emit FeePaid(relayer, relayerAmount);
         }
-        if (burnAmount > 0) {
-            // Do NOT call ledger.credit(address(0), ...) -- RYLA.mint reverts on zero address.
-            // The burn is implicit: the fee was collected but only relayerAmount is minted.
-            // The burnAmount is effectively removed from supply.
-            emit FeeBurned(burnAmount);
-        }
-    }
-
-    /// @notice Validates fee and relayer parameters.
-    /// @param fee The fee amount.
-    /// @param relayer The relayer address.
-    function _requireFeeOk(uint256 fee, address relayer) internal view {
-        uint256 currentMinFee = minFee;
-        if (currentMinFee > 0 && fee < currentMinFee) revert FeeTooLow();
-        if (fee > 0 && relayer == address(0)) revert InvalidRelayer();
-    }
-
-    /// @notice Validates that a Merkle root is known and not expired.
-    /// @dev Reverts with UnknownRoot or RootExpired.
-    /// @param root The root hash to validate.
-    function _requireRootUsable(bytes32 root) internal view {
-        PoolValidation.requireRootWithinCircuitRange(root);
-        if (!knownRoots[root]) revert UnknownRoot();
-        if (maxRootAge != 0) {
-            if (root != tree.getRoot()) {
-                uint256 ts = rootTimestamps[root];
-                if (ts != 0 && block.timestamp > ts + maxRootAge) revert RootExpired();
-            }
-        }
+        if (burnAmount > 0) emit FeeBurned(burnAmount);
     }
 }

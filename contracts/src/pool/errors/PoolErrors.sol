@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {NullifierErrors} from "src/errors/NullifierErrors.sol";
+
 /// @notice Custom errors for the Pool, PoolValidation, and MerkleTree contracts.
-abstract contract PoolErrors {
+abstract contract PoolErrors is NullifierErrors {
     // Verifier / asset ledger configuration
     error InvalidVerifier();
     error VerifierMustBeContract();
@@ -46,10 +48,10 @@ abstract contract PoolErrors {
     error EpochExceedsCircuitRange();
     error InputExceedsCircuitRange();
 
-    // Nullifier
-    error NullifierUsed();
-    error NullifierDuplicate();
-    error NullifierInvalid();
+    // Nullifier (inherited from NullifierErrors)
+    // error NullifierUsed();
+    // error NullifierDuplicate();
+    // error NullifierInvalid();
 
     // Commitment
     error CommitmentInvalid();
@@ -72,6 +74,7 @@ abstract contract PoolErrors {
     error DestinationIsSource();
     error InvalidRoot();
     error BridgeMessageAlreadyProcessed();
+    error InvalidChainId();
 
     // Generic
     error NoStateChange();
