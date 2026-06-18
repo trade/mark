@@ -21,22 +21,20 @@ packs:
   solidity:
     - trailofbits/codeql-solidity@0.0.4
 
-# Query suites to run
+# Query suites to run.
+# security-extended is the standard high-signal suite for JavaScript/TypeScript;
+# the Solidity analysis additionally uses the Trail of Bits packs declared above.
+# Experimental queries are intentionally NOT added (they are not part of
+# security-extended), so there is nothing to disable.
+#
+# Note: the `queries` schema only supports `uses` (see db-config-schema.json);
+# `disable: true` is not a valid key and is silently dropped, which turned the
+# previous entries into "add this pack". `- uses: experimental` and the
+# `- uses: ./queries/...` local paths do not resolve to anything in this repo,
+# so `codeql database init` failed with "Query pack experimental cannot be
+# found". To exclude specific queries, use `query-filters` with `exclude`.
 queries:
-  # Security extended queries for JavaScript/TypeScript and Solidity
   - uses: security-extended
-  # Disable experimental queries (noisy)
-  - uses: experimental
-    disable: true
-  # Disable secret scanning queries (handled by TruffleHog)
-  - uses: ./queries/experimental/security/secrets
-    disable: true
-  # Disable noisy queries for clarity
-  - uses: ./queries/experimental/async
-    disable: true
-  # Disable database-specific queries if not using DB
-  - uses: ./queries/experimental/security/cryptography
-    disable: true
 
 # Path exclusions - keep this focused on actual source code
 paths-ignore:
