@@ -46,7 +46,10 @@ jobs:
         uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
         with:
           languages: javascript-typescript
-          queries: security-extended
+          # Query selection (including security-extended) lives in config-file.
+          # A workflow-level `queries:` value overrides the config file's
+          # `queries:` block (unless prefixed with "+"), which would discard the
+          # query-filters defined there, so it is intentionally omitted here.
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Autobuild

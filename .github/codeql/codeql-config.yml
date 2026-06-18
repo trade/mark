@@ -1,24 +1,37 @@
 # CodeQL Configuration for MARK Protocol
 # This configuration customizes CodeQL analysis to:
-# - Disable secret scanning (handled by TruffleHog)
-# - Focus on security-extended queries
-# - Exclude noisy/experimental queries
+# - Focus on the security-extended query suite
+# - Exclude hard-coded credential / secret queries (handled by TruffleHog)
+# - Exclude noisy build/dependency/test paths
 
 name: "MARK Protocol CodeQL Config"
 
-# Disable default queries that are noisy or redundant
+# Keep the default code-scanning queries in addition to security-extended.
 disable-default-queries: false
 
-# Query suites to run
+# Query suites to run.
+# NOTE: the workflow's `init` step intentionally does NOT pass a `queries:` input.
+# A workflow-level `queries:` value overrides this block (unless prefixed with
+# "+"), so keeping query selection here makes this file the single source of
+# truth. `security-extended` does not include experimental queries, so there is
+# nothing extra to disable for those.
 queries:
-  # Security extended queries for JavaScript/TypeScript and Solidity
   - uses: security-extended
-  # Disable experimental queries (noisy)
-  - uses: experimental
-    disable: true
-  # Disable secret scanning queries (handled by TruffleHog)
-  - uses: ./queries/experimental/security/secrets
-    disable: true
+
+# Secret scanning is handled by TruffleHog (better entropy detection), so exclude
+# CodeQL's hard-coded credential / secret queries to avoid duplicate findings.
+# Exclusions must use `query-filters`; a `disable: true` key under `queries` is
+# not valid CodeQL config, and `./queries/...` would resolve to a (non-existent)
+# local query directory and fail query resolution. Filtering on CWE tags is
+# stable across query-id changes: CodeQL has already dropped
+# js/hardcoded-credentials and js/password-in-configuration-file from its suites,
+# and this guards against those or similar queries being reintroduced.
+query-filters:
+  - exclude:
+      tags contain:
+        - external/cwe/cwe-798  # Use of hard-coded credentials
+        - external/cwe/cwe-259  # Use of hard-coded password
+        - external/cwe/cwe-321  # Use of hard-coded cryptographic key
 
 # Paths to exclude from analysis
 paths-ignore:
