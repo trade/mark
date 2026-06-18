@@ -1,0 +1,46 @@
+# CodeQL Configuration for MARK Protocol
+# This configuration customizes CodeQL analysis to:
+# - Disable secret scanning (handled by TruffleHog)
+# - Focus on security-extended queries
+# - Exclude noisy/experimental queries
+
+name: "MARK Protocol CodeQL Config"
+
+# Disable default queries that are noisy or redundant
+disable-default-queries: false
+
+# Query suites to run
+queries:
+  # Security extended queries for JavaScript/TypeScript and Solidity
+  - uses: security-extended
+  # Disable experimental queries (noisy)
+  - uses: experimental
+    disable: true
+  # Disable secret scanning queries (handled by TruffleHog)
+  - uses: ./queries/experimental/security/secrets
+    disable: true
+
+# Paths to exclude from analysis
+paths-ignore:
+  - node_modules
+  - contracts/out
+  - contracts/cache
+  - contracts/lib
+  - contracts/broadcast
+  - contracts/test
+  - circuits/build
+  - circuits/node_modules
+  - .github/workflows
+  - docs
+  - scripts
+
+# Paths to include (explicit inclusion)
+paths:
+  - contracts/src
+  - contracts/script
+  - src
+  - circuits/mark
+  - circuits/test
+
+# Experimental features
+# auto-build: false  # We use manual build

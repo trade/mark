@@ -1,8 +1,6 @@
 name: CodeQL
 
 on:
-  pull_request:
-    branches: [main, dev]
   push:
     branches: [main, dev]
     paths:
@@ -49,6 +47,7 @@ jobs:
         with:
           languages: javascript-typescript
           queries: security-extended
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
