@@ -16,6 +16,9 @@ permissions:
 jobs:
   secrets:
     name: Secret Scan (trufflehog)
+    permissions:
+      contents: read
+      security-events: write
     uses: ./.github/workflows/_reusable-secrets.yml
 
   typecheck-lint:
