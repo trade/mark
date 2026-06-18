@@ -136,6 +136,13 @@ template MARKPool(depth, nIn, nOut) {
     component inSecret0UpperBits = Num2Bits(93);
     inSecret0UpperBits.in <== inSecret0Upper;
 
+    // The binding equation inSecret[0] = withdrawOwner + inSecret0Upper * 2^160
+    // together with Num2Bits(93) on inSecret0Upper and Num2Bits(160) on withdrawOwner
+    // implicitly enforces inSecret[0] < 2^253 when withdrawAmount > 0,
+    // since max RHS = (2^160 - 1) + (2^93 - 1) * 2^160 = 2^253 - 1.
+    // This is a feature: notes with inSecret[0] >= 2^253 simply cannot use the withdraw
+    // binding path; they can still transact normally without withdrawal.
+
     // 2) Merkle inclusion for each input
     signal cur[nIn][depth + 1];
     component sw[nIn][depth];

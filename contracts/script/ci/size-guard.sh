@@ -3,16 +3,23 @@ set -euo pipefail
 
 # EIP-170 max code size is 24,576 bytes.
 MAX_CODE_SIZE=24576
-# Fail early before the hard limit is reached.
-MIN_MARGIN_BYTES="${MARK_POOL_MIN_SIZE_MARGIN_BYTES:--3600}"
+# Fail early before the hard limit is reached. Default margin of 1000 bytes
+# provides headroom for optimizer output variance.
+MIN_MARGIN_BYTES="${MARK_POOL_MIN_SIZE_MARGIN_BYTES:-1000}"
 TARGET_ARTIFACT="out/MARKPool.sol/MARKPool.json"
 
-# In CI, the optimizer build times out on the runner. Skip the size check
-# in CI and rely on local `forge build --sizes` with the ci profile.
-# The contract has been verified locally to pass with the optimized build.
+# In CI, we try to measure the optimized artifact if it exists from a prior
+# build step. If not (optimizer build times out), skip with warning and rely
+# on local `forge build --sizes` with the ci profile.
 if [ -n "${GITHUB_ACTIONS:-}" ]; then
-  echo "size-guard: skipping in CI (verified locally with forge build --sizes)"
-  exit 0
+  if [ -f "$TARGET_ARTIFACT" ]; then
+    echo "size-guard: using existing optimized artifact in CI"
+  else
+    echo "size-guard: WARNING - optimized artifact not found in CI (build timeout)."
+    echo "size-guard: Skipping enforcement; local verification required."
+    echo "size-guard: Run 'FOUNDRY_PROFILE=ci forge build' locally to verify deployed size."
+    exit 0
+  fi
 fi
 
 if [ ! -f "$TARGET_ARTIFACT" ]; then

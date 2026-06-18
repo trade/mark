@@ -765,7 +765,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         uint256 head = rootQueueHead;
 
         // Convert maxRootAge (seconds) to blocks
-        uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY) / 1 days;
+        // Use ceiling division to avoid rounding down small values to 0 blocks
+        uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY + 1 days - 1) / 1 days;
 
         for (uint256 i = 0; i < maxIterations && head < rootQueueTail;) {
             bytes32 root = rootQueue[head];
@@ -835,7 +836,8 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
         uint256 blockNum = rootBlockNumbers[root];
         if (blockNum == 0) return false;
         // Convert maxRootAge (seconds) to blocks
-        uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY) / 1 days;
+        // Use ceiling division to avoid rounding down small values to 0 blocks
+        uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY + 1 days - 1) / 1 days;
         return block.number <= blockNum + maxRootAgeBlocks;
     }
 

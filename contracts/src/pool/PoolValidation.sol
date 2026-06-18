@@ -94,7 +94,8 @@ library PoolValidation {
             if (root != currentRoot) {
                 uint256 blockNum = rootBlockNumbers[root];
                 // Convert maxRootAge (seconds) to blocks (OP Stack ~2s/block)
-                uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY) / 1 days;
+                // Use ceiling division to avoid rounding down small values to 0 blocks
+                uint256 maxRootAgeBlocks = (maxRootAge * BLOCKS_PER_DAY + 1 days - 1) / 1 days;
                 if (blockNum != 0 && block.number > blockNum + maxRootAgeBlocks) revert PoolErrors.RootExpired();
             }
         }

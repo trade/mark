@@ -97,13 +97,17 @@ jobs:
 
           echo "$OUTPUT"
 
-          # A fork that cannot be instantiated (RPC unreachable / rate-limited, or a
-          # misconfigured OP_SEPOLIA_RPC secret) is an infrastructure problem, not a
-          # reorg-safety failure. Warn and skip instead of blocking the PR; the nightly
-          # scheduled run remains the gating signal once the RPC is healthy.
+          # A fork that cannot be instantiated is an infrastructure problem.
           if echo "$OUTPUT" | grep -qiE "could not instantiate forked environment|invalid rpc url"; then
-            echo "::warning::Reorg simulation skipped: could not instantiate the OP Sepolia fork. Check the OP_SEPOLIA_RPC secret (must be a full RPC URL) and RPC availability."
-            exit 0
+            # For pull_request events, warn and skip (forks may not have secrets).
+            # For push and scheduled runs, treat as hard failure (the nightly gate must work).
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "::warning::Reorg simulation skipped: could not instantiate the OP Sepolia fork. Check the OP_SEPOLIA_RPC secret (must be a full RPC URL) and RPC availability."
+              exit 0
+            else
+              echo "::error::Reorg simulation failed: could not instantiate the OP Sepolia fork. Check the OP_SEPOLIA_RPC secret (must be a full RPC URL) and RPC availability."
+              exit 1
+            fi
           fi
 
           # Guard against a silent no-op: if the profile/filter matches nothing,
