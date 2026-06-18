@@ -8,6 +8,7 @@ on:
       - 'contracts/src/**'
       - 'contracts/script/**'
       - '.github/workflows/codeql.yml'
+      - '.github/codeql/**'
   schedule:
     - cron: '30 3 * * 1'
   workflow_dispatch:
