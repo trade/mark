@@ -57,3 +57,29 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
+
+  analyze-solidity:
+    name: Analyze (solidity)
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Setup toolchain
+        uses: ./.github/actions/setup-toolchain
+        with:
+          cache-key-suffix: codeql-solidity
+
+      - name: Initialize CodeQL (Solidity)
+        uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
+        with:
+          languages: solidity
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Perform CodeQL Analysis (Solidity)
+        uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4

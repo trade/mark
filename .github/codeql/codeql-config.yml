@@ -1,6 +1,7 @@
 # CodeQL Configuration for MARK Protocol
 # This configuration customizes CodeQL analysis to:
-# - Focus on the security-extended query suite
+# - Focus on the security-extended query suite (JavaScript/TypeScript)
+# - Use Trail of Bits CodeQL packs for Solidity
 # - Exclude hard-coded credential / secret queries (handled by TruffleHog)
 # - Exclude noisy build/dependency/test paths
 
@@ -9,23 +10,39 @@ name: "MARK Protocol CodeQL Config"
 # Keep the default code-scanning queries in addition to security-extended.
 disable-default-queries: false
 
+# External query packs for enhanced coverage.
+# Trail of Bits Solidity queries - industry standard for Solidity security.
+# Scoped to the `solidity` language so the pack is only applied to the Solidity
+# analysis. A flat list would apply it to every analyzed language (including
+# javascript-typescript), which fails because a Solidity query pack is not
+# compatible with a JavaScript/TypeScript database.
+packs:
+  solidity:
+    - trailofbits/codeql-solidity@0.0.4
+
 # Query suites to run.
-# NOTE: the workflow's `init` step intentionally does NOT pass a `queries:` input.
+# security-extended is the standard high-signal suite for JavaScript/TypeScript;
+# the Solidity analysis additionally uses the Trail of Bits packs declared above.
+# NOTE: the workflow's `init` steps intentionally do NOT pass a `queries:` input.
 # A workflow-level `queries:` value overrides this block (unless prefixed with
-# "+"), so keeping query selection here makes this file the single source of
-# truth. `security-extended` does not include experimental queries, so there is
-# nothing extra to disable for those.
+# "+"), so keeping query selection here makes this file the single source of truth.
+#
+# The `queries` schema only supports `uses` (see db-config-schema.json);
+# `disable: true` is not a valid key and is silently dropped, which turned the
+# previous entries into "add this pack". `- uses: experimental` and the
+# `- uses: ./queries/...` local paths do not resolve to anything in this repo,
+# so `codeql database init` failed with "Query pack experimental cannot be
+# found". Experimental queries are intentionally NOT added (they are not part of
+# security-extended), so there is nothing to disable. To exclude specific
+# queries, use `query-filters` with `exclude` (below).
 queries:
   - uses: security-extended
 
 # Secret scanning is handled by TruffleHog (better entropy detection), so exclude
 # CodeQL's hard-coded credential / secret queries to avoid duplicate findings.
-# Exclusions must use `query-filters`; a `disable: true` key under `queries` is
-# not valid CodeQL config, and `./queries/...` would resolve to a (non-existent)
-# local query directory and fail query resolution. Filtering on CWE tags is
-# stable across query-id changes: CodeQL has already dropped
-# js/hardcoded-credentials and js/password-in-configuration-file from its suites,
-# and this guards against those or similar queries being reintroduced.
+# Filtering on CWE tags is stable across query-id changes: CodeQL has already
+# dropped js/hardcoded-credentials and js/password-in-configuration-file from its
+# suites, and this guards against those or similar queries being reintroduced.
 query-filters:
   - exclude:
       tags contain:
@@ -54,6 +71,3 @@ paths:
   - src
   - circuits/mark
   - circuits/test
-
-# Experimental features
-# auto-build: false  # We use manual build
