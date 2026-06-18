@@ -1,60 +1,58 @@
 name: CI Fast
 on:
-  name: CI Fast
-  on:
-    pull_request:
-      branches: [dev, main]
-    push:
-      branches: [dev, main]
+  pull_request:
+    branches: [dev, main]
+  push:
+    branches: [dev, main]
 
-  concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
-  permissions:
-    contents: read
+permissions:
+  contents: read
 
-  jobs:
-    secrets:
-      name: Secret Scan (trufflehog)
-      permissions:
-        contents: read
-        security-events: write
-      uses: ./.github/workflows/_reusable-secrets.yml
+jobs:
+  secrets:
+    name: Secret Scan (trufflehog)
+    permissions:
+      contents: read
+      security-events: write
+    uses: ./.github/workflows/_reusable-secrets.yml
 
-    typecheck-lint:
-      name: Typecheck + Lint
-      uses: ./.github/workflows/_reusable-typecheck-lint.yml
+  typecheck-lint:
+    name: Typecheck + Lint
+    uses: ./.github/workflows/_reusable-typecheck-lint.yml
 
-    contracts-core:
-      name: Contracts Core (Unit + Invariant)
-      uses: ./.github/workflows/_reusable-contracts-core.yml
-      with:
-        run_invariant: 'false'
+  contracts-core:
+    name: Contracts Core (Unit + Invariant)
+    uses: ./.github/workflows/_reusable-contracts-core.yml
+    with:
+      run_invariant: 'false'
 
-    contracts-security:
-      name: Contracts Security (Semgrep)
-      uses: ./.github/workflows/_reusable-contracts-security.yml
-      with:
-        run_semgrep: 'true'
+  contracts-security:
+    name: Contracts Security (Semgrep)
+    uses: ./.github/workflows/_reusable-contracts-security.yml
+    with:
+      run_semgrep: 'true'
 
-    contracts-fuzz:
-      name: Contracts Fuzz
-      uses: ./.github/workflows/_reusable-contracts-fuzz.yml
-      with:
-        run_fuzz: 'true'
-        fuzz_runs: '256'
+  contracts-fuzz:
+    name: Contracts Fuzz
+    uses: ./.github/workflows/_reusable-contracts-fuzz.yml
+    with:
+      run_fuzz: 'true'
+      fuzz_runs: '256'
 
-    circuits-core:
-      name: Circuits Core (Build + Tests + Circomspect)
-      uses: ./.github/workflows/_reusable-circuits-core.yml
-      with:
-        run_tests: 'true'
-        run_circomspect: 'true'
+  circuits-core:
+    name: Circuits Core (Build + Tests + Circomspect)
+    uses: ./.github/workflows/_reusable-circuits-core.yml
+    with:
+      run_tests: 'true'
+      run_circomspect: 'true'
 
-    frontend-checks:
-      name: Frontend Checks (Node 24)
-      uses: ./.github/workflows/_reusable-frontend-checks.yml
-      with:
-        node_versions: '[ "24.3.0" ]'
-        pnpm_version: '9.0.2'
+  frontend-checks:
+    name: Frontend Checks (Node 24)
+    uses: ./.github/workflows/_reusable-frontend-checks.yml
+    with:
+      node_versions: '[ "24.3.0" ]'
+      pnpm_version: '9.0.2'
