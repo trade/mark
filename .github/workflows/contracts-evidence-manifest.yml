@@ -57,7 +57,7 @@ jobs:
   manifest-self-test:
     name: Manifest Tooling Self-Test
     if: github.event_name == 'workflow_dispatch'
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     defaults:
       run:
         working-directory: contracts
@@ -125,7 +125,7 @@ jobs:
   manifest-dispatch-verify:
     name: Manifest Verify (Manual Inputs)
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     environment: production
     defaults:
       run:
