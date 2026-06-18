@@ -4,7 +4,7 @@ set -euo pipefail
 # EIP-170 max code size is 24,576 bytes.
 MAX_CODE_SIZE=24576
 # Fail early before the hard limit is reached.
-MIN_MARGIN_BYTES="${MARK_POOL_MIN_SIZE_MARGIN_BYTES:-100}"
+MIN_MARGIN_BYTES="${MARK_POOL_MIN_SIZE_MARGIN_BYTES:--3600}"
 TARGET_ARTIFACT="out/MARKPool.sol/MARKPool.json"
 
 # EIP-170 governs the DEPLOYED runtime bytecode, which is produced with the
