@@ -1,6 +1,7 @@
 # Compiler files
 cache/
 out/
+out-size-guard/
 
 # Ignores all broadcast logs
 /broadcast/
