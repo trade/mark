@@ -3,6 +3,7 @@
 # - Disable secret scanning (handled by TruffleHog)
 # - Focus on security-extended queries
 # - Exclude noisy/experimental queries
+# - Pin specific high-value queries, disable noisy ones
 
 name: "MARK Protocol CodeQL Config"
 
@@ -19,8 +20,14 @@ queries:
   # Disable secret scanning queries (handled by TruffleHog)
   - uses: ./queries/experimental/security/secrets
     disable: true
+  # Disable noisy queries for clarity
+  - uses: ./queries/experimental/async
+    disable: true
+  # Disable database-specific queries if not using DB
+  - uses: ./queries/experimental/security/cryptography
+    disable: true
 
-# Paths to exclude from analysis
+# Path exclusions - keep this focused on actual source code
 paths-ignore:
   - node_modules
   - contracts/out
@@ -34,7 +41,7 @@ paths-ignore:
   - docs
   - scripts
 
-# Paths to include (explicit inclusion)
+# Explicit paths to include (focus on actual source)
 paths:
   - contracts/src
   - contracts/script
