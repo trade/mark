@@ -2,7 +2,8 @@
 # https://github.com/ossf/scorecard-action
 #
 # Analyzes the security posture of this repository using the OpenSSF Scorecard.
-# Results are posted as a PR comment and uploaded to the Security tab.
+# Publishes results to the OpenSSF project (public report + badge) and fails the
+# job when the aggregate score drops below a minimum threshold.
 # Runs on PRs to dev/main, pushes to dev/main, and weekly on a schedule.
 
 name: OpenSSF Scorecard
@@ -26,9 +27,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      security-events: write  # Required for SARIF upload to GitHub Security tab
-      id-token: write         # Required for OIDC token (result publishing)
-      pull-requests: write    # Required for PR comment on findings
+      id-token: write  # Required for OIDC token (result publishing)
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
@@ -37,20 +36,38 @@ jobs:
         with:
           persist-credentials: false
 
+      # Single SHA-pinned invocation. Emit JSON (which carries the top-level
+      # aggregate `score`) so the gate below can enforce a minimum. JSON is used
+      # rather than SARIF because scorecard-action exposes no `threshold` input
+      # and the SARIF output has no aggregate-score field. Running the action
+      # only once avoids a second execution of its (vendor-controlled, mutably
+      # tagged) container image. publish_results still publishes the public
+      # OpenSSF report/badge for this repo.
       - name: Run OpenSSF Scorecard
         uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
         with:
-          results_file: scorecard-results.sarif
-          results_format: sarif
+          results_file: scorecard-results.json
+          results_format: json
           publish_results: true
-          # Fail if Scorecard score is below 5.0 (current ~6.4, target 7.0+ long-term)
-          threshold: 5.0
-          # Upload results to GitHub Security tab
           # Token is auto-generated via OIDC (id-token: write permission above)
 
-      - name: Upload SARIF to GitHub Security
-        if: always()
-        uses: github/codeql-action/upload-sarif@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4.36.2
-        with:
-          sarif_file: scorecard-results.sarif
-          category: scorecard
+      - name: Enforce minimum Scorecard score
+        run: |
+          # Minimum acceptable aggregate score (current ~6.4, target 7.0+ long-term).
+          THRESHOLD=5.0
+          SCORE=$(jq -r '.score // empty' scorecard-results.json)
+          if [ -z "$SCORE" ] || [ "$SCORE" = "null" ]; then
+            echo "::warning::Could not determine an aggregate Scorecard score; skipping the score gate."
+            exit 0
+          fi
+          echo "OpenSSF Scorecard aggregate score: $SCORE (minimum required: $THRESHOLD)"
+          # A negative score means Scorecard could not compute a result; don't hard-fail on it.
+          if awk -v s="$SCORE" 'BEGIN { exit !(s < 0) }'; then
+            echo "::warning::Scorecard returned an indeterminate score ($SCORE); skipping the score gate."
+            exit 0
+          fi
+          if awk -v s="$SCORE" -v t="$THRESHOLD" 'BEGIN { exit !(s < t) }'; then
+            echo "::error::OpenSSF Scorecard score $SCORE is below the required minimum of $THRESHOLD"
+            exit 1
+          fi
+          echo "Scorecard score $SCORE meets the minimum threshold of $THRESHOLD."
