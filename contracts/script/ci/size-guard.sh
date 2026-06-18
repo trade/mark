@@ -11,9 +11,9 @@ TARGET_ARTIFACT="out/MARKPool.sol/MARKPool.json"
 # optimizer enabled (the `ci` profile). The default profile leaves the optimizer
 # off for fast test compilation and emits much larger bytecode that is never
 # deployed, so measuring it would reject contracts that actually deploy fine.
-# Build the optimized artifact here to check the real deployed size. Override with
-# SIZE_GUARD_FOUNDRY_PROFILE if a different deployment profile is ever used.
-FOUNDRY_PROFILE="${SIZE_GUARD_FOUNDRY_PROFILE:-ci}" forge build -q
+# Build ONLY the MARKPool contract with the optimizer to check the real deployed
+# size. This is much faster than building the entire project.
+FOUNDRY_PROFILE="${SIZE_GUARD_FOUNDRY_PROFILE:-ci}" forge build --contract "src/pool/MARKPool.sol:MARKPool" -q
 
 if [ ! -f "$TARGET_ARTIFACT" ]; then
   echo "size-guard: artifact not found: $TARGET_ARTIFACT" >&2
