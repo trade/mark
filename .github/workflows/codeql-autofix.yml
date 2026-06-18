@@ -1,31 +1,43 @@
 name: CodeQL Autofix
 
+# Runs CodeQL code scanning for JavaScript/TypeScript on pull requests so that
+# GitHub Copilot Autofix can surface automated fix suggestions on the resulting
+# alerts.
+#
+# Note: there is no `github/codeql-action/autofix` action. Copilot Autofix is a
+# code-scanning feature that is enabled by default for every repository that uses
+# CodeQL; suggested fixes are generated server-side and shown directly on the pull
+# request once code scanning runs on the `pull_request` event. The main CodeQL
+# workflow (codeql.yml) only runs on push/schedule, so this workflow provides the
+# PR-time JS/TS analysis that Copilot Autofix builds on. Solidity is intentionally
+# excluded (autofix is not supported for it).
+# https://docs.github.com/en/code-security/concepts/code-scanning/copilot-autofix-for-code-scanning
+
 on:
   pull_request:
     branches: [dev, main]
     types: [opened, synchronize, reopened]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
-  security-events: write
-  pull-requests: write
 
 jobs:
-  autofix:
+  analyze:
     name: CodeQL Autofix
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
-      contents: write
+      contents: read
+      actions: read
       security-events: write
-      pull-requests: write
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
@@ -33,15 +45,5 @@ jobs:
           languages: javascript-typescript
           config-file: ./.github/codeql/codeql-config.yml
 
-      - name: Perform CodeQL Analysis with Autofix
+      - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
-        with:
-          category: "/language:javascript-typescript"
-          upload: true
-
-      - name: Upload Autofix PR
-        uses: github/codeql-action/autofix@8aad20d150bbac5944a9f9d289da16a4b0d87c1e # v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: CodeQL autofix for ${LANGUAGE}"
-          branch-prefix: codeql-autofix-
