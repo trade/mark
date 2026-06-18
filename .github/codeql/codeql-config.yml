@@ -4,11 +4,17 @@
 # - Focus on security-extended queries
 # - Exclude noisy/experimental queries
 # - Pin specific high-value queries, disable noisy ones
+# - Use Trail of Bits CodeQL packs for Solidity
 
 name: "MARK Protocol CodeQL Config"
 
 # Disable default queries that are noisy or redundant
 disable-default-queries: false
+
+# External query packs for enhanced coverage
+# Trail of Bits Solidity queries - industry standard for Solidity security
+packs:
+  - trailofbits/codeql-solidity@0.0.4
 
 # Query suites to run
 queries:
@@ -48,6 +54,3 @@ paths:
   - src
   - circuits/mark
   - circuits/test
-
-# Experimental features
-# auto-build: false  # We use manual build

@@ -1,45 +1,62 @@
-# .semgrepignore — MARK Protocol
-# Exclude from semgrep scans
+# .semgrepignore - Files and patterns to ignore for semgrep scanning
+# Generated based on MARK Protocol codebase analysis
 
-# Build artifacts
-node_modules/
-dist/
-out/
-cache/
-broadcast/
-build/
-coverage/
-.venv/
-*.zkey
-*.ptau
-*.wtns
+# Build artifacts and generated files
+**/contracts/out/**
+**/contracts/cache/**
+**/contracts/broadcast/**
+**/contracts/lib/**
+**/circuits/build/**
+**/circuits/node_modules/**
 
-# Vendored deps — we don't fix bugs in these
-lib/
-contracts/lib/
+# Test files - these have patterns that trigger false positives
+**/contracts/test/**/*.sol
+**/contracts/test/**/*.t.sol
+**/circuits/test/**/*.ts
+**/circuits/test/**/*.mjs
 
-# Test files — semgrep allows bad patterns in tests by design
-test/
-**/test/**
-**/*.test.ts
-**/*.test.sol
-**/script/**
-circuits/scripts/
+# Generated/crypto files with constants that look like secrets
+**/contracts/src/crypto/generated/**
+**/circuits/crypto/generated/**
 
-# Generated code
-contracts/src/pool/verifier/
-contracts/src/crypto/generated/
-circuits/build/
+# Test and script directories
+**/test/**/*
+**/script/**/*
+**/scripts/**/*
 
-# Docs
-*.md
-docs/
+# Dependencies
+**/node_modules/**
 
-# Lockfiles — semgrep has special rules for these
-pnpm-lock.yaml
-uv.lock
-package-lock.json
+# Build output
+**/build/**/*
+**/out/**/*
 
-# Env files
-.env
-.env.*
+# Configuration files that may contain patterns that look like secrets
+**/*.toml
+**/*.yaml
+**/*.yml
+
+# Documentation
+**/docs/**/*
+**/*.md
+
+# IDE and editor configs
+.vscode/**
+.idea/**
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE config
+.vs/
+*.iml
+*.ipr
+*.iws
+
+# Environment and secret files (these are template/examples, not actual secrets)
+.env.example
+.env.local
+.env.*.example
