@@ -43,9 +43,6 @@ jobs:
           results_file: scorecard-results.sarif
           results_format: sarif
           publish_results: true
-          # Fail if Scorecard score is below 5.0 (current ~6.4, target 7.0+ long-term)
-          threshold: 5.0
-          # Upload results to GitHub Security tab
           # Token is auto-generated via OIDC (id-token: write permission above)
 
       - name: Upload SARIF to GitHub Security
@@ -54,3 +51,35 @@ jobs:
         with:
           sarif_file: scorecard-results.sarif
           category: scorecard
+
+      # scorecard-action does not expose a `threshold` input, so the score gate
+      # must be enforced explicitly. The SARIF output above has no aggregate
+      # score field; the JSON output does (top-level `score`), so re-run the
+      # scan in JSON format and fail the job when the score is below the floor.
+      - name: Run OpenSSF Scorecard (JSON for score gate)
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+        with:
+          results_file: scorecard-results.json
+          results_format: json
+          publish_results: false
+
+      - name: Enforce minimum Scorecard score
+        run: |
+          # Minimum acceptable aggregate score (current ~6.4, target 7.0+ long-term).
+          THRESHOLD=5.0
+          SCORE=$(jq -r '.score // empty' scorecard-results.json)
+          if [ -z "$SCORE" ] || [ "$SCORE" = "null" ]; then
+            echo "::warning::Could not determine an aggregate Scorecard score; skipping the score gate."
+            exit 0
+          fi
+          echo "OpenSSF Scorecard aggregate score: $SCORE (minimum required: $THRESHOLD)"
+          # A negative score means Scorecard could not compute a result; don't hard-fail on it.
+          if awk -v s="$SCORE" 'BEGIN { exit !(s < 0) }'; then
+            echo "::warning::Scorecard returned an indeterminate score ($SCORE); skipping the score gate."
+            exit 0
+          fi
+          if awk -v s="$SCORE" -v t="$THRESHOLD" 'BEGIN { exit !(s < t) }'; then
+            echo "::error::OpenSSF Scorecard score $SCORE is below the required minimum of $THRESHOLD"
+            exit 1
+          fi
+          echo "Scorecard score $SCORE meets the minimum threshold of $THRESHOLD."
