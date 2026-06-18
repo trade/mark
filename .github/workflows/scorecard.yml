@@ -43,6 +43,8 @@ jobs:
           results_file: scorecard-results.sarif
           results_format: sarif
           publish_results: true
+          # Fail if Scorecard score is below 7.0 (current ~6.4, target 7.0+)
+          threshold: 7.0
           # Upload results to GitHub Security tab
           # Token is auto-generated via OIDC (id-token: write permission above)
 
