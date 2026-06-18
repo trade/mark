@@ -84,7 +84,7 @@ contract MARKPool is ReentrancyGuard, AccessManaged, Pausable, PoolErrors {
 
     /// @notice Enable cross-chain nullifier sync (set to false for size-constrained deployments).
     /// @dev When false, all cross-chain sync logic is compiled out, reducing bytecode size.
-    bool public constant CROSS_CHAIN_SYNC_ENABLED = true;
+    bool public constant CROSS_CHAIN_SYNC_ENABLED = false;
 
     // =========================================================
     //  Immutable state
