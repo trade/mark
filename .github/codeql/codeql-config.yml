@@ -33,7 +33,7 @@ query-filters:
         - external/cwe/cwe-259  # Use of hard-coded password
         - external/cwe/cwe-321  # Use of hard-coded cryptographic key
 
-# Paths to exclude from analysis
+# Path exclusions - keep this focused on actual source code
 paths-ignore:
   - node_modules
   - contracts/out
@@ -47,7 +47,7 @@ paths-ignore:
   - docs
   - scripts
 
-# Paths to include (explicit inclusion)
+# Explicit paths to include (focus on actual source)
 paths:
   - contracts/src
   - contracts/script
