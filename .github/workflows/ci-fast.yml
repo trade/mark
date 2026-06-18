@@ -16,9 +16,10 @@ permissions:
 jobs:
   secrets:
     name: Secret Scan (trufflehog)
+    # trufflehog --github-actions only emits workflow annotations (no SARIF
+    # upload to the code-scanning API), so this job needs only contents: read.
     permissions:
       contents: read
-      security-events: write
     uses: ./.github/workflows/_reusable-secrets.yml
 
   typecheck-lint:
