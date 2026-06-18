@@ -11,7 +11,6 @@ concurrency:
 
 permissions:
   contents: read
-  security-events: write
 
 jobs:
   secrets:
@@ -34,12 +33,18 @@ jobs:
 
   contracts-security:
     name: Contracts Security (Semgrep)
+    # semgrep scan --error does not upload SARIF; no security-events needed.
+    permissions:
+      contents: read
     uses: ./.github/workflows/_reusable-contracts-security.yml
     with:
       run_semgrep: 'true'
 
   contracts-fuzz:
     name: Contracts Fuzz
+    # forge test does not upload SARIF; no security-events needed.
+    permissions:
+      contents: read
     uses: ./.github/workflows/_reusable-contracts-fuzz.yml
     with:
       run_fuzz: 'true'
