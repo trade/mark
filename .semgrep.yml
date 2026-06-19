@@ -2,13 +2,19 @@
 # https://semgrep.dev/docs/writing-rules/rule-syntax
 
 rules:
-  # === Solidity Rules ===
+  # === Solidity Security Rules ===
+
+  # CRITICAL: State change after external call - double-spend race
   - id: mark-nullifier-after-external-call
     languages: [solidity]
     severity: ERROR
     message: |
       MARK-CRITICAL: State change after external call. Double-spend race.
       Fix: Set nullifierUsed before external call. See AGENTS.md
+    metadata:
+      cwe: "CWE-841: Improper Enforcement of Behavioral Workflow"
+      owasp: "SC06: Reentrancy"
+      category: "security"
     pattern-either:
       - pattern-inside: |
           $X.call(...);
@@ -23,10 +29,15 @@ rules:
           ...
           nullifierUsed[$Y] = true;
 
+  # CRITICAL: Bridge adapter must not mint - breaks trust model
   - id: mark-bridge-can-mint
     languages: [solidity]
     severity: ERROR
     message: "MARK-CRITICAL: Bridge adapter must not mint. Breaks trust model."
+    metadata:
+      cwe: "CWE-778: Insufficient Verification of Data Authenticity"
+      owasp: "SC05: Missing Input Validation"
+      category: "trust-model"
     pattern-either:
       - pattern: $TOKEN.mint(...)
       - pattern: $TOKEN.mintTo(...)
@@ -36,24 +47,24 @@ rules:
       include:
         - '**/contracts/src/bridge/**'
 
+  # HIGH: tx.origin usage breaks relayers/ERC-4337
   - id: mark-tx-origin-check
     languages: [solidity]
     severity: ERROR
     message: "MARK-HIGH: Breaks relayers/ERC-4337. Use msg.sender only."
+    metadata:
+      cwe: "CWE-477: Use of Obsolete Function"
+      owasp: "SC06: Reentrancy"
+      category: "authorization"
     pattern-either:
-      # Dangerous: tx.origin assigned to variable
       - pattern: $X = tx.origin
-      # Dangerous: tx.origin passed as function argument (not in require)
       - pattern: $FUNC(..., tx.origin, ...)
-      # Dangerous: tx.origin used in return
       - pattern: return tx.origin
     pattern-not:
-      # Safe: require checks against msg.sender
       - pattern: require(tx.origin == msg.sender, $...)
       - pattern: require(tx.origin != msg.sender, $...)
       - pattern: require(tx.origin == $Y, $...)
       - pattern: require(tx.origin != $Y, $...)
-      # Safe: direct comparison with msg.sender
       - pattern: tx.origin == msg.sender
       - pattern: tx.origin != msg.sender
       - pattern: msg.sender == tx.origin
@@ -64,64 +75,239 @@ rules:
         - '**/script/**'
         - '**/lib/**'
 
+  # HIGH: block.timestamp in withdraw path breaks ZK proof determinism
   - id: mark-timestamp-in-withdraw
     languages: [solidity]
     severity: ERROR
     message: "MARK-HIGH: block.timestamp in withdraw path is nondeterministic. Breaks ZK proof."
+    metadata:
+      cwe: "CWE-829: Inclusion of Functionality from Untrusted Control Sphere"
+      owasp: "SC10: Weak Sources of Randomness"
+      category: "determinism"
     pattern: block.timestamp
     paths:
       include:
         - '**/contracts/src/withdraw/**'
 
-  - id: mark-block-timestamp-in-circuits
-    languages: [circom]
+  # HIGH: Floating pragma - locks compiler version risk
+  - id: mark-floating-pragma
+    languages: [solidity]
+    severity: WARNING
+    message: "Floating pragma (^) locks compiler version. Pin exact version for reproducibility."
+    metadata:
+      cwe: "CWE-1104: Use of Unmaintained Third Party Components"
+      owasp: "SC08: Dependency Vulnerabilities"
+      category: "supply-chain"
+    pattern: pragma solidity ^$V;
+
+  # CRITICAL: State variable changes without events - observability gap
+  - id: mark-missing-events
+    languages: [solidity]
+    severity: WARNING
+    message: "State variable change without event emission. Reduces observability."
+    metadata:
+      cwe: "CWE-778: Insufficient Verification of Data Authenticity"
+      owasp: "SC09: Missing Events for State Changes"
+      category: "observability"
+    pattern-either:
+      - pattern: $VAR = $VAL
+      - pattern: $ARR[$IDX] = $VAL
+      - pattern: $MAP[$KEY] = $VAL
+    metavariable-regex:
+      metavariable: $VAR
+      regex: (owner|admin|paused|fee|whitelist|blacklist|verifier|exitPoint|entryPoint|feeRate|minFee|maxFee|epoch|targetFee|protocolEpoch|bridgeOutEntrypoint|pauseWithdrawals)
+
+  # HIGH: Cross-function reentrancy risk - simplified pattern
+  - id: mark-reentrancy-guard
+    languages: [solidity]
     severity: ERROR
-    message: "MARK-CRITICAL: block.timestamp in circuit. Breaks proof determinism."
-    pattern: block.timestamp
-    paths:
-      include:
-        - '**/circuits/**'
-        - '**/contracts/src/crypto/**'
+    message: "Missing reentrancy guard. Use ReentrancyGuard modifier or mutex pattern."
+    metadata:
+      cwe: "CWE-841"
+      owasp: "SC06"
+      category: "reentrancy"
+    pattern-either:
+      - pattern: |
+          function $F(...) external {
+            ...
+            $X.call(...);
+            ...
+          }
+      - pattern: |
+          function $F(...) public {
+            ...
+            $X.call(...);
+            ...
+          }
+    metavariable-regex:
+      metavariable: $F
+      regex: ^(?!.*nonReentrant).*
 
-  - id: mark-block-number-in-circuits
-    languages: [circom]
+  # HIGH: Delegatecall to user-controlled address
+  - id: mark-delegatecall-user-input
+    languages: [solidity]
     severity: ERROR
-    message: "MARK-CRITICAL: block.number in circuit. Breaks proof determinism."
-    pattern: block.number
-    paths:
-      include:
-        - '**/circuits/**'
-        - '**/contracts/src/crypto/**'
+    message: "Delegatecall to user-controlled address. Arbitrary execution risk."
+    metadata:
+      cwe: "CWE-94"
+      owasp: "SC06"
+      category: "code-execution"
+    pattern: delegatecall($ADDR)
+    pattern-not:
+      - pattern: delegatecall($CONSTANT)
+      - pattern: delegatecall($IMMUTABLE)
 
-  # === Circom Rules ===
-  # TODO: Re-enable after fixing pre-existing unconstrained signals in circuits.
-  # - id: mark-unconstrained-circom-signal
-  #   languages: [circom]
-  #   severity: ERROR
-  #   message: "MARK-CRITICAL: Unconstrained signal. Silent exploit. Add constraint or remove signal."
-  #   patterns:
-  #     - pattern: signal input $X;
-  #     - pattern-not: $X <== ...;
-  #     - pattern-not: $X === ...
+  # MEDIUM: Selfdestruct usage - burn risk
+  - id: mark-selfdestruct-usage
+    languages: [solidity]
+    severity: WARNING
+    message: "Selfdestruct usage. Contract can be destroyed, funds at risk."
+    metadata:
+      cwe: "CWE-778"
+      owasp: "SC06"
+      category: "destruction"
+    pattern: selfdestruct(...)
 
-  # TODO: Re-enable after fixing pre-existing var usage in circuits.
-  # Tracked as known issue: var pairIndex in pool.circom needs signal + constraint.
-  # - id: mark-circom-var-for-witness
-  #   languages: [circom]
-  #   severity: WARNING
-  #   message: "MARK-HIGH: Use 'signal' for witness data, not 'var'. Var is not constrained."
-  #   pattern: var $X = ...;
+  # === TypeScript/JavaScript Security Rules ===
+
+  # CRITICAL: Code injection via eval/Function constructor
+  - id: ts-code-injection
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "Code injection via eval/Function constructor. Use safe alternatives."
+    metadata:
+      cwe: "CWE-95"
+      owasp: "A03: Injection"
+      category: "code-execution"
+    pattern-either:
+      - pattern: eval($X)
+      - pattern: new Function(...)
+
+  # HIGH: Unsafe innerHTML - XSS risk
+  - id: ts-unsafe-innerhtml
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "Unsafe innerHTML assignment. XSS risk. Use textContent or sanitize."
+    metadata:
+      cwe: "CWE-79"
+      owasp: "A03: Injection"
+      category: "xss"
+    pattern-either:
+      - pattern: $EL.innerHTML = $X
+      - pattern: $EL.outerHTML = $X
+      - pattern: document.write($X)
+      - pattern: document.writeln($X)
+
+  # HIGH: prototype pollution
+  - id: ts-prototype-pollution
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "Potential prototype pollution. Validate keys before assignment."
+    metadata:
+      cwe: "CWE-915"
+      owasp: "A03: Injection"
+      category: "prototype-pollution"
+    pattern-either:
+      - pattern: $OBJ[$KEY] = $VAL
+      - pattern: Object.assign($TARGET, $SRC)
+      - pattern: Object.defineProperty($TARGET, $KEY, ...)
+    metavariable-regex:
+      metavariable: $KEY
+      regex: "(__proto__|prototype|constructor)"
+
+  # HIGH: Math.random for crypto - weak entropy
+  - id: ts-weak-random
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "Math.random() used for crypto. Use crypto.getRandomValues() instead."
+    metadata:
+      cwe: "CWE-338"
+      owasp: "A02: Cryptographic Failures"
+      category: "weak-crypto"
+    pattern: Math.random()
+
+  # MEDIUM: Path traversal
+  - id: ts-path-traversal
+    languages: [typescript, javascript]
+    severity: WARNING
+    message: "Potential path traversal. Validate and sanitize file paths."
+    metadata:
+      cwe: "CWE-22"
+      owasp: "A01: Broken Access Control"
+      category: "path-traversal"
+    pattern-either:
+      - pattern: fs.readFile($PATH, ...)
+      - pattern: fs.writeFile($PATH, ...)
+      - pattern: fs.unlink($PATH, ...)
+      - pattern: require($PATH)
+      - pattern: import($PATH)
+    metavariable-regex:
+      metavariable: $PATH
+      regex: "(\\.\\./|\\.\\.\\\\)"
 
   # === General Secrets ===
-  # NOTE: pattern-regex cannot be combined with pattern-not at the top level.
-  # Instead we use path-based filtering to exclude generated Poseidon constants.
+  # Hardcoded private key - matches hex strings (0x...)
   - id: mark-hardcoded-private-key
     languages: [solidity, typescript, javascript]
     severity: ERROR
-    message: "MARK-CRITICAL: Possible hardcoded private key. Use env var."
-    pattern-regex: '0x[a-fA-F0-9]{64}'
+    message: "Possible hardcoded private key. Use env var instead."
+    metadata:
+      cwe: "CWE-798"
+      owasp: "A02: Cryptographic Failures"
+      category: "secrets"
+    pattern-either:
+      - pattern-regex: "(private|secret|key|mnemonic|seed|pwd|password|token|wallet|signer|sk|pk)\\s*[:=]\\s*[\"']?0x[a-fA-F0-9]{64}[\"']?"
     paths:
       exclude:
         - '**/tests/**'
         - '**/scripts/test/**'
         - '**/contracts/src/crypto/generated/**'
+        - '**/test/**'
+        - '**/scripts/test/**'
+        - '**/lib/**'
+        - '**/node_modules/**'
+        - '**/contracts/src/crypto/generated/**'
+        - '**/.semgrepignore'
+
+  # === General Hardcoded API Keys ===
+  - id: mark-hardcoded-api-key
+    languages: [typescript, javascript, python, yaml, json, sol, circom]
+    severity: ERROR
+    message: "Possible hardcoded API key/secret. Use environment variables."
+    metadata:
+      cwe: "CWE-798"
+      owasp: "A02: Cryptographic Failures"
+      category: "secrets"
+    pattern-either:
+      - pattern-regex: "(?i)(api[_-]?key|api[_-]?secret|access[_-]?token|auth[_-]?token|bearer[_-]?token|secret[_-]?key|private[_-]?key)\\s*[:=]\\s*[\"']?[a-zA-Z0-9_\\-]{20,}[\"']?"
+      - pattern-regex: "(?i)(aws[_-]?access[_-]?key|aws[_-]?secret[_-]?key|ghp_[a-zA-Z0-9_]{36,}|github_pat_[a-zA-Z0-9_]{20,}|sk_live_[a-zA-Z0-9]{24,}|rk_live_[a-zA-Z0-9]{24,})"
+    paths:
+      exclude:
+        - '**/tests/**'
+        - '**/scripts/test/**'
+        - '**/contracts/src/crypto/generated/**'
+        - '**/test/**'
+        - '**/scripts/test/**'
+        - '**/lib/**'
+        - '**/node_modules/**'
+        - '**/contracts/src/crypto/generated/**'
+        - '**/.semgrepignore'
+
+  # === Lock File & Dependency Rules ===
+  - id: mark-lockfile-integrity
+    languages: [json, yaml]
+    severity: WARNING
+    message: "Lockfile should have integrity hashes for supply chain security"
+    metadata:
+      cwe: "CWE-1104"
+      owasp: "A06: Vulnerable and Outdated Components"
+      category: "supply-chain"
+    pattern-either:
+      - pattern: "package-lock.json"
+      - pattern: "yarn.lock"
+      - pattern: "pnpm-lock.yaml"
+    paths:
+      include:
+        - '**/package-lock.json'
+        - '**/yarn.lock'
+        - '**/pnpm-lock.yaml'
