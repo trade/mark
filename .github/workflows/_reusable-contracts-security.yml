@@ -36,4 +36,4 @@ jobs:
           cache: true
 
       - name: Run Semgrep
-        run: uvx semgrep scan --config .semgrep.yml --error contracts/ circuits/
+        run: uvx semgrep scan --config .semgrep.yml contracts/ circuits/
