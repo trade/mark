@@ -130,9 +130,6 @@ rules:
             $X.call(...);
             ...
           }
-    metavariable-regex:
-      metavariable: $F
-      regex: ^(?!.*nonReentrant).*
 
   # HIGH: Delegatecall to user-controlled address
   - id: mark-delegatecall-user-input
