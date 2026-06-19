@@ -26,13 +26,23 @@ jobs:
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 0
+          fetch-tags: true
+
+      - name: Fetch baseline tag
+        run: git fetch origin tag semgrep-baseline-v1 || true
 
       - name: Install Semgrep
         run: pip install semgrep==1.163.0
 
-      - name: Run Semgrep with SARIF output
+      - name: Run Semgrep with SARIF output (baseline-aware)
         run: |
-          semgrep --config=.semgrep.yml --sarif --output=semgrep.sarif . || true
+          # Use baseline tag to only report NEW findings
+          BASELINE_SHA=$(git rev-parse semgrep-baseline-v1^{commit} 2>/dev/null || echo "")
+          if [ -n "$BASELINE_SHA" ]; then
+            semgrep --config=.semgrep.yml --sarif --output=semgrep.sarif --baseline-commit=$BASELINE_SHA . || true
+          else
+            semgrep --config=.semgrep.yml --sarif --output=semgrep.sarif . || true
+          fi
         env:
           SEMGREP_SEND_METRICS: "off"
 
