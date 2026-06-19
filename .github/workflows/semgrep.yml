@@ -27,11 +27,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Semgrep
-        uses: returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
-        with:
-          config: .semgrep.yml
-          generateSarif: true
+      - name: Install Semgrep
+        run: pip install semgrep
+
+      - name: Run Semgrep
+        run: semgrep --sarif --output semgrep.sarif --config .semgrep.yml .
 
       - name: Upload SARIF to GitHub Security
         if: always()
