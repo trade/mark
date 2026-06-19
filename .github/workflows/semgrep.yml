@@ -37,7 +37,7 @@ jobs:
       - name: Run Semgrep with SARIF output (baseline-aware)
         run: |
           # Use baseline tag to only report NEW findings
-          BASELINE_SHA=$(git rev-parse semgrep-baseline-v1 2>/dev/null || echo "")
+          BASELINE_SHA=$(git rev-parse semgrep-baseline-v1^{commit} 2>/dev/null || echo "")
           if [ -n "$BASELINE_SHA" ]; then
             semgrep --config=.semgrep.yml --sarif --output=semgrep.sarif --baseline-commit=$BASELINE_SHA . || true
           else
