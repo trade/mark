@@ -91,25 +91,26 @@ rules:
       category: "supply-chain"
     pattern: pragma solidity ^$V;
 
-  # HIGH: Cross-function reentrancy - state change before external call in different functions
+  # HIGH: Unguarded ETH transfer/send - no return value check or require wrapper
+  # Note: .call() overlap is handled by mark-missing-return-check; this rule focuses on
+  # .transfer() and .send() which are not covered there.
   - id: mark-cross-function-reentrancy
     languages: [solidity]
     severity: ERROR
-    message: "MARK-HIGH: Cross-function reentrancy risk. External call before state update in another function."
+    message: "MARK-HIGH: Unguarded ETH transfer/send. Wrap with require() or check return value."
     metadata:
       cwe: "CWE-841: Improper Enforcement of Behavioral Workflow"
       owasp: "SC06: Reentrancy"
       category: "security"
     pattern-either:
-      - pattern: $X.call(...)
       - pattern: $X.transfer(...)
       - pattern: $X.send(...)
     pattern-not:
-      - pattern: require($X.call(...))
-      - pattern: assert($X.call(...))
-      - pattern: ($OK, $DATA) = $X.call(...)
-      - pattern: ($OK, ) = $X.call(...)
-      - pattern: $OK = $X.call(...)
+      - pattern: require($X.transfer(...))
+      - pattern: assert($X.transfer(...))
+      - pattern: require($X.send(...))
+      - pattern: assert($X.send(...))
+      - pattern: $OK = $X.send(...)
     paths:
       exclude:
         - '**/test/**'
@@ -201,6 +202,16 @@ rules:
       - pattern: $OK = $X.call(...)
       - pattern: require($X.call(...))
       - pattern: assert($X.call(...))
+      - pattern: ($OK, $DATA) = $X.delegatecall(...)
+      - pattern: ($OK, ) = $X.delegatecall(...)
+      - pattern: $OK = $X.delegatecall(...)
+      - pattern: require($X.delegatecall(...))
+      - pattern: assert($X.delegatecall(...))
+      - pattern: ($OK, $DATA) = $X.staticcall(...)
+      - pattern: ($OK, ) = $X.staticcall(...)
+      - pattern: $OK = $X.staticcall(...)
+      - pattern: require($X.staticcall(...))
+      - pattern: assert($X.staticcall(...))
     paths:
       exclude:
         - '**/test/**'
@@ -280,7 +291,9 @@ rules:
       - pattern: require($PATH)
       - pattern: import($PATH)
 
-  # HIGH: Insecure deserialization - JSON.parse with reviver, eval variants
+  # HIGH: Insecure deserialization - JSON.parse with reviver, yaml parsing
+  # Note: bare JSON.parse($X) is intentionally excluded (too broad - matches all deserialization).
+  # eval/new Function are covered by ts-code-injection.
   - id: ts-insecure-deserialization
     languages: [typescript, javascript]
     severity: ERROR
@@ -291,12 +304,11 @@ rules:
       category: "deserialization"
     pattern-either:
       - pattern: JSON.parse($X, $Y)
-      - pattern: JSON.parse($X)
-      - pattern-regex: "(JSON|yaml|YAML)\\.parse\\("
-      - pattern: eval($X)
-      - pattern: new Function(...)
+      - pattern-regex: "(yaml|YAML)\\.parse\\("
 
-  # HIGH: ReDoS - unsafe regex patterns
+  # HIGH: ReDoS - dynamic regex construction from variables
+  # Note: $STR.match/replace/split patterns are excluded (match all string ops regardless of
+  # whether the regex is user-supplied or a compile-time constant - too noisy).
   - id: ts-redos
     languages: [typescript, javascript]
     severity: WARNING
@@ -308,9 +320,6 @@ rules:
     pattern-either:
       - pattern: new RegExp($X)
       - pattern-regex: "/.*(\\+|\\*).*\\{.*\\}.*/"
-      - pattern: $STR.match($REGEX)
-      - pattern: $STR.replace($REGEX, ...)
-      - pattern: $STR.split($REGEX)
 
   # HIGH: Command injection - child_process with user input
   - id: ts-command-injection
