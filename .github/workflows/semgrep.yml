@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Semgrep
-        uses: returntocorp/semgrep-action@v1
+        uses: returntocorp/semgrep-action@713efdd345f3035192eaa63f56867b88e63e4e5d # v1
         with:
           config: .semgrep.yml
           generateSarif: true
