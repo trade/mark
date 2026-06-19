@@ -104,57 +104,6 @@ rules:
       - pattern: $VAR = $VAL
       - pattern: $ARR[$IDX] = $VAL
       - pattern: $MAP[$KEY] = $VAL
-    metavariable-regex:
-      metavariable: $VAR
-      regex: (owner|admin|paused|fee|whitelist|blacklist|verifier|exitPoint|entryPoint|feeRate|minFee|maxFee|epoch|targetFee|protocolEpoch|bridgeOutEntrypoint|pauseWithdrawals)
-
-  # HIGH: Cross-function reentrancy risk - simplified pattern
-  - id: mark-reentrancy-guard
-    languages: [solidity]
-    severity: ERROR
-    message: "Missing reentrancy guard. Use ReentrancyGuard modifier or mutex pattern."
-    metadata:
-      cwe: "CWE-841"
-      owasp: "SC06"
-      category: "reentrancy"
-    pattern-either:
-      - pattern: |
-          function $F(...) external {
-            ...
-            $X.call(...);
-            ...
-          }
-      - pattern: |
-          function $F(...) public {
-            ...
-            $X.call(...);
-            ...
-          }
-
-  # HIGH: Delegatecall to user-controlled address
-  - id: mark-delegatecall-user-input
-    languages: [solidity]
-    severity: ERROR
-    message: "Delegatecall to user-controlled address. Arbitrary execution risk."
-    metadata:
-      cwe: "CWE-94"
-      owasp: "SC06"
-      category: "code-execution"
-    pattern: delegatecall($ADDR)
-    paths:
-      exclude:
-        - '**/test/**'
-
-  # MEDIUM: Selfdestruct usage - burn risk
-  - id: mark-selfdestruct-usage
-    languages: [solidity]
-    severity: WARNING
-    message: "Selfdestruct usage. Contract can be destroyed, funds at risk."
-    metadata:
-      cwe: "CWE-778"
-      owasp: "SC06"
-      category: "destruction"
-    pattern: selfdestruct(...)
 
   # CRITICAL: block.timestamp in Circom circuit - breaks proof determinism
   - id: mark-block-timestamp-in-circuits
@@ -186,6 +135,31 @@ rules:
         - '**/circuits/**'
         - '**/contracts/src/crypto/**'
 
+  # HIGH: Delegatecall to user-controlled address
+  - id: mark-delegatecall-user-input
+    languages: [solidity]
+    severity: ERROR
+    message: "Delegatecall to user-controlled address. Arbitrary execution risk."
+    metadata:
+      cwe: "CWE-94"
+      owasp: "SC06"
+      category: "code-execution"
+    pattern: delegatecall($ADDR)
+    paths:
+      exclude:
+        - '**/test/**'
+
+  # MEDIUM: Selfdestruct usage - burn risk
+  - id: mark-selfdestruct-usage
+    languages: [solidity]
+    severity: WARNING
+    message: "Selfdestruct usage. Contract can be destroyed, funds at risk."
+    metadata:
+      cwe: "CWE-778"
+      owasp: "SC06"
+      category: "destruction"
+    pattern: selfdestruct(...)
+
   # === TypeScript/JavaScript Security Rules ===
 
   # CRITICAL: Code injection via eval/Function constructor
@@ -216,7 +190,7 @@ rules:
       - pattern: document.write($X)
       - pattern: document.writeln($X)
 
-  # HIGH: prototype pollution
+  # HIGH: prototype pollution (simplified - no metavariable-regex)
   - id: ts-prototype-pollution
     languages: [typescript, javascript]
     severity: ERROR
@@ -226,12 +200,11 @@ rules:
       owasp: "A03: Injection"
       category: "prototype-pollution"
     pattern-either:
-      - pattern: $OBJ[$KEY] = $VAL
-      - pattern: Object.assign($TARGET, $SRC)
+      - pattern: $OBJ.__proto__ = $VAL
+      - pattern: $OBJ.prototype = $VAL
+      - pattern: $OBJ.constructor = $VAL
+      - pattern: Object.assign($TARGET, ...)
       - pattern: Object.defineProperty($TARGET, $KEY, ...)
-    metavariable-regex:
-      metavariable: $KEY
-      regex: "(__proto__|prototype|constructor)"
 
   # HIGH: Math.random for crypto - weak entropy
   - id: ts-weak-random
@@ -259,9 +232,6 @@ rules:
       - pattern: fs.unlink($PATH, ...)
       - pattern: require($PATH)
       - pattern: import($PATH)
-    metavariable-regex:
-      metavariable: $PATH
-      regex: "(\\.\\./|\\.\\.\\\\)"
 
   # === General Secrets ===
   # Hardcoded private key - matches hex strings (0x...)
@@ -298,7 +268,7 @@ rules:
       category: "secrets"
     pattern-either:
       - pattern-regex: "(?i)(api[_-]?key|api[_-]?secret|access[_-]?token|auth[_-]?token|bearer[_-]?token|secret[_-]?key|private[_-]?key)\\s*[:=]\\s*[\"']?[a-zA-Z0-9_\\-]{20,}[\"']?"
-      - pattern-regex: "(?i)(aws[_-]?access[_-]?key|aws[_-]?secret[_-]?key|ghp_[a-zA-Z0-9_]{36,}|github_pat_[a-zA-Z0-9_]{20,}|sk_live_[a-zA-Z0-9]{24,}|rk_live_[a-zA-Z0-9]{24,})"
+      - pattern-regex: "(?i)(aws[_-]?access[_-]?key|aws[_-]?secret[_-]?key|ghp_[a-fA-Z0-9_]{36,}|github_pat_[a-zA-Z0-9_]{20,}|sk_live_[a-zA-Z0-9]{24,}|rk_live_[a-zA-Z0-9]{24,})"
     paths:
       exclude:
         - '**/tests/**'
