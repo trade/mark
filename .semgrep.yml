@@ -156,6 +156,36 @@ rules:
       category: "destruction"
     pattern: selfdestruct(...)
 
+  # CRITICAL: block.timestamp in Circom circuit - breaks proof determinism
+  - id: mark-block-timestamp-in-circuits
+    languages: [circom]
+    severity: ERROR
+    message: "MARK-CRITICAL: block.timestamp in circuit. Breaks proof determinism."
+    metadata:
+      cwe: "CWE-829: Inclusion of Functionality from Untrusted Control Sphere"
+      owasp: "SC10: Weak Sources of Randomness"
+      category: "determinism"
+    pattern: block.timestamp
+    paths:
+      include:
+        - '**/circuits/**'
+        - '**/contracts/src/crypto/**'
+
+  # CRITICAL: block.number in Circom circuit - breaks proof determinism
+  - id: mark-block-number-in-circuits
+    languages: [circom]
+    severity: ERROR
+    message: "MARK-CRITICAL: block.number in circuit. Breaks proof determinism."
+    metadata:
+      cwe: "CWE-829: Inclusion of Functionality from Untrusted Control Sphere"
+      owasp: "SC10: Weak Sources of Randomness"
+      category: "determinism"
+    pattern: block.number
+    paths:
+      include:
+        - '**/circuits/**'
+        - '**/contracts/src/crypto/**'
+
   # === TypeScript/JavaScript Security Rules ===
 
   # CRITICAL: Code injection via eval/Function constructor
