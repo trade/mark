@@ -91,10 +91,54 @@ rules:
       category: "supply-chain"
     pattern: pragma solidity ^$V;
 
+  # HIGH: Unguarded ETH transfer/send - no return value check or require wrapper
+  # Note: .call() overlap is handled by mark-missing-return-check; this rule focuses on
+  # .transfer() and .send() which are not covered there.
+  - id: mark-cross-function-reentrancy
+    languages: [solidity]
+    severity: ERROR
+    message: "MARK-HIGH: Unguarded ETH transfer/send. Wrap with require() or check return value."
+    metadata:
+      cwe: "CWE-841: Improper Enforcement of Behavioral Workflow"
+      owasp: "SC06: Reentrancy"
+      category: "security"
+    pattern-either:
+      - pattern: $X.transfer(...)
+      - pattern: $X.send(...)
+    pattern-not:
+      - pattern: require($X.transfer(...))
+      - pattern: assert($X.transfer(...))
+      - pattern: require($X.send(...))
+      - pattern: assert($X.send(...))
+      - pattern: $OK = $X.send(...)
+    paths:
+      exclude:
+        - '**/test/**'
+        - '**/script/**'
+        - '**/lib/**'
+
+  # HIGH: Uninitialized storage pointer - struct assignment without storage keyword
+  - id: mark-uninitialized-storage-pointer
+    languages: [solidity]
+    severity: ERROR
+    message: "MARK-HIGH: Uninitialized storage pointer. Use 'storage' keyword or memory for struct copies."
+    metadata:
+      cwe: "CWE-823: Use of Out-of-range Pointer Offset"
+      owasp: "SC06: Reentrancy"
+      category: "memory-safety"
+    pattern-either:
+      - pattern-regex: "[A-Za-z_][A-Za-z0-9_]*\\s+[Ss]truct\\s+[A-Za-z_][A-Za-z0-9_]*\\s*="
+      - pattern-regex: "[Ss]truct\\s+[A-Za-z_][A-Za-z0-9_]*\\s+[A-Za-z_][A-Za-z0-9_]*\\s*="
+    paths:
+      exclude:
+        - '**/test/**'
+        - '**/script/**'
+        - '**/lib/**'
+
   # CRITICAL: State variable changes without events - observability gap
   - id: mark-missing-events
     languages: [solidity]
-    severity: WARNING
+    severity: INFO
     message: "State variable change without event emission. Reduces observability."
     metadata:
       cwe: "CWE-778: Insufficient Verification of Data Authenticity"
@@ -104,6 +148,15 @@ rules:
       - pattern: $VAR = $VAL
       - pattern: $ARR[$IDX] = $VAL
       - pattern: $MAP[$KEY] = $VAL
+    metavariable-regex:
+      metavariable: $VAR
+      regex: (owner|admin|paused|fee|whitelist|blacklist|minter|pauser|guardian|feeCollector|protocolFee|poolFee|markFee|settlementFee|depositFee|withdrawFee|bridgeFee|minDeposit|maxDeposit|minWithdraw|maxWithdraw|dailyLimit|epochDuration|rootHistoryLength|maxRootAge|merkleRoot|supportedChains|chainId|messenger|verifier|feePolicy|poolImplementation|withdrawImplementation|settlementImplementation)
+    paths:
+      exclude:
+        - '**/test/**'
+        - '**/script/**'
+        - '**/lib/**'
+        - '**/contracts/src/interfaces/**'
 
   # HIGH: Delegatecall to user-controlled address
   - id: mark-delegatecall-user-input
@@ -129,6 +182,41 @@ rules:
       owasp: "SC06"
       category: "destruction"
     pattern: selfdestruct(...)
+
+  # HIGH: Missing return value check on external call
+  - id: mark-missing-return-check
+    languages: [solidity]
+    severity: ERROR
+    message: "MARK-HIGH: External call return value not checked. Silent failure risk."
+    metadata:
+      cwe: "CWE-252: Unchecked Return Value"
+      owasp: "SC06: Reentrancy"
+      category: "error-handling"
+    pattern-either:
+      - pattern: $X.call(...)
+      - pattern: $X.delegatecall(...)
+      - pattern: $X.staticcall(...)
+    pattern-not:
+      - pattern: ($OK, $DATA) = $X.call(...)
+      - pattern: ($OK, ) = $X.call(...)
+      - pattern: $OK = $X.call(...)
+      - pattern: require($X.call(...))
+      - pattern: assert($X.call(...))
+      - pattern: ($OK, $DATA) = $X.delegatecall(...)
+      - pattern: ($OK, ) = $X.delegatecall(...)
+      - pattern: $OK = $X.delegatecall(...)
+      - pattern: require($X.delegatecall(...))
+      - pattern: assert($X.delegatecall(...))
+      - pattern: ($OK, $DATA) = $X.staticcall(...)
+      - pattern: ($OK, ) = $X.staticcall(...)
+      - pattern: $OK = $X.staticcall(...)
+      - pattern: require($X.staticcall(...))
+      - pattern: assert($X.staticcall(...))
+    paths:
+      exclude:
+        - '**/test/**'
+        - '**/script/**'
+        - '**/lib/**'
 
   # === TypeScript/JavaScript Security Rules ===
 
@@ -203,8 +291,107 @@ rules:
       - pattern: require($PATH)
       - pattern: import($PATH)
 
+  # HIGH: Insecure deserialization - JSON.parse with reviver, yaml parsing
+  # Note: bare JSON.parse($X) is intentionally excluded (too broad - matches all deserialization).
+  # eval/new Function are covered by ts-code-injection.
+  - id: ts-insecure-deserialization
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "Insecure deserialization. Validate input before parsing."
+    metadata:
+      cwe: "CWE-502: Deserialization of Untrusted Data"
+      owasp: "A08: Software and Data Integrity Failures"
+      category: "deserialization"
+    pattern-either:
+      - pattern: JSON.parse($X, $Y)
+      - pattern-regex: "(yaml|YAML)\\.parse\\("
+
+  # HIGH: ReDoS - dynamic regex construction from variables
+  # Note: $STR.match/replace/split patterns are excluded (match all string ops regardless of
+  # whether the regex is user-supplied or a compile-time constant - too noisy).
+  - id: ts-redos
+    languages: [typescript, javascript]
+    severity: WARNING
+    message: "Potential ReDoS. Avoid unbounded quantifiers in user-controlled regex."
+    metadata:
+      cwe: "CWE-1333: Inefficient Regular Expression Complexity"
+      owasp: "A03: Injection"
+      category: "redos"
+    pattern-either:
+      - pattern: new RegExp($X)
+      - pattern-regex: "/.*(\\+|\\*).*\\{.*\\}.*/"
+
+  # HIGH: Command injection - child_process with user input
+  - id: ts-command-injection
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "Command injection risk. Use execFile or spawn with array args."
+    metadata:
+      cwe: "CWE-78: Improper Neutralization of Special Elements used in an OS Command"
+      owasp: "A03: Injection"
+      category: "command-injection"
+    pattern-either:
+      - pattern: child_process.exec($X, ...)
+      - pattern: child_process.execSync($X, ...)
+      - pattern: child_process.spawn($X, ...)
+      - pattern-regex: "child_process\\.spawn\\(.*\\$.*"
+      - pattern: require('child_process').exec($X)
+      - pattern: require('child_process').execSync($X)
+
+  # HIGH: SQL injection - template strings in query
+  - id: ts-sql-injection
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: "Potential SQL injection. Use parameterized queries."
+    metadata:
+      cwe: "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+      owasp: "A03: Injection"
+      category: "sql-injection"
+    pattern-either:
+      - pattern: $DB.query(`$QUERY`)
+      - pattern: $DB.execute(`$QUERY`)
+      - pattern: $DB.prepare(`$QUERY`)
+      - pattern: $DB.run(`$QUERY`)
+      - pattern: $DB.all(`$QUERY`)
+      - pattern: $DB.get(`$QUERY`)
+
+  # MEDIUM: Insecure HTTP requests - HTTP instead of HTTPS
+  - id: ts-insecure-http
+    languages: [typescript, javascript]
+    severity: WARNING
+    message: "Insecure HTTP request. Use HTTPS."
+    metadata:
+      cwe: "CWE-319: Cleartext Transmission of Sensitive Information"
+      owasp: "A02: Cryptographic Failures"
+      category: "insecure-transport"
+    pattern-either:
+      - pattern: fetch("http://$X", ...)
+      - pattern: axios.get("http://$X", ...)
+      - pattern: axios.post("http://$X", ...)
+      - pattern: axios.put("http://$X", ...)
+      - pattern: axios.delete("http://$X", ...)
+      - pattern: fetch("http://$X")
+      - pattern: axios("http://$X", ...)
+
+  # HIGH: Missing input validation - direct use of req.body/req.query/req.params
+  - id: ts-missing-validation
+    languages: [typescript, javascript]
+    severity: WARNING
+    message: "Direct use of request input without validation. Validate/sanitize first."
+    metadata:
+      cwe: "CWE-20: Improper Input Validation"
+      owasp: "A03: Injection"
+      category: "input-validation"
+    pattern-either:
+      - pattern: $REQ.body.$PROP
+      - pattern: $REQ.query.$PROP
+      - pattern: $REQ.params.$PROP
+    metavariable-regex:
+      metavariable: $REQ
+      regex: (req|request)
+
   # === General Secrets ===
-  # Hardcoded private key - matches hex strings (0x...)
+  # Hardcoded private key - matches hex strings (0x...) with context
   - id: mark-hardcoded-private-key
     languages: [solidity, typescript, javascript]
     severity: ERROR
@@ -214,7 +401,8 @@ rules:
       owasp: "A02: Cryptographic Failures"
       category: "secrets"
     pattern-either:
-      - pattern-regex: "(private|secret|key|mnemonic|seed|pwd|password|token|wallet|signer|sk|pk)\\s*[:=]\\s*[\"']?0x[a-fA-F0-9]{64}[\"']?"
+      - pattern-regex: "(?i)(private|secret|key|mnemonic|seed|pwd|password|token|wallet|signer|sk|pk)\\s*[:=]\\s*[\"']?0x[a-fA-F0-9]{64}[\"']?"
+      - pattern-regex: "(?i)(private|secret|key|mnemonic|seed|pwd|password|token|wallet|signer|sk|pk)\\s*[:=]\\s*[\"']?[a-fA-F0-9]{64}[\"']?"
     paths:
       exclude:
         - '**/tests/**'
