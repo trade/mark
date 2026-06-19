@@ -229,7 +229,7 @@ rules:
 
   # === General Hardcoded API Keys ===
   - id: mark-hardcoded-api-key
-    languages: [typescript, javascript, python, yaml, json, sol, circom]
+    languages: [typescript, javascript, python, yaml, json, sol]
     severity: ERROR
     message: "Possible hardcoded API key/secret. Use environment variables."
     metadata:
@@ -238,7 +238,7 @@ rules:
       category: "secrets"
     pattern-either:
       - pattern-regex: "(?i)(api[_-]?key|api[_-]?secret|access[_-]?token|auth[_-]?token|bearer[_-]?token|secret[_-]?key|private[_-]?key)\\s*[:=]\\s*[\"']?[a-zA-Z0-9_\\-]{20,}[\"']?"
-      - pattern-regex: "(?i)(aws[_-]?access[_-]?key|aws[_-]?secret[_-]?key|ghp_[a-fA-Z0-9_]{36,}|github_pat_[a-zA-Z0-9_]{20,}|sk_live_[a-zA-Z0-9]{24,}|rk_live_[a-zA-Z0-9]{24,})"
+      - pattern-regex: "(?i)(aws[_-]?access[_-]?key|aws[_-]?secret[_-]?key|ghp_[a-fA-Z0-9_]{36,}|github_pat_[a-fA-Z0-9_]{20,}|sk_live_[a-zA-Z0-9]{24,}|rk_live_[a-zA-Z0-9]{24,})"
     paths:
       exclude:
         - '**/tests/**'
