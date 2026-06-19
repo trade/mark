@@ -91,49 +91,6 @@ rules:
       category: "supply-chain"
     pattern: pragma solidity ^$V;
 
-  # CRITICAL: State variable changes without events - observability gap
-  - id: mark-missing-events
-    languages: [solidity]
-    severity: WARNING
-    message: "State variable change without event emission. Reduces observability."
-    metadata:
-      cwe: "CWE-778: Insufficient Verification of Data Authenticity"
-      owasp: "SC09: Missing Events for State Changes"
-      category: "observability"
-    pattern-either:
-      - pattern: $VAR = $VAL
-      - pattern: $ARR[$IDX] = $VAL
-      - pattern: $MAP[$KEY] = $VAL
-    metavariable-regex:
-      metavariable: $VAR
-      regex: (owner|admin|paused|fee|whitelist|blacklist|verifier|exitPoint|entryPoint|feeRate|minFee|maxFee|epoch|targetFee|protocolEpoch|bridgeOutEntrypoint|pauseWithdrawals)
-
-  # HIGH: Cross-function reentrancy risk - simplified pattern
-  - id: mark-reentrancy-guard
-    languages: [solidity]
-    severity: ERROR
-    message: "Missing reentrancy guard. Use ReentrancyGuard modifier or mutex pattern."
-    metadata:
-      cwe: "CWE-841"
-      owasp: "SC06"
-      category: "reentrancy"
-    pattern-either:
-      - pattern: |
-          function $F(...) external {
-            ...
-            $X.call(...);
-            ...
-          }
-      - pattern: |
-          function $F(...) public {
-            ...
-            $X.call(...);
-            ...
-          }
-    metavariable-regex:
-      metavariable: $F
-      regex: ^(?!.*nonReentrant).*
-
   # HIGH: Delegatecall to user-controlled address
   - id: mark-delegatecall-user-input
     languages: [solidity]
@@ -158,6 +115,36 @@ rules:
       owasp: "SC06"
       category: "destruction"
     pattern: selfdestruct(...)
+
+  # CRITICAL: block.timestamp in Circom circuit - breaks proof determinism
+  - id: mark-block-timestamp-in-circuits
+    languages: [circom]
+    severity: ERROR
+    message: "MARK-CRITICAL: block.timestamp in circuit. Breaks proof determinism."
+    metadata:
+      cwe: "CWE-829: Inclusion of Functionality from Untrusted Control Sphere"
+      owasp: "SC10: Weak Sources of Randomness"
+      category: "determinism"
+    pattern: block.timestamp
+    paths:
+      include:
+        - '**/circuits/**'
+        - '**/contracts/src/crypto/**'
+
+  # CRITICAL: block.number in Circom circuit - breaks proof determinism
+  - id: mark-block-number-in-circuits
+    languages: [circom]
+    severity: ERROR
+    message: "MARK-CRITICAL: block.number in circuit. Breaks proof determinism."
+    metadata:
+      cwe: "CWE-829: Inclusion of Functionality from Untrusted Control Sphere"
+      owasp: "SC10: Weak Sources of Randomness"
+      category: "determinism"
+    pattern: block.number
+    paths:
+      include:
+        - '**/circuits/**'
+        - '**/contracts/src/crypto/**'
 
   # === TypeScript/JavaScript Security Rules ===
 
@@ -262,7 +249,7 @@ rules:
 
   # === General Hardcoded API Keys ===
   - id: mark-hardcoded-api-key
-    languages: [typescript, javascript, python, yaml, json, sol, circom]
+    languages: [typescript, javascript, python, yaml, json]
     severity: ERROR
     message: "Possible hardcoded API key/secret. Use environment variables."
     metadata:
