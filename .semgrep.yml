@@ -60,15 +60,6 @@ rules:
       - pattern: $X = tx.origin
       - pattern: $FUNC(..., tx.origin, ...)
       - pattern: return tx.origin
-    pattern-not:
-      - pattern: require(tx.origin == msg.sender, $...)
-      - pattern: require(tx.origin != msg.sender, $...)
-      - pattern: require(tx.origin == $Y, $...)
-      - pattern: require(tx.origin != $Y, $...)
-      - pattern: tx.origin == msg.sender
-      - pattern: tx.origin != msg.sender
-      - pattern: msg.sender == tx.origin
-      - pattern: msg.sender != tx.origin
     paths:
       exclude:
         - '**/test/**'
@@ -153,9 +144,9 @@ rules:
       owasp: "SC06"
       category: "code-execution"
     pattern: delegatecall($ADDR)
-    pattern-not:
-      - pattern: delegatecall($CONSTANT)
-      - pattern: delegatecall($IMMUTABLE)
+    paths:
+      exclude:
+        - '**/test/**'
 
   # MEDIUM: Selfdestruct usage - burn risk
   - id: mark-selfdestruct-usage
