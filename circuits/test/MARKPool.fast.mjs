@@ -188,6 +188,35 @@ const withdrawBase = {
   inSecret0Upper: in0.secret / RELAYER_MAX,
 };
 await expectPass("valid 2-in 2-out transact with withdrawal", withdrawBase);
+
+// Happy path with non-zero inSecret0Upper: secret = RELAYER_MAX + 42n so upper = 1n, lower = 42n.
+// This exercises the `inSecret0Upper * 2^160` term in the binding constraint.
+const in0Large = makeNote(500n, RELAYER_MAX + 42n, 999n);
+const treeLarge = buildTwoLeafRoot(in0Large.commitment, in1.commitment, DEPTH);
+const nullifier0Large = makeNullifier(in0Large, CHAIN_ID);
+await expectPass("withdrawal with non-zero inSecret0Upper (upper-bits binding)", {
+  inAmount: [in0Large.amount, in1.amount],
+  inSecret: [in0Large.secret, in1.secret],
+  inBlinding: [in0Large.blinding, in1.blinding],
+  inPathElements: [treeLarge.path0.elements, treeLarge.path1.elements],
+  inPathIndices: [treeLarge.path0.indices, treeLarge.path1.indices],
+  outAmount: [out0Amount, out1Amount],
+  outSecret: [out0Secret, out1Secret],
+  outBlinding: [out0Blinding, out1Blinding],
+  merkleRoot: treeLarge.root,
+  chainId: CHAIN_ID,
+  dstChainId: CHAIN_ID,
+  protocolEpoch: 0n,
+  fee: 300n,
+  relayer: 0n,
+  nullifier: [nullifier0Large, nullifier1],
+  outCommitment: [outC0, outC1],
+  withdrawOwner: in0Large.secret % RELAYER_MAX,  // 42n — lower 160 bits
+  withdrawRecipient: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8n,
+  withdrawAmount: 200n,
+  inSecret0Upper: in0Large.secret / RELAYER_MAX, // 1n — non-zero upper bits
+});
+
 await expectFail("wrong withdrawOwner (tampered)", {
   ...withdrawBase,
   withdrawOwner: 222n,
