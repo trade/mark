@@ -72,6 +72,7 @@ const DOMAIN_NULLIFIER_TAG = DOMAIN_VERSION * 100n + DOMAIN_NULLIFIER;
 
 const DEPTH = 20;
 const CHAIN_ID = 11155420n; // OP Sepolia
+const RELAYER_MAX = 2n ** 160n;
 
 // Build a valid note
 function makeNote(amount, secret, blinding) {
@@ -161,6 +162,22 @@ console.log("MARKPool circuit fast tests");
 
 // Happy path - core functionality
 await expectPass("valid 2-in 2-out transact", validBase);
+
+// Withdrawal path - exercises inSecret0Upper binding constraint
+const withdrawOwner = in0.secret % RELAYER_MAX; // lower 160 bits
+const withdrawBase = {
+  ...validBase,
+  fee: 300n,
+  withdrawOwner,
+  withdrawRecipient: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8n,
+  withdrawAmount: 200n,
+  inSecret0Upper: in0.secret / RELAYER_MAX,
+};
+await expectPass("valid 2-in 2-out transact with withdrawal", withdrawBase);
+await expectFail("wrong withdrawOwner (tampered)", {
+  ...withdrawBase,
+  withdrawOwner: 222n,
+});
 
 // Balance equation - critical invariants
 await expectFail("fee too low (balance broken)", { ...validBase, fee: fee - 1n });
