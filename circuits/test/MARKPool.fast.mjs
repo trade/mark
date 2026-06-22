@@ -154,6 +154,7 @@ const validBase = {
   withdrawOwner: 0n,
   withdrawRecipient: 0n,
   withdrawAmount: 0n,
+  inSecret0Upper: 0n,
 };
 
 console.log("MARKPool circuit fast tests");
