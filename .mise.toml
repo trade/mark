@@ -86,7 +86,7 @@ run = [
 [tasks.ci-fast]
 description = "Fast CI checks before push to feat/*"
 timeout = "600s"
-run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=./.semgrep.yml --severity ERROR --error contracts/ circuits/ && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test:fast"
+run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --severity ERROR --error contracts/ circuits/ && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test:fast"
 
 [tasks.ci-full]
 description = "Full CI before PR to dev/main"
