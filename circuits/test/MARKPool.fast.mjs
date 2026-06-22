@@ -73,6 +73,20 @@ const DOMAIN_NULLIFIER_TAG = DOMAIN_VERSION * 100n + DOMAIN_NULLIFIER;
 const DEPTH = 20;
 const CHAIN_ID = 11155420n; // OP Sepolia
 const RELAYER_MAX = 2n ** 160n;
+// BN254 scalar field prime (matches circom's field)
+const BN254_P = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
+// Modular inverse via extended Euclidean algorithm
+function modInverse(a, m) {
+  let [old_r, r] = [a % m, m];
+  let [old_s, s] = [1n, 0n];
+  while (r !== 0n) {
+    const q = old_r / r;
+    [old_r, r] = [r, old_r - q * r];
+    [old_s, s] = [s, old_s - q * s];
+  }
+  return ((old_s % m) + m) % m;
+}
 
 // Build a valid note
 function makeNote(amount, secret, blinding) {
@@ -177,6 +191,18 @@ await expectPass("valid 2-in 2-out transact with withdrawal", withdrawBase);
 await expectFail("wrong withdrawOwner (tampered)", {
   ...withdrawBase,
   withdrawOwner: 222n,
+});
+
+// Forged-upper attack: prover supplies inSecret0Upper = (secret - spoofedOwner) * RELAYER_MAX^-1 mod p
+// This satisfies the linear decomposition equation in-field but inSecret0Upper is ~254 bits,
+// which the Num2Bits(93) range check must reject.
+const spoofedOwner = 222n;
+const forgedUpper =
+  ((in0.secret - spoofedOwner + BN254_P) % BN254_P) * modInverse(RELAYER_MAX, BN254_P) % BN254_P;
+await expectFail("forged-upper owner binding bypass", {
+  ...withdrawBase,
+  withdrawOwner: spoofedOwner,
+  inSecret0Upper: forgedUpper,
 });
 
 // Balance equation - critical invariants
