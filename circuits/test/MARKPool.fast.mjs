@@ -221,6 +221,20 @@ await expectFail("wrong withdrawOwner (tampered)", {
   ...withdrawBase,
   withdrawOwner: 222n,
 });
+await expectFail("withdraw amount non-zero but owner zero", {
+  ...withdrawBase,
+  withdrawOwner: 0n,
+});
+await expectFail("withdraw amount non-zero but recipient zero", {
+  ...withdrawBase,
+  withdrawRecipient: 0n,
+});
+await expectFail("withdraw amount zero but owner non-zero", {
+  ...validBase,
+  withdrawOwner: withdrawOwner,
+  withdrawRecipient: 0n,
+  withdrawAmount: 0n,
+});
 
 // Forged-upper attack: prover supplies inSecret0Upper = (secret - spoofedOwner) * RELAYER_MAX^-1 mod p
 // This satisfies the linear decomposition equation in-field but inSecret0Upper is ~254 bits,
@@ -257,6 +271,10 @@ await expectFail("zero input amount", {
   ...validBase,
   inAmount: [0n, in1.amount],
   fee: in1.amount,
+});
+await expectFail("wrong output commitment", {
+  ...validBase,
+  outCommitment: [outC0 + 1n, outC1],
 });
 
 console.log("\nAll fast tests passed.");
