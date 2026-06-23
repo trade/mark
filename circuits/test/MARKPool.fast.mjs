@@ -72,6 +72,21 @@ const DOMAIN_NULLIFIER_TAG = DOMAIN_VERSION * 100n + DOMAIN_NULLIFIER;
 
 const DEPTH = 20;
 const CHAIN_ID = 11155420n; // OP Sepolia
+const RELAYER_MAX = 2n ** 160n;
+// BN254 scalar field prime (matches circom's field)
+const BN254_P = 21888242871839275222246405745257275088548364400416034343698204186575808495617n;
+
+// Modular inverse via extended Euclidean algorithm
+function modInverse(a, m) {
+  let [old_r, r] = [a % m, m];
+  let [old_s, s] = [1n, 0n];
+  while (r !== 0n) {
+    const q = old_r / r;
+    [old_r, r] = [r, old_r - q * r];
+    [old_s, s] = [s, old_s - q * s];
+  }
+  return ((old_s % m) + m) % m;
+}
 
 // Build a valid note
 function makeNote(amount, secret, blinding) {
@@ -154,12 +169,84 @@ const validBase = {
   withdrawOwner: 0n,
   withdrawRecipient: 0n,
   withdrawAmount: 0n,
+  inSecret0Upper: 0n,
 };
 
 console.log("MARKPool circuit fast tests");
 
 // Happy path - core functionality
 await expectPass("valid 2-in 2-out transact", validBase);
+
+// Withdrawal path - exercises inSecret0Upper binding constraint
+const withdrawOwner = in0.secret % RELAYER_MAX; // lower 160 bits
+const withdrawBase = {
+  ...validBase,
+  fee: 300n,
+  withdrawOwner,
+  withdrawRecipient: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8n,
+  withdrawAmount: 200n,
+  inSecret0Upper: in0.secret / RELAYER_MAX,
+};
+await expectPass("valid 2-in 2-out transact with withdrawal", withdrawBase);
+
+// Happy path with non-zero inSecret0Upper: secret = RELAYER_MAX + 42n so upper = 1n, lower = 42n.
+// This exercises the `inSecret0Upper * 2^160` term in the binding constraint.
+const in0Large = makeNote(500n, RELAYER_MAX + 42n, 999n);
+const treeLarge = buildTwoLeafRoot(in0Large.commitment, in1.commitment, DEPTH);
+const nullifier0Large = makeNullifier(in0Large, CHAIN_ID);
+await expectPass("withdrawal with non-zero inSecret0Upper (upper-bits binding)", {
+  inAmount: [in0Large.amount, in1.amount],
+  inSecret: [in0Large.secret, in1.secret],
+  inBlinding: [in0Large.blinding, in1.blinding],
+  inPathElements: [treeLarge.path0.elements, treeLarge.path1.elements],
+  inPathIndices: [treeLarge.path0.indices, treeLarge.path1.indices],
+  outAmount: [out0Amount, out1Amount],
+  outSecret: [out0Secret, out1Secret],
+  outBlinding: [out0Blinding, out1Blinding],
+  merkleRoot: treeLarge.root,
+  chainId: CHAIN_ID,
+  dstChainId: CHAIN_ID,
+  protocolEpoch: 0n,
+  fee: 300n,
+  relayer: 0n,
+  nullifier: [nullifier0Large, nullifier1],
+  outCommitment: [outC0, outC1],
+  withdrawOwner: in0Large.secret % RELAYER_MAX,  // 42n — lower 160 bits
+  withdrawRecipient: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8n,
+  withdrawAmount: 200n,
+  inSecret0Upper: in0Large.secret / RELAYER_MAX, // 1n — non-zero upper bits
+});
+
+await expectFail("wrong withdrawOwner (tampered)", {
+  ...withdrawBase,
+  withdrawOwner: 222n,
+});
+await expectFail("withdraw amount non-zero but owner zero", {
+  ...withdrawBase,
+  withdrawOwner: 0n,
+});
+await expectFail("withdraw amount non-zero but recipient zero", {
+  ...withdrawBase,
+  withdrawRecipient: 0n,
+});
+await expectFail("withdraw amount zero but owner non-zero", {
+  ...validBase,
+  withdrawOwner: withdrawOwner,
+  withdrawRecipient: 0n,
+  withdrawAmount: 0n,
+});
+
+// Forged-upper attack: prover supplies inSecret0Upper = (secret - spoofedOwner) * RELAYER_MAX^-1 mod p
+// This satisfies the linear decomposition equation in-field but inSecret0Upper is ~254 bits,
+// which the Num2Bits(93) range check must reject.
+const spoofedOwner = 222n;
+const forgedUpper =
+  ((in0.secret - spoofedOwner + BN254_P) % BN254_P) * modInverse(RELAYER_MAX, BN254_P) % BN254_P;
+await expectFail("forged-upper owner binding bypass", {
+  ...withdrawBase,
+  withdrawOwner: spoofedOwner,
+  inSecret0Upper: forgedUpper,
+});
 
 // Balance equation - critical invariants
 await expectFail("fee too low (balance broken)", { ...validBase, fee: fee - 1n });
@@ -184,6 +271,10 @@ await expectFail("zero input amount", {
   ...validBase,
   inAmount: [0n, in1.amount],
   fee: in1.amount,
+});
+await expectFail("wrong output commitment", {
+  ...validBase,
+  outCommitment: [outC0 + 1n, outC1],
 });
 
 console.log("\nAll fast tests passed.");

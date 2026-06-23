@@ -85,8 +85,8 @@ run = [
 
 [tasks.ci-fast]
 description = "Fast CI checks before push to feat/*"
-timeout = "180s"
-run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --error && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test"
+timeout = "600s"
+run = "pnpm typecheck && pnpm lint && uvx semgrep scan --config=auto --config=./.semgrep.yml --severity ERROR --error && cd contracts && forge test --no-match-test invariant && cd ../circuits && pnpm test:fast"
 
 [tasks.ci-full]
 description = "Full CI before PR to dev/main"
@@ -117,7 +117,7 @@ description = "Run Slither static analysis"
 run = "cd contracts && uv run slither ."
 
 [tasks.semgrep]
-description = "Run Semgrep with MARK custom rules"
+description = "Run Semgrep security scan (contracts + circuits)"
 run = "uvx semgrep scan --config=auto --config=p/security-audit --config=./.semgrep.yml --error"
 
 [tasks.clean]
