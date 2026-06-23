@@ -42,9 +42,9 @@ jobs:
           # Use baseline tag to only report NEW findings
           BASELINE_SHA=$(git rev-parse semgrep-baseline-v1^{commit} 2>/dev/null || echo "")
           if [ -n "$BASELINE_SHA" ]; then
-            uvx semgrep@1.163.0 scan --config=.semgrep.yml --sarif --output=semgrep.sarif --baseline-commit=$BASELINE_SHA . || true
+            uvx semgrep@1.163.0 scan --config=.semgrep.yml --severity ERROR --error --sarif --output=semgrep.sarif --baseline-commit=$BASELINE_SHA .
           else
-            uvx semgrep@1.163.0 scan --config=.semgrep.yml --sarif --output=semgrep.sarif . || true
+            uvx semgrep@1.163.0 scan --config=.semgrep.yml --severity ERROR --error --sarif --output=semgrep.sarif .
           fi
         env:
           SEMGREP_SEND_METRICS: "off"
