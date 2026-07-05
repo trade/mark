@@ -1,0 +1,29 @@
+---
+description: MARK Circom circuit soundness, completeness, and validation rules.
+globs:
+  - "circuits/**/*.circom"
+  - "circuits/**/*.mjs"
+  - "circuits/package.json"
+alwaysApply: false
+---
+
+# MARK Circuits
+
+Follow root `AGENTS.md` for validation routing. Circuits are security-critical because proof verification must imply knowledge of valid witness data.
+
+## Security Rules
+
+- No unconstrained `<--` assignments.
+- No unused signals.
+- No `block.timestamp` or chain-time assumptions inside circuits.
+- Preserve public-signal ordering expected by contracts.
+- Nullifier and commitment logic must prevent double-spends and preserve privacy.
+
+## Validation
+
+- JS/test harness only: `pnpm circuits:test`
+- `.circom` changes: `pnpm circuits:test` and `mise run circomspect`
+- Soundness: `pnpm --filter @mark/circuits run test:soundness`
+- Completeness: `pnpm --filter @mark/circuits run test:completeness`
+
+If Circom fails with `/usr/local/bin/circom: line 1: Not: command not found` or `Not Found/usr/local/bin/circom`, treat it as a local toolchain issue first, not proof of a circuit regression.

@@ -1,0 +1,39 @@
+---
+description: MARK agent behavior governance for AGENTS, Cursor, Greptile, CI, and validation docs.
+globs:
+  - "AGENTS.md"
+  - "contracts/AGENTS.md"
+  - ".cursor/**"
+  - "greptile.json"
+  - "docs/development/BRANCHING.md"
+alwaysApply: false
+---
+
+# MARK Agent Behavior
+
+Follow root `AGENTS.md` first for agent behavior. Treat `docs/development/BRANCHING.md` as the branch and CI policy source, but verify any command or workflow claim against executable repo state before repeating it.
+
+## Required Alignment Checks
+
+When editing agent, Cursor, Greptile, CI, setup, or validation guidance:
+
+- Verify root scripts with `node -e "const p=require('./package.json'); console.log(Object.keys(p.scripts).sort().join('\n'))"`.
+- Verify mise task names in `.mise.toml`; do not assume `mise` is on PATH.
+- Verify contract Makefile targets in `contracts/Makefile`.
+- Verify GitHub workflow triggers and job names in `.github/workflows/`.
+- Verify contract domains with `find contracts/src -maxdepth 2 -type d | sort`.
+
+## Non-Negotiables
+
+- Do not advertise nonexistent commands such as `pnpm contracts:ci-fast`.
+- Do not claim `mise run ci-fast` is identical to GitHub `CI Fast`.
+- Do not expose untracked internal plans from `.cursor/plans` in committed docs or Greptile surfaces.
+- Do not weaken MARK security invariants to make docs simpler.
+- Redact private keys, RPC URLs, tokens, attester keys, deployer keys, and production env values.
+
+## Cursor Surfaces
+
+- Rules: `.cursor/rules/*.mdc`
+- Skills: `.cursor/skills/<name>/SKILL.md`
+
+Keep these files aligned with `AGENTS.md`, `contracts/AGENTS.md`, and `greptile.json`.

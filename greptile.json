@@ -7,7 +7,7 @@
   "excludeAuthors": ["dependabot[bot]"],
   "statusCheck": true,
   "ignorePatterns": "contracts/lib/**\ncontracts/out/**\ncontracts/cache/**\ncontracts/broadcast/**\ncontracts/coverage/**\ncircuits/build/**\ncircuits/utxo/**\n**/*.zkey\n**/*.ptau\n**/*.wtns\nnode_modules/**\ndist/**\ndist-ssr/**\npublic/**\nsupersim-logs/**\npnpm-lock.yaml\n**/*.generated.*",
-  "instructions": "MARK is privacy-first settlement infrastructure on the Optimism Superchain using ZK-SNARKs (Circom/Groth16) and UTXO accounting. Prioritize security, ZK-circuit soundness, and cross-chain correctness over style nits. Respect the domain layering enforced by the Makefile guards and the contracts/circuits/frontend separation. Per repo policy: commits must be signed and all GitHub Actions must be pinned to a full-length commit SHA.",
+  "instructions": "MARK is privacy-first settlement infrastructure on the Optimism Superchain using ZK-SNARKs (Circom/Groth16) and UTXO accounting. Prioritize security, ZK-circuit soundness, and cross-chain correctness over style nits. Respect AGENTS.md, contracts/AGENTS.md, .cursor/rules, and the domain layering enforced by the Makefile guards. Distinguish local validation from GitHub CI, and flag stale docs when executable repo state disagrees. Per repo policy: commits must be signed and all GitHub Actions must be pinned to a full-length commit SHA.",
   "customContext": {
     "rules": [
       {
@@ -29,19 +29,55 @@
       {
         "rule": "These scripts handle governance and release orchestration. Flag hardcoded credentials, missing auth headers, and destructive operations that lack confirmation guards.",
         "scope": ["scripts/**"]
+      },
+      {
+        "rule": "Agent behavior files must stay aligned with AGENTS.md, contracts/AGENTS.md, package.json scripts, .mise.toml tasks, contracts/Makefile targets, and GitHub workflows. Flag nonexistent commands, local-vs-CI equivalence claims, untracked plan/rule surfaces, and instructions that weaken MARK security invariants.",
+        "scope": ["AGENTS.md", "contracts/AGENTS.md", ".cursor/**", "greptile.json"]
       }
     ],
     "files": [
       {
-        "path": "docs/ARCHITECTURE.md",
+        "path": "AGENTS.md",
+        "description": "Root agent operating manual and validation router"
+      },
+      {
+        "path": "contracts/AGENTS.md",
+        "description": "Contract-specific agent loop"
+      },
+      {
+        "path": ".cursor/rules/mark-agents.mdc",
+        "description": "AGENTS/Cursor/Greptile behavior governance"
+      },
+      {
+        "path": ".cursor/rules/mark-contracts.mdc",
+        "description": "Contract architecture and validation routing"
+      },
+      {
+        "path": ".cursor/rules/mark-circuits.mdc",
+        "description": "Circuit soundness/completeness routing"
+      },
+      {
+        "path": ".cursor/skills/alignment/SKILL.md",
+        "description": "Repeatable AGENTS behavior alignment workflow"
+      },
+      {
+        "path": ".cursor/skills/semgrep/SKILL.md",
+        "description": "Semgrep security scan configuration and commands"
+      },
+      {
+        "path": "docs/reference/ARCHITECTURE.md",
         "description": "System architecture and domain boundaries"
       },
       {
-        "path": "docs/THREAT_MODEL.md",
+        "path": "contracts/ARCHITECTURE.md",
+        "description": "Contract domain dependency rules enforced by guards"
+      },
+      {
+        "path": "docs/security/THREAT_MODEL.md",
         "description": "Security threat model for the protocol"
       },
       {
-        "path": "docs/BRANCHING.md",
+        "path": "docs/development/BRANCHING.md",
         "description": "Branching, signing, and contribution workflow"
       }
     ]

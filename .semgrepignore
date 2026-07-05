@@ -43,6 +43,7 @@
 # IDE and editor configs
 .vscode/**
 .idea/**
+.cursor/**
 *.swp
 *.swo
 

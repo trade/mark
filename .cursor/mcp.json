@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "semgrep": {
+      "command": "node",
+      "args": [".cursor/semgrep-mcp-server.cjs"],
+      "env": {
+        "SEMGREP_BIN": "mise",
+        "SEMGREP_VERSION": "1.163.0",
+        "SEMGREP_SEND_METRICS": "off"
+      }
+    }
+  }
+}
