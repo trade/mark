@@ -39,7 +39,6 @@ jobs:
 
       - name: Run Semgrep with SARIF output (baseline-aware)
         run: |
-          # Use baseline tag to only report NEW findings
           BASELINE_SHA=$(git rev-parse semgrep-baseline-v1^{commit} 2>/dev/null || echo "")
           if [ -n "$BASELINE_SHA" ]; then
             uvx semgrep@1.163.0 scan --config=.semgrep.yml --severity ERROR --error --sarif --output=semgrep.sarif --baseline-commit=$BASELINE_SHA .
@@ -48,6 +47,13 @@ jobs:
           fi
         env:
           SEMGREP_SEND_METRICS: "off"
+
+      - name: Prepare empty SARIF if missing
+        if: always()
+        run: |
+          if [ ! -f semgrep.sarif ]; then
+            echo '{"version":"2.1.0","runs":[]}' > semgrep.sarif
+          fi
 
       - name: Upload SARIF to GitHub Security
         if: always()
